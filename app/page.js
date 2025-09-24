@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import SequentialTask from '../components/SequentialTask'
 import WorkerForm from '../components/WorkerForm'
 
@@ -44,6 +45,7 @@ const initialTasks = [
 ]
 
 export default function Home() {
+  const { user, logout, isAuthenticated } = useAuth()
   const [tasks, setTasks] = useState([])
   const [currentStep, setCurrentStep] = useState(1)
   const [showTimer, setShowTimer] = useState(true)
@@ -213,6 +215,29 @@ export default function Home() {
   if (!gameStarted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-3 sm:p-6 lg:p-8">
+        {/* Header con usuario y logout */}
+        {isAuthenticated() && (
+          <div className="absolute top-4 right-4 z-10">
+            <div className="bg-white/10 backdrop-blur-lg rounded-lg p-3 border border-white/20">
+              <div className="flex items-center space-x-3">
+                <div className="text-right">
+                  <p className="text-white text-sm font-medium">{user?.name}</p>
+                  <p className="text-white/60 text-xs capitalize">{user?.role}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    logout()
+                    window.location.href = '/login'
+                  }}
+                  className="bg-red-500/20 hover:bg-red-500/30 text-red-200 px-3 py-1 rounded text-sm transition-colors"
+                >
+                  Salir
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="text-center w-full max-w-4xl mx-auto">
           {/* Logo y Header */}
           <div className="mb-6 sm:mb-8 lg:mb-12">
@@ -239,7 +264,14 @@ export default function Home() {
               🚀 Empezar Cierre
             </button>
             
-            <div className="flex justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+              <a
+                href="/tickets"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg text-xs sm:text-sm lg:text-base"
+              >
+                📸 Foto Tickets
+              </a>
+              
               <a
                 href="/admin"
                 className="bg-white/10 hover:bg-white/20 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 border border-white/20 text-xs sm:text-sm lg:text-base"

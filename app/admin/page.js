@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../../contexts/AuthContext'
 
-export default function AdminPage() {
+function AdminPageContent() {
   const [cierres, setCierres] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -302,4 +304,25 @@ export default function AdminPage() {
       )}
     </div>
   )
+}
+
+export default function AdminPage() {
+  const { isAuthenticated, isAdmin } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isAuthenticated() || !isAdmin()) {
+      router.push('/login')
+    }
+  }, [isAuthenticated, isAdmin, router])
+
+  if (!isAuthenticated() || !isAdmin()) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
+  return <AdminPageContent />
 }

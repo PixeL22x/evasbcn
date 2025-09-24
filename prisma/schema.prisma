@@ -11,14 +11,15 @@ datasource db {
 }
 
 model Cierre {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
   trabajador  String
-  fechaInicio DateTime @default(now())
+  fechaInicio DateTime     @default(now())
   fechaFin    DateTime?
-  completado  Boolean  @default(false)
+  completado  Boolean      @default(false)
   tareas      Tarea[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  ticketFotos TicketFoto[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@map("cierres")
 }
@@ -34,4 +35,19 @@ model Tarea {
   updatedAt  DateTime @updatedAt
 
   @@map("tareas")
+}
+
+model TicketFoto {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  cierreId  String   @db.ObjectId
+  cierre    Cierre   @relation(fields: [cierreId], references: [id], onDelete: Cascade)
+  turno     String   // "mañana" o "tarde"
+  url       String   // URL de la imagen en Cloudinary
+  publicId  String   // ID público de Cloudinary para eliminación
+  timestamp DateTime @default(now())
+  trabajador String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ticket_fotos")
 }
