@@ -9,8 +9,8 @@ export async function GET() {
     if (!isConnected) {
       return NextResponse.json(
         { 
-          error: 'No se pudo conectar a MongoDB',
-          database_url: process.env.DATABASE_URL ? 'Configurada' : 'No configurada'
+          error: 'No se pudo conectar a SQLite',
+          database_url: 'SQLite local'
         },
         { status: 500 }
       )
@@ -21,21 +21,21 @@ export async function GET() {
     
     return NextResponse.json({
       status: 'success',
-      message: 'Conexión a MongoDB exitosa',
-      database_url: process.env.DATABASE_URL ? 'Configurada' : 'No configurada',
+      message: 'Conexión a SQLite exitosa',
+      database_url: 'SQLite local',
       total_cierres: testQuery,
       timestamp: new Date().toISOString()
     })
   } catch (error) {
     console.error('Error en debug:', error)
-    return NextResponse.json(
-      { 
-        error: error.message,
-        database_url: process.env.DATABASE_URL ? 'Configurada' : 'No configurada',
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
-    )
+      return NextResponse.json(
+        { 
+          error: error.message,
+          database_url: 'SQLite local',
+          timestamp: new Date().toISOString()
+        },
+        { status: 500 }
+      )
   }
 }
 

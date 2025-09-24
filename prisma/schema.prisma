@@ -6,12 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Cierre {
-  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  id          String       @id @default(cuid())
   trabajador  String
   fechaInicio DateTime     @default(now())
   fechaFin    DateTime?
@@ -20,26 +20,22 @@ model Cierre {
   ticketFotos TicketFoto[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-
-  @@map("cierres")
 }
 
 model Tarea {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  id         String   @id @default(cuid())
   nombre     String
   duracion   Int      // en minutos
   completada Boolean  @default(false)
-  cierreId   String   @db.ObjectId
+  cierreId   String
   cierre     Cierre   @relation(fields: [cierreId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-  @@map("tareas")
 }
 
 model TicketFoto {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  cierreId  String   @db.ObjectId
+  id        String   @id @default(cuid())
+  cierreId  String
   cierre    Cierre   @relation(fields: [cierreId], references: [id], onDelete: Cascade)
   turno     String   // "mañana" o "tarde"
   url       String   // URL de la imagen en Cloudinary
@@ -48,6 +44,4 @@ model TicketFoto {
   trabajador String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@map("ticket_fotos")
 }
