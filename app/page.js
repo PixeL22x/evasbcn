@@ -257,12 +257,15 @@ export default function Home() {
 
           {/* Controles */}
           <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-            <button
-              onClick={handleStartGame}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 lg:px-12 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl text-base sm:text-lg lg:text-xl"
-            >
-              🚀 Empezar Cierre
-            </button>
+            {/* Solo mostrar botón de empezar cierre para trabajadores */}
+            {user?.role === 'worker' && (
+              <button
+                onClick={handleStartGame}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 lg:px-12 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl text-base sm:text-lg lg:text-xl"
+              >
+                🚀 Empezar Cierre
+              </button>
+            )}
             
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <a
@@ -280,18 +283,21 @@ export default function Home() {
               </a>
             </div>
       
-            <div className="flex justify-center">
-              <button
-                onClick={() => setShowTimer(!showTimer)}
-                className={`px-3 sm:px-4 lg:px-6 py-2 rounded-lg font-medium transition-all duration-300 text-xs sm:text-sm lg:text-base ${
-                  showTimer 
-                    ? 'bg-orange-500 text-white' 
-                    : 'bg-white/10 hover:bg-white/20 text-white'
-                }`}
-              >
-                {showTimer ? '⏰ Temporizador ON' : '⏰ Desactivar Temporizador'}
-              </button>
-            </div>
+            {/* Solo mostrar controles de temporizador para trabajadores */}
+            {user?.role === 'worker' && (
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setShowTimer(!showTimer)}
+                  className={`px-3 sm:px-4 lg:px-6 py-2 rounded-lg font-medium transition-all duration-300 text-xs sm:text-sm lg:text-base ${
+                    showTimer 
+                      ? 'bg-orange-500 text-white' 
+                      : 'bg-white/10 hover:bg-white/20 text-white'
+                  }`}
+                >
+                  {showTimer ? '⏰ Temporizador ON' : '⏰ Desactivar Temporizador'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
