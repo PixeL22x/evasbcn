@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Cierre {
+  id          String   @id @default(cuid())
+  trabajador  String
+  fechaInicio DateTime @default(now())
+  fechaFin    DateTime?
+  completado  Boolean  @default(false)
+  tareas      Tarea[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("cierres")
+}
+
+model Tarea {
+  id        String   @id @default(cuid())
+  nombre    String
+  duracion  Int      // en minutos
+  completada Boolean @default(false)
+  cierreId  String
+  cierre    Cierre   @relation(fields: [cierreId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tareas")
+}
