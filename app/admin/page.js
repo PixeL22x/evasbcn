@@ -307,14 +307,22 @@ function AdminPageContent() {
 }
 
 export default function AdminPage() {
-  const { isAuthenticated, isAdmin } = useAuth()
+  const { isAuthenticated, isAdmin, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (!isAuthenticated() || !isAdmin()) {
+    if (!loading && (!isAuthenticated() || !isAdmin())) {
       router.push('/login')
     }
-  }, [isAuthenticated, isAdmin, router])
+  }, [isAuthenticated, isAdmin, loading, router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
 
   if (!isAuthenticated() || !isAdmin()) {
     return (
