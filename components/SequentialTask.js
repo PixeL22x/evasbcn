@@ -205,9 +205,9 @@ export default function SequentialTask({
         <div className="flex justify-between items-center flex-wrap gap-2 sm:gap-4">
           <button
             onClick={onPrevious}
-            disabled={currentStep === 1}
+            disabled={currentStep === 1 || isRunning}
             className={`px-3 sm:px-4 lg:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all duration-300 text-xs sm:text-sm lg:text-base ${
-              currentStep === 1 
+              currentStep === 1 || isRunning
                 ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed' 
                 : 'bg-white/10 hover:bg-white/20 text-white'
             }`}
