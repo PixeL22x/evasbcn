@@ -20,8 +20,8 @@ export async function POST(request) {
             cierreId,
             turno,
             trabajador,
-            url: foto.url,
-            publicId: foto.publicId
+            url: foto.url || foto.preview, // Usar URL o preview
+            publicId: foto.publicId || `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
           }
         })
       )

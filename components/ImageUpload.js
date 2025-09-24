@@ -71,29 +71,28 @@ export default function ImageUpload({
   }
 
   const uploadImage = async (file) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET)
-    formData.append('folder', `evas-tickets/${turno}`)
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-      {
-        method: 'POST',
-        body: formData
+    // Crear una URL local para la imagen (solución temporal)
+    const reader = new FileReader()
+    
+    return new Promise((resolve, reject) => {
+      reader.onload = (e) => {
+        const imageData = {
+          url: e.target.result, // URL local de la imagen
+          publicId: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // ID único local
+          originalName: file.name,
+          size: file.size,
+          preview: e.target.result // Para compatibilidad
+        }
+        
+        onUpload(imageData)
+        resolve(imageData)
       }
-    )
-
-    if (!response.ok) {
-      throw new Error('Error al subir la imagen')
-    }
-
-    const data = await response.json()
-    onUpload({
-      url: data.secure_url,
-      publicId: data.public_id,
-      originalName: file.name,
-      size: file.size
+      
+      reader.onerror = () => {
+        reject(new Error('Error al leer el archivo'))
+      }
+      
+      reader.readAsDataURL(file)
     })
   }
 
