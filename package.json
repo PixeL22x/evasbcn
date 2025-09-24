@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo -H 0.0.0.0",
-    "build": "npx prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "npx prisma generate"
+    "postinstall": "npx prisma generate",
+    "vercel-build": "npx prisma generate && npx prisma db push && next build"
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",
