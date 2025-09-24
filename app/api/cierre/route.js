@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '../../../lib/prisma'
+import { prisma, connectDB } from '../../../lib/prisma'
 
 // Crear un nuevo cierre
 export async function POST(request) {
   try {
+    // Verificar conexión a la base de datos
+    const isConnected = await connectDB()
+    if (!isConnected) {
+      return NextResponse.json(
+        { error: 'Error de conexión a la base de datos' },
+        { status: 500 }
+      )
+    }
+
     const { trabajador } = await request.json()
 
     if (!trabajador || !trabajador.trim()) {
