@@ -1,5 +1,0 @@
-[33m2229b2c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m chore: remove temporary file
-[33m6f421ee[m feat: Complete migration to MongoDB + Cloudinary with performance optimizations
-[33mc739d45[m Fix image upload functionality - Replace Cloudinary with local file handling for development - Use FileReader to create local image URLs - Update API to handle local image data
-[33m3ec3f36[m Implement role-based UI and professional photo gallery - Hide start button for admin users - Redesign tickets page with turn selection - Create professional photo gallery with grid layout and hover controls
-[33mea2f5bf[m Fix authentication redirect issue - Add loading state check to prevent premature redirects to login page
