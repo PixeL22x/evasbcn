@@ -146,9 +146,32 @@ export async function POST(request) {
     })
 
   } catch (error) {
-    console.error('Error al subir fotos de tarea:', error)
+    console.error('❌ Error al subir fotos de tarea:', error)
+    console.error('❌ Error stack:', error.stack)
+    
+    // Proporcionar más detalles del error
+    let errorMessage = 'Error interno del servidor'
+    let errorDetails = error.message
+    
+    if (error.message.includes('Cloudinary')) {
+      errorMessage = 'Error al subir fotos a Cloudinary'
+      errorDetails = 'Problema con el servicio de almacenamiento de imágenes'
+    } else if (error.message.includes('Sharp')) {
+      errorMessage = 'Error al procesar las imágenes'
+      errorDetails = 'Problema al comprimir las imágenes'
+    } else if (error.message.includes('Prisma') || error.message.includes('database')) {
+      errorMessage = 'Error al guardar en la base de datos'
+      errorDetails = 'Problema al almacenar la información de las fotos'
+    }
+    
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { 
+        error: errorMessage,
+        details: errorDetails,
+        timestamp: new Date().toISOString(),
+        // Solo en desarrollo, mostrar stack completo
+        ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+      },
       { status: 500 }
     )
   }

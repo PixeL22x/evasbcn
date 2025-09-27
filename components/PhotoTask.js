@@ -255,8 +255,23 @@ export default function PhotoTask({
         throw new Error('Error al marcar la tarea como completada')
       }
     } catch (error) {
-      console.error('Error:', error)
-      alert('Error al completar la tarea. Inténtalo de nuevo.')
+      console.error('❌ Error al completar la tarea:', error)
+      
+      // Mostrar mensaje de error más específico
+      let userMessage = 'Error al completar la tarea. Inténtalo de nuevo.'
+      
+      if (error.message.includes('Cloudinary')) {
+        userMessage = 'Error al subir las fotos al servidor. Verifica tu conexión a internet e inténtalo de nuevo.'
+      } else if (error.message.includes('compresión') || error.message.includes('Sharp')) {
+        userMessage = 'Error al procesar las imágenes. Inténtalo con fotos más pequeñas.'
+      } else if (error.message.includes('base de datos')) {
+        userMessage = 'Error al guardar la información. Inténtalo de nuevo en unos momentos.'
+      } else if (error.message.includes('variables de entorno')) {
+        userMessage = 'Error de configuración del servidor. Contacta al administrador.'
+      }
+      
+      alert(userMessage)
+      setUploadProgress('')
     } finally {
       setIsUploading(false)
     }
@@ -348,8 +363,23 @@ export default function PhotoTask({
         throw new Error('Error al marcar la tarea como completada')
       }
     } catch (error) {
-      console.error('Error:', error)
-      alert('Error al completar la tarea. Inténtalo de nuevo.')
+      console.error('❌ Error al completar la tarea:', error)
+      
+      // Mostrar mensaje de error más específico
+      let userMessage = 'Error al completar la tarea. Inténtalo de nuevo.'
+      
+      if (error.message.includes('Cloudinary')) {
+        userMessage = 'Error al subir las fotos al servidor. Verifica tu conexión a internet e inténtalo de nuevo.'
+      } else if (error.message.includes('compresión') || error.message.includes('Sharp')) {
+        userMessage = 'Error al procesar las imágenes. Inténtalo con fotos más pequeñas.'
+      } else if (error.message.includes('base de datos')) {
+        userMessage = 'Error al guardar la información. Inténtalo de nuevo en unos momentos.'
+      } else if (error.message.includes('variables de entorno')) {
+        userMessage = 'Error de configuración del servidor. Contacta al administrador.'
+      }
+      
+      alert(userMessage)
+      setUploadProgress('')
     } finally {
       setIsUploading(false)
     }
