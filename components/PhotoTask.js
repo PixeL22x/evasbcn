@@ -228,7 +228,18 @@ export default function PhotoTask({
       })
 
       if (!fotosResponse.ok) {
-        throw new Error('Error al subir las fotos')
+        const errorData = await fotosResponse.json().catch(() => ({}))
+        console.error('❌ Error response from server:', errorData)
+        
+        let errorMessage = 'Error al subir las fotos'
+        if (errorData.error) {
+          errorMessage = errorData.error
+        }
+        if (errorData.details) {
+          errorMessage += `: ${errorData.details}`
+        }
+        
+        throw new Error(errorMessage)
       }
 
       // Marcar la tarea como completada
@@ -336,7 +347,18 @@ export default function PhotoTask({
       })
 
       if (!fotosResponse.ok) {
-        throw new Error('Error al subir las fotos')
+        const errorData = await fotosResponse.json().catch(() => ({}))
+        console.error('❌ Error response from server:', errorData)
+        
+        let errorMessage = 'Error al subir las fotos'
+        if (errorData.error) {
+          errorMessage = errorData.error
+        }
+        if (errorData.details) {
+          errorMessage += `: ${errorData.details}`
+        }
+        
+        throw new Error(errorMessage)
       }
 
       // Marcar la tarea como completada

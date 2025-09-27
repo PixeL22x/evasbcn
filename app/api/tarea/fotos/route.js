@@ -83,10 +83,24 @@ export async function POST(request) {
           height: result.height,
           timestamp: new Date()
         }
-      } catch (uploadError) {
-        console.error(`❌ Error procesando foto ${tipo}:`, uploadError)
-        throw uploadError
-      }
+        } catch (uploadError) {
+          console.error(`❌ Error procesando foto ${tipo}:`, uploadError)
+          
+          // Categorizar el error para mejor debugging
+          let errorCategory = 'unknown'
+          if (uploadError.message.includes('Cloudinary')) {
+            errorCategory = 'cloudinary'
+          } else if (uploadError.message.includes('Sharp')) {
+            errorCategory = 'compression'
+          } else if (uploadError.message.includes('timeout')) {
+            errorCategory = 'timeout'
+          } else if (uploadError.message.includes('network') || uploadError.message.includes('ENOTFOUND')) {
+            errorCategory = 'network'
+          }
+          
+          console.error(`❌ Error category: ${errorCategory}`)
+          throw uploadError
+        }
     }
 
     // Subir fotos en paralelo (máximo 3 a la vez para no sobrecargar)
