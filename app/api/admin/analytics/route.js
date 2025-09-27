@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
 
+// Configurar como ruta dinámica
+export const dynamic = 'force-dynamic'
+
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const range = searchParams.get('range') || '30d'
+    const url = new URL(request.url)
+    const range = url.searchParams.get('range') || '30d'
     
     // Calcular fechas según el rango
     const now = new Date()
