@@ -105,7 +105,8 @@ export async function POST(request) {
 
     // Subir fotos en paralelo (máximo 3 a la vez para no sobrecargar)
     console.log('🚀 Iniciando subida paralela de fotos...')
-    const BATCH_SIZE = 3
+    // Forzar subidas secuenciales para máxima compatibilidad en Vercel
+    const BATCH_SIZE = 1
     const fotos = []
     
     for (let i = 0; i < fotosParaSubir.length; i += BATCH_SIZE) {
