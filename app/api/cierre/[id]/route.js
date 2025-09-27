@@ -37,4 +37,44 @@ export async function GET(request, { params }) {
   }
 }
 
+// Actualizar un cierre específico por ID
+export async function PUT(request, { params }) {
+  try {
+    const { id } = params
+    const { totalVentas } = await request.json()
 
+    if (!id) {
+      return NextResponse.json(
+        { error: 'ID de cierre es requerido' },
+        { status: 400 }
+      )
+    }
+
+    if (totalVentas === undefined || totalVentas === null) {
+      return NextResponse.json(
+        { error: 'Total de ventas es requerido' },
+        { status: 400 }
+      )
+    }
+
+    const cierre = await prisma.cierre.update({
+      where: { id },
+      data: { totalVentas: parseFloat(totalVentas) },
+      include: {
+        tareas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
+      },
+    })
+
+    return NextResponse.json({ cierre })
+  } catch (error) {
+    console.error('Error al actualizar cierre:', error)
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    )
+  }
+}

@@ -23,7 +23,7 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
-    const result = login(username, password)
+    const result = await login(username, password)
     
     if (result.success) {
       router.push('/')
@@ -76,7 +76,7 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="admin o evas"
+                placeholder="Ingresa tu usuario"
                 required
               />
             </div>
@@ -118,21 +118,11 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Información de usuarios */}
+          {/* Información de ayuda */}
           <div className="mt-6 pt-6 border-t border-white/20">
-            <p className="text-white/60 text-sm text-center mb-3">
-              Usuarios disponibles:
+            <p className="text-white/60 text-sm text-center">
+              Contacta al administrador si necesitas acceso
             </p>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-white/80">Admin:</span>
-                <span className="text-white/60">admin / admin</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/80">Trabajador:</span>
-                <span className="text-white/60">evas / evas</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

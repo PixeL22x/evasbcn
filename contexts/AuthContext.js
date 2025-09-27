@@ -4,66 +4,81 @@ import { createContext, useContext, useState, useEffect } from 'react'
 
 const AuthContext = createContext()
 
-// Usuarios predefinidos
-const USERS = {
-  admin: {
-    username: 'admin',
-    password: 'admin',
-    role: 'admin',
-    name: 'Administrador'
-  },
-  evas: {
-    username: 'evas',
-    password: 'evas',
-    role: 'worker',
-    name: 'Trabajador Evas'
-  }
-}
+// Solo mantenemos el admin hardcodeado por seguridad
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Verificar si hay usuario guardado en localStorage
-    const savedUser = localStorage.getItem('user')
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser))
-      } catch (error) {
-        console.error('Error al cargar usuario guardado:', error)
-        localStorage.removeItem('user')
+    // Solo ejecutar en el cliente
+    if (typeof window !== 'undefined') {
+      // Verificar si hay usuario guardado en localStorage
+      const savedUser = localStorage.getItem('user')
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(savedUser))
+        } catch (error) {
+          console.error('Error al cargar usuario guardado:', error)
+          localStorage.removeItem('user')
+        }
       }
     }
     setLoading(false)
   }, [])
 
-  const login = (username, password) => {
-    const userData = USERS[username]
-    
-    if (userData && userData.password === password) {
-      const userToSave = {
-        username: userData.username,
-        role: userData.role,
-        name: userData.name
+  const login = async (username, password) => {
+    try {
+      // Verificar usuario admin hardcodeado
+      if (username === 'admin' && password === 'admin') {
+        const userToSave = {
+          username: 'admin',
+          role: 'admin',
+          name: 'Administrador'
+        }
+        setUser(userToSave)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(userToSave))
+        }
+        return { success: true, user: userToSave }
+      }
+
+      // Verificar trabajadores en la base de datos
+      const response = await fetch('/api/trabajadores')
+      if (response.ok) {
+        const data = await response.json()
+        const trabajador = data.trabajadores.find(t => 
+          t.nombre === username && t.password === password && t.activo
+        )
+        
+        if (trabajador) {
+          const userToSave = {
+            username: trabajador.nombre,
+            role: 'worker',
+            name: trabajador.nombre,
+            id: trabajador.id
+          }
+          setUser(userToSave)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user', JSON.stringify(userToSave))
+          }
+          return { success: true, user: userToSave }
+        }
       }
       
-      setUser(userToSave)
-      localStorage.setItem('user', JSON.stringify(userToSave))
-      return { success: true, user: userToSave }
+      return { success: false, error: 'Usuario o contraseña incorrectos' }
+    } catch (error) {
+      console.error('Error al verificar credenciales:', error)
+      return { success: false, error: 'Error de conexión' }
     }
-    
-    return { success: false, error: 'Usuario o contraseña incorrectos' }
   }
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem('user')
-    localStorage.removeItem('cierreId')
-    localStorage.removeItem('workerName')
-    
-    // Redirigir a login después del logout
     if (typeof window !== 'undefined') {
+      localStorage.removeItem('user')
+      localStorage.removeItem('cierreId')
+      localStorage.removeItem('workerName')
       window.location.href = '/login'
     }
   }
@@ -80,14 +95,6 @@ export function AuthProvider({ children }) {
     return user?.role === 'worker'
   }
 
-  const canViewPhotos = () => {
-    return isAdmin() || isWorker()
-  }
-
-  const canUploadPhotos = () => {
-    return isWorker()
-  }
-
   const value = {
     user,
     loading,
@@ -95,9 +102,7 @@ export function AuthProvider({ children }) {
     logout,
     isAuthenticated,
     isAdmin,
-    isWorker,
-    canViewPhotos,
-    canUploadPhotos
+    isWorker
   }
 
   return (

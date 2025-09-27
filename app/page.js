@@ -4,54 +4,18 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import SequentialTask from '../components/SequentialTask'
 import WorkerForm from '../components/WorkerForm'
+import PedidoHelados from '../components/PedidoHelados'
 
-const initialTasks = [
-  {
-    id: 1,
-    name: 'Limpiar mostrador',
-    duration: 5,
-    completed: false
-  },
-  {
-    id: 2,
-    name: 'Guardar productos en la cámara',
-    duration: 5,
-    completed: false
-  },
-  {
-    id: 3,
-    name: 'Apagar máquinas',
-    duration: 5,
-    completed: false
-  },
-  {
-    id: 4,
-    name: 'Contar caja',
-    duration: 5,
-    completed: false
-  },
-  {
-    id: 5,
-    name: 'Registrar ventas en el sistema',
-    duration: 5,
-    completed: false
-  },
-  {
-    id: 6,
-    name: 'Limpiar piso y sacar basura',
-    duration: 5,
-    completed: false
-  }
-]
 
 export default function Home() {
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated, loading } = useAuth()
   const [tasks, setTasks] = useState([])
   const [currentStep, setCurrentStep] = useState(1)
-  const [showTimer, setShowTimer] = useState(true)
+  const [showTimer, setShowTimer] = useState(false)
   const [gameStarted, setGameStarted] = useState(false)
   const [showCelebration, setShowCelebration] = useState(false)
   const [showWorkerForm, setShowWorkerForm] = useState(false)
+  const [showPedidoHelados, setShowPedidoHelados] = useState(false)
   const [cierreId, setCierreId] = useState(null)
   const [workerName, setWorkerName] = useState('')
   const [loadingTasks, setLoadingTasks] = useState(false)
@@ -62,6 +26,29 @@ export default function Home() {
   const currentTask = tasks[currentStep - 1]
   const completedTasks = tasks.filter(task => task.completed || task.completada).length
   const isAllCompleted = completedTasks === totalTasks
+
+  // Debug logging
+  console.log('Debug info:', {
+    totalTasks,
+    currentStep,
+    completedTasks,
+    isAllCompleted,
+    tasks: tasks.map(t => ({ id: t.id, nombre: t.nombre, completed: t.completed, completada: t.completada }))
+  })
+
+  // Redirigir a login si no está autenticado
+  useEffect(() => {
+    if (!loading && !isAuthenticated()) {
+      window.location.href = '/login'
+    }
+  }, [isAuthenticated, loading])
+
+  // Redirigir a admin dashboard si es administrador
+  useEffect(() => {
+    if (!loading && isAuthenticated() && user?.role === 'admin') {
+      window.location.href = '/admin/dashboard'
+    }
+  }, [loading, isAuthenticated, user?.role])
 
   useEffect(() => {
     if (isAllCompleted && gameStarted) {
@@ -80,15 +67,47 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [startTime, gameStarted, isAllCompleted])
 
-  const handleTaskComplete = (taskId) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
+  // Mostrar loading mientras se verifica la autenticación
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
+  // Si no está autenticado, no mostrar nada (se redirigirá)
+  if (!isAuthenticated()) {
+    return null
+  }
+
+  // Si es admin, mostrar loading mientras se redirige
+  if (user?.role === 'admin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/70">Redirigiendo al dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const handleTaskComplete = async (taskId) => {
+    console.log('handleTaskComplete called for taskId:', taskId)
+    setTasks(prevTasks => {
+      const updatedTasks = prevTasks.map(task =>
         task.id === taskId
           ? { ...task, completed: true, completada: true }
           : task
       )
-    )
+      console.log('Updated tasks:', updatedTasks)
+      return updatedTasks
+    })
+
+    // Las fotos ahora se suben inmediatamente cuando se completa cada tarea
   }
+
 
   const handleNext = () => {
     if (currentStep < totalTasks) {
@@ -101,17 +120,12 @@ export default function Home() {
     }
   }
 
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
 
   const handleStartGame = () => {
     setShowWorkerForm(true)
   }
 
-  const handleWorkerSubmit = async (newCierreId, newWorkerName) => {
+  const handleWorkerSubmit = async (newCierreId, newWorkerName, turno) => {
     setCierreId(newCierreId)
     setWorkerName(newWorkerName)
     setShowWorkerForm(false)
@@ -122,6 +136,7 @@ export default function Home() {
     
     // Cargar las tareas desde la base de datos antes de iniciar el juego
     await loadTasksFromDatabase(newCierreId)
+    
     setLoadingTasks(false)
     setGameStarted(true)
     setStartTime(Date.now()) // Iniciar el cronómetro
@@ -129,10 +144,13 @@ export default function Home() {
 
   const loadTasksFromDatabase = async (cierreId) => {
     try {
-      const response = await fetch(`/api/cierre/${cierreId}`)
+      const response = await fetch(`${window.location.origin}/api/cierre/${cierreId}`)
+      
       if (response.ok) {
         const data = await response.json()
         setTasks(data.cierre.tareas)
+      } else {
+        console.error('Error en respuesta de carga de tareas:', response.status)
       }
     } catch (error) {
       console.error('Error al cargar tareas:', error)
@@ -157,6 +175,24 @@ export default function Home() {
 
   const getTotalTime = () => {
     return tasks.reduce((total, task) => total + (task.duration || task.duracion || 0), 0)
+  }
+
+  const getTimeBreakdown = () => {
+    if (tasks.length === 0) return { preCierre: 0, cierre: 0, total: 0 }
+    
+    // Tareas de pre-cierre (1-6): 20 minutos
+    const preCierreTasks = tasks.slice(0, 6)
+    const preCierreTime = preCierreTasks.reduce((total, task) => total + (task.duration || task.duracion || 0), 0)
+    
+    // Tareas de cierre (7-20): 30 minutos
+    const cierreTasks = tasks.slice(6)
+    const cierreTime = cierreTasks.reduce((total, task) => total + (task.duration || task.duracion || 0), 0)
+    
+    return {
+      preCierre: preCierreTime,
+      cierre: cierreTime,
+      total: preCierreTime + cierreTime
+    }
   }
 
   const getCompletedTime = () => {
@@ -259,29 +295,47 @@ export default function Home() {
           <div className="space-y-3 sm:space-y-4 lg:space-y-6">
             {/* Solo mostrar botón de empezar cierre para trabajadores */}
             {user?.role === 'worker' && (
-              <button
-                onClick={handleStartGame}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 lg:px-12 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl text-base sm:text-lg lg:text-xl"
-              >
-                🚀 Empezar Cierre
-              </button>
+              <div className="space-y-3 sm:space-y-4">
+                <button
+                  onClick={handleStartGame}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 lg:px-12 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl text-base sm:text-lg lg:text-xl"
+                >
+                  🚀 Empezar Cierre
+                </button>
+                
+                <button
+                  onClick={() => setShowPedidoHelados(true)}
+                  className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 lg:px-12 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl text-base sm:text-lg lg:text-xl"
+                >
+                  🍦 Hacer Pedido Helados
+                </button>
+              </div>
             )}
             
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <a
-                href="/tickets"
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg text-xs sm:text-sm lg:text-base"
-              >
-                📸 Foto Tickets
-              </a>
-              
-              <a
-                href="/admin"
-                className="bg-white/10 hover:bg-white/20 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 border border-white/20 text-xs sm:text-sm lg:text-base"
-              >
-                📊 Estadísticas
-              </a>
-            </div>
+            {/* Botones de navegación */}
+            {user?.role === 'worker' ? (
+              // Los trabajadores solo tienen el botón de empezar cierre
+              null
+            ) : (
+              // Botones para admin
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                  <a
+                    href="/admin/dashboard"
+                    className="bg-white/10 hover:bg-white/20 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 border border-white/20 text-xs sm:text-sm lg:text-base"
+                  >
+                    📊 Panel Admin
+                  </a>
+                  
+                  <a
+                    href="/trabajadores"
+                    className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg text-xs sm:text-sm lg:text-base"
+                  >
+                    👷 Trabajadores
+                  </a>
+                </div>
+              </div>
+            )}
       
             {/* Solo mostrar controles de temporizador para trabajadores */}
             {user?.role === 'worker' && (
@@ -290,16 +344,21 @@ export default function Home() {
                   onClick={() => setShowTimer(!showTimer)}
                   className={`px-3 sm:px-4 lg:px-6 py-2 rounded-lg font-medium transition-all duration-300 text-xs sm:text-sm lg:text-base ${
                     showTimer 
-                      ? 'bg-orange-500 text-white' 
-                      : 'bg-white/10 hover:bg-white/20 text-white'
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                      : 'bg-orange-500 hover:bg-orange-600 text-white'
                   }`}
                 >
-                  {showTimer ? '⏰ Temporizador ON' : '⏰ Desactivar Temporizador'}
+                  {showTimer ? '⏰ Desactivar Temporizador' : '⏰ Activar Temporizador'}
                 </button>
               </div>
             )}
           </div>
         </div>
+        
+        {/* Modal de Pedido de Helados */}
+        {showPedidoHelados && (
+          <PedidoHelados onClose={() => setShowPedidoHelados(false)} />
+        )}
       </div>
     )
   }
@@ -346,6 +405,11 @@ export default function Home() {
               </button>
             </div>
           </div>
+          
+          {/* Modal de Pedido de Helados */}
+          {showPedidoHelados && (
+            <PedidoHelados onClose={() => setShowPedidoHelados(false)} />
+          )}
         </div>
       </div>
     )
@@ -364,14 +428,22 @@ export default function Home() {
          }
 
          return (
-           <SequentialTask
-             task={{...currentTask, cierreId}}
-             currentStep={currentStep}
-             totalSteps={totalTasks}
-             onComplete={handleTaskComplete}
-             onNext={handleNext}
-             onPrevious={handlePrevious}
-             showTimer={showTimer}
-           />
+           <>
+             <SequentialTask
+               task={{...currentTask, cierreId}}
+               currentStep={currentStep}
+               totalSteps={totalTasks}
+               onComplete={handleTaskComplete}
+               onNext={handleNext}
+               showTimer={showTimer}
+               cierreId={cierreId}
+               trabajador={workerName}
+             />
+             
+             {/* Modal de Pedido de Helados */}
+             {showPedidoHelados && (
+               <PedidoHelados onClose={() => setShowPedidoHelados(false)} />
+             )}
+           </>
          )
 }

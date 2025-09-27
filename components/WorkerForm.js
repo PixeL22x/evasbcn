@@ -1,40 +1,37 @@
 'use client'
 
 import { useState } from 'react'
-
-const trabajadores = [
-  { id: 'julia', nombre: 'Julia', emoji: '👩‍💼' },
-  { id: 'alejandra', nombre: 'Alejandra', emoji: '👩‍🍳' },
-  { id: 'martina', nombre: 'Martina', emoji: '👩‍💻' }
-]
+import { useAuth } from '../contexts/AuthContext'
 
 export default function WorkerForm({ onStart, onCancel }) {
-  const [selectedWorker, setSelectedWorker] = useState('')
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedTurno, setSelectedTurno] = useState('')
 
-  const handleWorkerSelect = async (worker) => {
-    if (isLoading) return
+  const handleStart = async () => {
+    if (isLoading || !selectedTurno) return
     
-    setSelectedWorker(worker.id)
     setIsLoading(true)
     
     try {
       // Crear el cierre en la base de datos
-      const response = await fetch('/api/cierre', {
+      const response = await fetch(`${window.location.origin}/api/cierre`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          trabajador: worker.nombre,
+          trabajador: user.name,
+          turno: selectedTurno,
         }),
       })
 
       if (response.ok) {
         const data = await response.json()
-        onStart(data.cierreId, worker.nombre)
+        onStart(data.cierreId, user.name, selectedTurno)
       } else {
-        console.error('Error al crear el cierre')
+        const errorData = await response.json()
+        console.error('Error al crear el cierre:', errorData)
         setIsLoading(false)
       }
     } catch (error) {
@@ -49,39 +46,83 @@ export default function WorkerForm({ onStart, onCancel }) {
         <div className="bg-white/10 backdrop-blur-lg rounded-lg sm:rounded-xl lg:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20">
           <div className="text-center mb-4 sm:mb-6 lg:mb-8">
             <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-white/10 backdrop-blur-sm rounded-full mb-3 sm:mb-4 lg:mb-6">
-              <span className="text-2xl sm:text-3xl lg:text-4xl">👥</span>
+              <span className="text-2xl sm:text-3xl lg:text-4xl">👷</span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 sm:mb-2">
-              ¿Quién eres?
+              ¡Hola {user?.name}!
             </h1>
             <p className="text-white/70 text-sm sm:text-base lg:text-lg">
-              Selecciona tu nombre para iniciar el cierre
+              Selecciona tu turno para iniciar el proceso de cierre
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8">
-            {trabajadores.map((worker) => (
+          {/* Selección de Turno */}
+          <div className="mb-6 sm:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Turno Mañana */}
               <button
-                key={worker.id}
-                onClick={() => handleWorkerSelect(worker)}
-                disabled={isLoading}
-                className={`p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
-                  selectedWorker === worker.id
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 border-blue-400 text-white shadow-lg'
-                    : 'bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/40'
-                } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={() => setSelectedTurno('mañana')}
+                className={`p-4 sm:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                  selectedTurno === 'mañana'
+                    ? 'bg-gradient-to-r from-orange-500 to-yellow-600 border-orange-400 text-white shadow-lg'
+                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                }`}
               >
                 <div className="text-center">
-                  <div className="text-2xl sm:text-3xl lg:text-4xl mb-1 sm:mb-2 lg:mb-3">{worker.emoji}</div>
-                  <div className="text-base sm:text-lg lg:text-xl font-bold">{worker.nombre}</div>
-                  {selectedWorker === worker.id && isLoading && (
-                    <div className="mt-1 sm:mt-2">
-                      <div className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    </div>
-                  )}
+                  <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">🌅</div>
+                  <div className="text-lg sm:text-xl font-bold mb-1">Turno Mañana</div>
+                  <div className="text-sm text-white/70">
+                    Cierre de mañana
+                  </div>
                 </div>
               </button>
-            ))}
+
+              {/* Turno Tarde */}
+              <button
+                onClick={() => setSelectedTurno('tarde')}
+                className={`p-4 sm:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                  selectedTurno === 'tarde'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 border-purple-400 text-white shadow-lg'
+                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">🌆</div>
+                  <div className="text-lg sm:text-xl font-bold mb-1">Turno Tarde</div>
+                  <div className="text-sm text-white/70 mb-2">
+                    20 tareas - 50 minutos total
+                  </div>
+                  <div className="text-xs text-white/60">
+                    Tiempo estimado: 30 min (Cierre) + 20 min (Pre-cierre)
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Botón de Inicio */}
+          <div className="flex justify-center mb-4 sm:mb-6 lg:mb-8">
+            <button
+              onClick={handleStart}
+              disabled={isLoading || !selectedTurno}
+              className={`px-8 sm:px-12 lg:px-16 py-4 sm:py-6 lg:py-8 rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                isLoading || !selectedTurno
+                  ? 'bg-gray-500/30 border-gray-400 text-gray-300 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-500 to-purple-600 border-blue-400 text-white shadow-lg hover:from-blue-600 hover:to-purple-700'
+              }`}
+            >
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl lg:text-4xl mb-2 sm:mb-3 lg:mb-4">🚀</div>
+                <div className="text-base sm:text-lg lg:text-xl font-bold">
+                  {isLoading ? 'Iniciando...' : `Empezar Cierre ${selectedTurno ? `- ${selectedTurno.charAt(0).toUpperCase() + selectedTurno.slice(1)}` : ''}`}
+                </div>
+                {isLoading && (
+                  <div className="mt-2 sm:mt-3">
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  </div>
+                )}
+              </div>
+            </button>
           </div>
 
           <div className="flex justify-center">

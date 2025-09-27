@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import CircularTimer from './CircularTimer'
+import PhotoTask from './PhotoTask'
+import VentasTask from './VentasTask'
 
 export default function SequentialTask({ 
   task, 
@@ -9,8 +11,9 @@ export default function SequentialTask({
   totalSteps, 
   onComplete, 
   onNext, 
-  onPrevious,
-  showTimer = true 
+  showTimer = true,
+  cierreId,
+  trabajador
 }) {
   const [timeLeft, setTimeLeft] = useState((task.duration || task.duracion) * 60)
   const [isRunning, setIsRunning] = useState(true)
@@ -66,10 +69,12 @@ export default function SequentialTask({
       if (response.ok) {
         onComplete(task.id)
         
-        // Auto-avanzar a la siguiente tarea después de un breve delay
-        setTimeout(() => {
-          onNext()
-        }, 1500) // 1.5 segundos para mostrar la confirmación
+        // Solo auto-avanzar si la tarea NO requiere fotos ni input
+        if (!task.requiereFotos && !task.requiereInput) {
+          setTimeout(() => {
+            onNext()
+          }, 1500) // 1.5 segundos para mostrar la confirmación
+        }
       } else {
         console.error('Error al actualizar la tarea')
         // Revertir el estado local si falla la actualización
@@ -99,22 +104,69 @@ export default function SequentialTask({
 
   const getTaskIcon = (taskName) => {
     const icons = {
+      // Pre-cierre / Limpieza Inicial (1-6)
+      'Escurrir fregona y tirar agua del cubo': '🧽',
+      'Preparar cubeta con agua + fairy (para cucharas y separadores)': '🧴',
+      'Guardar cosas secas': '📦',
+      'Poner todos los trapos en cubo con agua + lejía': '🧺',
+      'Separar helados restos → congelador gris (parte superior)': '🍦',
+      'Barrer y aspirar el local': '🧹',
+      // Cierre al Público (7-8)
       'Apagar luces todas menos blancas': '💡',
-      'Meter carteles': '📋',
-      'Cerrar puerta y persiana': '🚪',
-      'Sacar basura': '🗑️',
+      'Meter carteles y cerrar puerta + persiana': '🚪',
+      // Cierre Interno (9-15)
       'Limpiar con esponja lugar de cucharas ISA': '🧽',
-      'Guardar smoothies a Nevera blanca': '❄️',
-      'Sacar pinchos': '🍢',
+      'Guardar smoothies en la nevera blanca': '❄️',
       'Tapar helados': '🍦',
-      'Guardar helados repetidos a arcon': '📦',
+      'Guardar helados repetidos al arcón': '📦',
+      'Sacar pinchos de los helados': '🍢',
       'Sacar cucharas y pinchos a secar': '🍴',
-      'Apuntar info cierre en libreta, imprimir, grapar': '📝',
-      'Enviar foto de maquinas apagadas (gofre, aire)': '📸',
-      'Apagar y cargar datafonos': '💳',
-      'Apagar justeat, tpv, ventilador de techo': '🔌'
+      'Sacar basura': '🗑️',
+      // Administrativo (16-17)
+      'Apuntar info de cierre en libreta, imprimir y grapar': '📝',
+      'Ingresar total de ventas del día': '💰',
+      // Verificación (18)
+      'Enviar foto de máquinas apagadas (gofre, aire, crepera, ventilador techo)': '📸',
+      // Apagados Finales (19-20)
+      'Apagar justeat y TPV': '🔌',
+      'Apagar y cargar datafonos': '💳'
     }
     return icons[taskName] || '✅'
+  }
+
+  
+  // Verificar si esta tarea requiere fotos específicas
+  const requiresPhotos = task.requiereFotos === true
+  const requiresInput = task.requiereInput === true
+
+  // Si la tarea requiere fotos, mostrar el componente PhotoTask
+  if (requiresPhotos) {
+    return (
+      <PhotoTask
+        task={task}
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        onComplete={onComplete}
+        onNext={onNext}
+        cierreId={cierreId}
+        trabajador={trabajador}
+      />
+    )
+  }
+
+  // Si la tarea requiere input de ventas, mostrar el componente VentasTask
+  if (requiresInput && task.inputType === 'ventas') {
+    return (
+      <VentasTask
+        task={task}
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        onComplete={onComplete}
+        onNext={onNext}
+        cierreId={cierreId}
+        trabajador={trabajador}
+      />
+    )
   }
 
   return (
@@ -150,10 +202,6 @@ export default function SequentialTask({
         {/* Task Card */}
         <div className="bg-white/10 backdrop-blur-lg rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 xl:p-8 mb-4 sm:mb-6 lg:mb-8 border border-white/20">
           <div className="text-center mb-3 sm:mb-4 lg:mb-6">
-            <div className="text-3xl sm:text-4xl lg:text-6xl mb-2 sm:mb-3 lg:mb-4">{getTaskIcon(task.name || task.nombre)}</div>
-            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1 sm:mb-2">
-              {task.name || task.nombre}
-            </h2>
             <p className="text-white/70 text-xs sm:text-sm lg:text-base xl:text-lg">
               Tiempo estimado: {task.duration || task.duracion} minutos
             </p>
@@ -185,12 +233,16 @@ export default function SequentialTask({
           {/* Action Buttons */}
           <div className="flex gap-2 sm:gap-3 lg:gap-4 justify-center">
             {!isCompleted ? (
-              <button
-                onClick={handleComplete}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-sm sm:text-base"
-              >
-                ✅ OK
-              </button>
+              <div className="w-full space-y-3">
+                {/* Botón principal de completar */}
+                <button
+                  onClick={handleComplete}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-sm sm:text-base"
+                >
+                  ✅ OK
+                </button>
+                
+              </div>
             ) : (
               <div className="text-center w-full">
                 <div className="text-green-400 text-sm sm:text-base lg:text-lg font-medium">
@@ -202,22 +254,8 @@ export default function SequentialTask({
         </div>
 
         {/* Navigation */}
-        <div className={`flex items-center flex-wrap gap-2 sm:gap-4 ${!isRunning ? 'justify-between' : 'justify-center'}`}>
-          {!isRunning && (
-            <button
-              onClick={onPrevious}
-              disabled={currentStep === 1}
-              className={`px-3 sm:px-4 lg:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all duration-300 text-xs sm:text-sm lg:text-base ${
-                currentStep === 1
-                  ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed' 
-                  : 'bg-white/10 hover:bg-white/20 text-white'
-              }`}
-            >
-              ← Anterior
-            </button>
-          )}
-
-          <div className="flex space-x-1 sm:space-x-2 order-3 w-full sm:w-auto justify-center sm:justify-start">
+        <div className="flex items-center justify-center gap-2 sm:gap-4">
+          <div className="flex space-x-1 sm:space-x-2">
             {Array.from({ length: totalSteps }, (_, index) => (
               <div
                 key={index}

@@ -6,42 +6,59 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model Cierre {
-  id          String       @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   trabajador  String
-  fechaInicio DateTime     @default(now())
+  turno       String   // "mañana" o "tarde"
+  fechaInicio DateTime @default(now())
   fechaFin    DateTime?
-  completado  Boolean      @default(false)
+  completado  Boolean  @default(false)
+  totalVentas Float?   // Total de ventas del día
   tareas      Tarea[]
-  ticketFotos TicketFoto[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Tarea {
-  id         String   @id @default(cuid())
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
   nombre     String
   duracion   Int      // en minutos
   completada Boolean  @default(false)
-  cierreId   String
+  requiereFotos Boolean @default(false) // Indica si la tarea requiere fotos
+  fotosRequeridas String? // Array con los tipos de fotos requeridas (JSON string)
+  fotosSubidas String? // URLs de las fotos subidas a Cloudinary (JSON string)
+  requiereInput Boolean @default(false) // Indica si la tarea requiere input del usuario
+  inputType  String?  // Tipo de input requerido (ej: 'ventas')
+  cierreId   String   @db.ObjectId
   cierre     Cierre   @relation(fields: [cierreId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
 
-model TicketFoto {
-  id        String   @id @default(cuid())
-  cierreId  String
-  cierre    Cierre   @relation(fields: [cierreId], references: [id], onDelete: Cascade)
-  turno     String   // "mañana" o "tarde"
-  url       String   // URL de la imagen en Cloudinary
-  publicId  String   // ID público de Cloudinary para eliminación
-  timestamp DateTime @default(now())
-  trabajador String
+
+model Trabajador {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre    String   @unique
+  password  String
+  activo    Boolean  @default(true)
+  pedidos   PedidoHelado[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model PedidoHelado {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  trabajadorId String  @db.ObjectId
+  trabajador  Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Cascade)
+  sabores     String   // JSON string con los sabores y cantidades
+  estado      String   @default("pendiente") // pendiente, procesado, entregado
+  observaciones String?
+  fechaPedido DateTime @default(now())
+  fechaProcesado DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

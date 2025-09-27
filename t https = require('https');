@@ -1,0 +1,10 @@
+[33mc739d45[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Fix image upload functionality - Replace Cloudinary with local file handling for development - Use FileReader to create local image URLs - Update API to handle local image data
+[33m3ec3f36[m Implement role-based UI and professional photo gallery - Hide start button for admin users - Redesign tickets page with turn selection - Create professional photo gallery with grid layout and hover controls
+[33mea2f5bf[m Fix authentication redirect issue - Add loading state check to prevent premature redirects to login page
+[33me54ee39[m Switch to SQLite for local development - Replace MongoDB with SQLite for better local development experience
+[33m7bc3704[m Fix MongoDB connection issue - Add hardcoded database URL and config file to resolve environment variable loading problems
+[33md98eca8[m Fix authentication system and logout functionality - Simplify route protection and improve logout redirect
+[33m3101075[m[33m ([m[1;31morigin/main[m[33m)[m Ocultar botón Anterior durante ejecución de tareas - Mejora UX eliminando navegación mientras temporizador activo
+[33m198cb68[m Force redeploy - Fix MongoDB connection issue
+[33ma385976[m Deshabilitar botón Anterior durante ejecución de tareas - Mejora UX para evitar navegación durante temporizador activo
+[33med314c2[m Add database debugging tools and improve error handling
