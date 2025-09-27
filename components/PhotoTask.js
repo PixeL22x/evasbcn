@@ -297,14 +297,9 @@ export default function PhotoTask({
     }
 
     setIsUploading(true)
+    setUploadProgress('Preparando fotos para subir...')
 
     try {
-      // Subir las fotos al servidor inmediatamente
-      const formData = new FormData()
-      formData.append('cierreId', cierreId)
-      formData.append('trabajador', trabajador)
-      formData.append('tareaId', task.id)
-
       // Parsear fotosRequeridas para obtener el array
       let fotosRequeridasArray = []
       if (task.fotosRequeridas) {
@@ -320,46 +315,68 @@ export default function PhotoTask({
         }
       }
 
-      // Agregar cada foto al FormData usando el estado pasado
-      
+      // Preparar fotos individuales para envío uno por uno
+      const fotosParaSubir = []
       fotosRequeridasArray.forEach((foto, index) => {
-        
         if (fotosState[foto.tipo]?.file) {
-          formData.append(`foto_${index}`, fotosState[foto.tipo].file)
-          formData.append(`tipo_${index}`, foto.tipo)
-          formData.append(`descripcion_${index}`, foto.descripcion)
-        } else {
+          fotosParaSubir.push({
+            file: fotosState[foto.tipo].file,
+            tipo: foto.tipo,
+            descripcion: foto.descripcion,
+            index
+          })
         }
       })
-      
-      // Verificar que el FormData tenga fotos
-      let fotoCount = 0
-      for (let [key, value] of formData.entries()) {
-        if (key.startsWith('foto_')) {
-          fotoCount++
+
+      console.log(`📤 Enviando ${fotosParaSubir.length} fotos individualmente...`)
+
+      // Subir fotos una por una para evitar error 413
+      for (let i = 0; i < fotosParaSubir.length; i++) {
+        const { file, tipo, descripcion } = fotosParaSubir[i]
+        
+        setUploadProgress(`Subiendo foto ${i + 1} de ${fotosParaSubir.length}: ${descripcion}`)
+        
+        // Crear FormData individual para cada foto
+        const individualFormData = new FormData()
+        individualFormData.append('tareaId', task.id)
+        individualFormData.append('cierreId', cierreId)
+        individualFormData.append('trabajador', trabajador)
+        individualFormData.append(`foto_0`, file)
+        individualFormData.append(`tipo_0`, tipo)
+        individualFormData.append(`descripcion_0`, descripcion)
+
+        console.log(`📤 Subiendo foto ${i + 1}/${fotosParaSubir.length}: ${tipo}`)
+
+        const fotosResponse = await fetch(`${window.location.origin}/api/tarea/fotos`, {
+          method: 'POST',
+          body: individualFormData,
+        })
+
+        if (!fotosResponse.ok) {
+          const errorData = await fotosResponse.json().catch(() => ({}))
+          console.error('❌ Error response from server:', errorData)
+          
+          let errorMessage = `Error al subir foto ${i + 1}`
+          if (errorData.error) {
+            errorMessage = errorData.error
+          }
+          if (errorData.details) {
+            errorMessage += `: ${errorData.details}`
+          }
+          
+          throw new Error(errorMessage)
+        }
+
+        const data = await fotosResponse.json()
+        console.log(`✅ Foto ${i + 1} subida exitosamente:`, data)
+        
+        // Pequeña pausa entre fotos para no saturar el servidor
+        if (i < fotosParaSubir.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500))
         }
       }
 
-      // Subir fotos al servidor
-      const fotosResponse = await fetch(`${window.location.origin}/api/tarea/fotos`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!fotosResponse.ok) {
-        const errorData = await fotosResponse.json().catch(() => ({}))
-        console.error('❌ Error response from server:', errorData)
-        
-        let errorMessage = 'Error al subir las fotos'
-        if (errorData.error) {
-          errorMessage = errorData.error
-        }
-        if (errorData.details) {
-          errorMessage += `: ${errorData.details}`
-        }
-        
-        throw new Error(errorMessage)
-      }
+      setUploadProgress('¡Todas las fotos subidas con éxito!')
 
       // Marcar la tarea como completada
       const tareaResponse = await fetch(`${window.location.origin}/api/tarea`, {
@@ -398,6 +415,12 @@ export default function PhotoTask({
         userMessage = 'Error al guardar la información. Inténtalo de nuevo en unos momentos.'
       } else if (error.message.includes('variables de entorno')) {
         userMessage = 'Error de configuración del servidor. Contacta al administrador.'
+      } else if (error.message.includes('413') || error.message.includes('Content Too Large')) {
+        userMessage = 'Las fotos son demasiado grandes. Inténtalo con imágenes más pequeñas.'
+      } else if (error.message.includes('timeout')) {
+        userMessage = 'La subida de fotos tardó demasiado. Inténtalo de nuevo.'
+      } else if (error.message.includes('network') || error.message.includes('ENOTFOUND')) {
+        userMessage = 'Error de conexión de red. Verifica tu internet e inténtalo de nuevo.'
       }
       
       alert(userMessage)
@@ -579,7 +602,7 @@ export default function PhotoTask({
                   Por favor espera mientras se procesan las fotos
                 </div>
                 <div className="text-xs text-white/40">
-                  ⚡ Comprimiendo imágenes para subida más rápida
+                  📤 Enviando fotos una por una para evitar errores
                 </div>
               </div>
             ) : isCompleted ? (

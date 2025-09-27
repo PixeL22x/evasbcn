@@ -143,12 +143,32 @@ export async function POST(request) {
       )
     }
 
-    // Actualizar la tarea para incluir las fotos subidas
-    console.log('💾 Guardando fotos en base de datos...')
+    // Leer fotos existentes para hacer merge (evitar sobrescritura al subir por partes)
+    console.log('📥 Leyendo fotos existentes de la tarea...')
+    let existingFotos = []
+    try {
+      const tareaActual = await prisma.tarea.findUnique({
+        where: { id: tareaId },
+        select: { fotosSubidas: true }
+      })
+      if (tareaActual?.fotosSubidas) {
+        try {
+          const parsed = JSON.parse(tareaActual.fotosSubidas)
+          if (Array.isArray(parsed)) existingFotos = parsed
+        } catch (e) {
+          console.warn('⚠️ No se pudieron parsear fotosSubidas existentes, se continuará con array vacío')
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ No se pudieron leer fotos existentes, se continuará con array vacío')
+    }
+
+    // Actualizar la tarea para incluir (merge) las fotos subidas
+    console.log('💾 Guardando fotos en base de datos (merge)...')
     const updatedTarea = await prisma.tarea.update({
       where: { id: tareaId },
       data: {
-        fotosSubidas: JSON.stringify(fotos), // Almacenar las URLs de Cloudinary
+        fotosSubidas: JSON.stringify([ ...existingFotos, ...fotos ]),
       },
     })
     console.log('✅ Fotos guardadas en base de datos exitosamente')
