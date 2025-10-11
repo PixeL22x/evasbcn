@@ -221,12 +221,6 @@ export default function SequentialTask({
 
         {/* Task Card */}
         <div className="bg-white/10 backdrop-blur-lg rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 xl:p-8 mb-4 sm:mb-6 lg:mb-8 border border-white/20">
-          <div className="text-center mb-3 sm:mb-4 lg:mb-6">
-            <p className="text-white/70 text-xs sm:text-sm lg:text-base xl:text-lg">
-              Tiempo estimado: {task.duration || task.duracion} minutos
-            </p>
-          </div>
-
           {/* Timer Section - Integrado */}
           {showTimer && (
             <div className="bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 mb-3 sm:mb-4 lg:mb-6 border border-white/10">
