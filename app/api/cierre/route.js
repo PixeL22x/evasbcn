@@ -59,68 +59,53 @@ export async function POST(request) {
       tarde: [
         // 🧊 Bloque 1 - Preparación Inicial
         {
-          nombre: '🧊 Bloque 1 - Preparar cubeta con agua + Fairy',
-          duracion: 3,
-        },
-        {
-          nombre: '🧊 Bloque 1 - Trapos cubo agua + lejía',
-          duracion: 3,
-        },
-        {
-          nombre: '🧊 Bloque 1 - Guardar cosas secas',
-          duracion: 2,
+          nombre: '🧊 Bloque 1 - Preparación Inicial',
+          duracion: 8,
+          subtareas: JSON.stringify([
+            'Preparar cubeta con agua + Fairy',
+            'Trapos cubo agua + lejía',
+            'Guardar cosas secas'
+          ])
         },
         // 🍦 Bloque 2 - Helados y Limpieza
         {
-          nombre: '🍦 Bloque 2 - Separar helados y quitar barras metálicas',
-          duracion: 4,
-        },
-        {
-          nombre: '🍦 Bloque 2 - Guardar smoothies + Milkshakes + Hielo Picado',
-          duracion: 3,
-        },
-        {
-          nombre: '🍦 Bloque 2 - Barrer y aspirar',
-          duracion: 5,
+          nombre: '🍦 Bloque 2 - Helados y Limpieza',
+          duracion: 12,
+          subtareas: JSON.stringify([
+            'Separar helados y quitar barras metálicas',
+            'Guardar smoothies + Milkshakes + Hielo Picado',
+            'Barrer y aspirar'
+          ])
         },
         // 🪟 Bloque 3 - Cierre al Público
         {
-          nombre: '🪟 Bloque 3 - Meter carteles',
-          duracion: 2,
-        },
-        {
-          nombre: '🪟 Bloque 3 - Cerrar puerta',
-          duracion: 2,
-        },
-        {
-          nombre: '🪟 Bloque 3 - Apagar luces menos blancas',
-          duracion: 2,
+          nombre: '🪟 Bloque 3 - Cierre al Público',
+          duracion: 6,
+          subtareas: JSON.stringify([
+            'Meter carteles',
+            'Cerrar puerta',
+            'Apagar luces menos blancas'
+          ])
         },
         // 🍧 Bloque 4 - Organización Helados
         {
-          nombre: '🍧 Bloque 4 - Sacar pinchos + cucharas',
-          duracion: 3,
-        },
-        {
-          nombre: '🍧 Bloque 4 - Tapar helados',
-          duracion: 3,
-        },
-        {
-          nombre: '🍧 Bloque 4 - Guardar helados Isa 1 hacia congelador enfrente blanco',
-          duracion: 3,
-        },
-        {
-          nombre: '🍧 Bloque 4 - Guardar helados Isa 2 congelador gris',
-          duracion: 3,
+          nombre: '🍧 Bloque 4 - Organización Helados',
+          duracion: 12,
+          subtareas: JSON.stringify([
+            'Sacar pinchos + cucharas',
+            'Tapar helados',
+            'Guardar helados Isa 1 hacia congelador enfrente blanco',
+            'Guardar helados Isa 2 congelador gris'
+          ])
         },
         // 🧴 Bloque 5 - Limpieza y Documentación
         {
-          nombre: '🧴 Bloque 5 - Sacar pinchos y cucharas a secar',
-          duracion: 2,
-        },
-        {
-          nombre: '🧴 Bloque 5 - Sacar basura',
-          duracion: 3,
+          nombre: '🧴 Bloque 5 - Limpieza y Documentación',
+          duracion: 5,
+          subtareas: JSON.stringify([
+            'Sacar pinchos y cucharas a secar',
+            'Sacar basura'
+          ])
         },
         // 📋 Bloque 5.1 - Apuntar Info Cierre
         {
@@ -155,21 +140,21 @@ export async function POST(request) {
         },
         // ⚙️ Bloque 6 - Apagado de Equipos
         {
-          nombre: '⚙️ Bloque 6 - Apagar Just Eat y TPV',
-          duracion: 3,
-        },
-        {
-          nombre: '⚙️ Bloque 6 - Apagar datáfonos y móvil, también cargarlos',
-          duracion: 2,
+          nombre: '⚙️ Bloque 6 - Apagado de Equipos',
+          duracion: 5,
+          subtareas: JSON.stringify([
+            'Apagar Just Eat y TPV',
+            'Apagar datáfonos y móvil, también cargarlos'
+          ])
         },
         // 🧽 Bloque 7 - Limpieza Final
         {
-          nombre: '🧽 Bloque 7 - Limpiar con esponja lugar de cucharas',
-          duracion: 4,
-        },
-        {
-          nombre: '🧽 Bloque 7 - Fregar + Escurrir fregona y tirar agua del cubo',
-          duracion: 3,
+          nombre: '🧽 Bloque 7 - Limpieza Final',
+          duracion: 7,
+          subtareas: JSON.stringify([
+            'Limpiar con esponja lugar de cucharas',
+            'Fregar + Escurrir fregona y tirar agua del cubo'
+          ])
         },
       ]
     }

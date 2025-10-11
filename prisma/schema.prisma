@@ -28,6 +28,7 @@ model Tarea {
   nombre     String
   duracion   Int      // en minutos
   completada Boolean  @default(false)
+  subtareas  String?  // Array con las subtareas del bloque (JSON string)
   requiereFotos Boolean @default(false) // Indica si la tarea requiere fotos
   fotosRequeridas String? // Array con los tipos de fotos requeridas (JSON string)
   fotosSubidas String? // URLs de las fotos subidas a Cloudinary (JSON string)

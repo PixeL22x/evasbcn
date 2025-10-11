@@ -169,6 +169,9 @@ export default function SequentialTask({
     )
   }
 
+  // Parsear subtareas si existen
+  const subtareas = task.subtareas ? JSON.parse(task.subtareas) : null
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-3 sm:p-6 lg:p-8">
       <div className="w-full max-w-4xl animate-fade-in">
@@ -184,6 +187,23 @@ export default function SequentialTask({
             Paso {currentStep} de {totalSteps}
           </p>
         </div>
+        
+        {/* Lista de Subtareas si existen */}
+        {subtareas && subtareas.length > 0 && (
+          <div className="bg-white/10 backdrop-blur-lg rounded-lg sm:rounded-xl lg:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 border border-white/20">
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-4 text-center">
+              Tareas de este bloque:
+            </h2>
+            <ul className="space-y-3">
+              {subtareas.map((subtarea, index) => (
+                <li key={index} className="flex items-start gap-3 text-white/90 text-sm sm:text-base lg:text-lg">
+                  <span className="text-green-400 flex-shrink-0 text-xl">✓</span>
+                  <span>{subtarea}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Progress Bar */}
         <div className="mb-4 sm:mb-6 lg:mb-8">
