@@ -54,7 +54,7 @@ export default function LoginPage() {
             Evas Barcelona
           </h1>
           <p className="text-white/70">
-            Sistema de Cierre de Tienda
+            Sistema de Gestión de Tienda
           </p>
         </div>
 

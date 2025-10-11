@@ -10,8 +10,13 @@ import {
   FileText,
   TrendingUp,
   Clock,
-  IceCream
+  IceCream,
+  RefreshCw,
+  Package,
+  ClipboardList,
+  Thermometer,
 } from "lucide-react"
+import { useSolicitudesCount } from "@/hooks/use-solicitudes-count"
 
 import {
   Sidebar,
@@ -57,9 +62,34 @@ const data = {
       icon: IceCream,
     },
     {
+      title: "Control Stocks",
+      url: "/admin/stock",
+      icon: Package,
+    },
+    {
+      title: "Inventario",
+      url: "/admin/inventario",
+      icon: ClipboardList,
+    },
+    {
       title: "Trabajadores",
       url: "/admin/trabajadores",
       icon: Users,
+    },
+    {
+      title: "Cambios de Turno",
+      url: "/admin/cambios-turno",
+      icon: RefreshCw,
+    },
+    {
+      title: "Horarios",
+      url: "/admin/horarios",
+      icon: Calendar,
+    },
+    {
+      title: "Temperatura Vitrina",
+      url: "/admin/temperatura",
+      icon: Thermometer,
     },
     {
       title: "Reportes",
@@ -85,6 +115,8 @@ const data = {
 }
 
 export function AppSidebar({ variant = "sidebar", ...props }) {
+  const { count: solicitudesCount } = useSolicitudesCount()
+
   return (
     <Sidebar variant={variant} {...props}>
       <SidebarHeader>
@@ -108,7 +140,14 @@ export function AppSidebar({ variant = "sidebar", ...props }) {
                   <SidebarMenuButton asChild isActive={item.isActive}>
                     <a href={item.url}>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span>
+                        {item.title}
+                        {item.title === "Cambios de Turno" && solicitudesCount > 0 && (
+                          <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                            {solicitudesCount}
+                          </span>
+                        )}
+                      </span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

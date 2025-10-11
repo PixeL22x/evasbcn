@@ -1,4 +1,4 @@
-# 🚀 Guía de Deployment - Evas Barcelona Sistema de Cierre
+# 🚀 Guía de Deployment - Evas Barcelona Sistema de Gestión de Tienda
 
 ## 📋 Pre-requisitos
 

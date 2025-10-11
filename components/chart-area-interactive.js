@@ -27,10 +27,6 @@ const chartConfig = {
     label: "Ventas",
     color: "hsl(var(--chart-1))",
   },
-  cierres: {
-    label: "Cierres",
-    color: "hsl(var(--chart-2))",
-  },
 }
 
 export function ChartAreaInteractive() {
@@ -52,13 +48,13 @@ export function ChartAreaInteractive() {
       console.error('Error fetching chart data:', error)
       // Datos de ejemplo si falla la API
       setChartData([
-        { date: "2024-04-01", ventas: 222, cierres: 150 },
-        { date: "2024-04-02", ventas: 97, cierres: 180 },
-        { date: "2024-04-03", ventas: 167, cierres: 120 },
-        { date: "2024-04-04", ventas: 242, cierres: 260 },
-        { date: "2024-04-05", ventas: 373, cierres: 290 },
-        { date: "2024-04-06", ventas: 301, cierres: 340 },
-        { date: "2024-04-07", ventas: 245, cierres: 180 },
+        { date: "2024-04-01", ventas: 222 },
+        { date: "2024-04-02", ventas: 97 },
+        { date: "2024-04-03", ventas: 167 },
+        { date: "2024-04-04", ventas: 242 },
+        { date: "2024-04-05", ventas: 373 },
+        { date: "2024-04-06", ventas: 301 },
+        { date: "2024-04-07", ventas: 245 },
       ])
     }
   }
@@ -69,9 +65,9 @@ export function ChartAreaInteractive() {
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Ventas y Cierres</CardTitle>
+          <CardTitle>Ventas</CardTitle>
           <CardDescription>
-            Mostrando datos de ventas y cierres completados
+            Mostrando datos de ventas totales
           </CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
@@ -113,18 +109,6 @@ export function ChartAreaInteractive() {
                   stopOpacity={0.1}
                 />
               </linearGradient>
-              <linearGradient id="fillCierres" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-cierres)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-cierres)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
             </defs>
             <CartesianGrid vertical={false} />
             <XAxis
@@ -162,18 +146,10 @@ export function ChartAreaInteractive() {
               }
             />
             <Area
-              dataKey="cierres"
-              type="natural"
-              fill="url(#fillCierres)"
-              stroke="var(--color-cierres)"
-              stackId="a"
-            />
-            <Area
               dataKey="ventas"
               type="natural"
               fill="url(#fillVentas)"
               stroke="var(--color-ventas)"
-              stackId="a"
             />
           </AreaChart>
         </ChartContainer>

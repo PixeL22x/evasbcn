@@ -46,6 +46,10 @@ model Trabajador {
   password  String
   activo    Boolean  @default(true)
   pedidos   PedidoHelado[]
+  reglasHorario ReglaHorario[]
+  excepcionesHorario ExcepcionHorario[]
+  movimientosStock MovimientoStock[]
+  registrosTemperatura RegistroTemperatura[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -59,6 +63,89 @@ model PedidoHelado {
   observaciones String?
   fechaPedido DateTime @default(now())
   fechaProcesado DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SolicitudCambioTurno {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  trabajadorSolicitante String   // Nombre del trabajador que solicita
+  trabajadorDestino     String   // Nombre del trabajador con quien quiere cambiar
+  fechaCambio          DateTime // Fecha que NO puede trabajar
+  fechaReemplazo       DateTime? // Fecha que propone trabajar en su lugar (opcional para datos antiguos)
+  motivo               String   // Motivo del cambio (obligatorio)
+  estado               String   @default("pendiente") // pendiente, aprobada, rechazada
+  fechaSolicitud       DateTime @default(now())
+  fechaRespuesta       DateTime? // Cuando se aprueba o rechaza
+  observacionesAdmin   String?  // Comentarios del administrador
+  solicitudComplementaria String? @db.ObjectId // ID de la solicitud del otro trabajador
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+/// Reglas semanales por trabajador (0=Domingo ... 6=Sábado)
+model ReglaHorario {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  trabajadorId  String   @db.ObjectId
+  trabajador    Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Cascade)
+  diaSemana     Int      // 0..6
+  turno         String   // "M" (mañana), "T" (tarde) o "L" (libre)
+  entrada       String?  // Opcional: hora de entrada (hh:mm)
+  salida        String?  // Opcional: hora de salida (hh:mm)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+/// Excepciones puntuales para un día concreto
+model ExcepcionHorario {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  trabajadorId  String   @db.ObjectId
+  trabajador    Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Cascade)
+  fecha         DateTime // Día concreto (se considera solo la fecha)
+  turno         String   // "M", "T" o "L"
+  entrada       String?  // Opcional: hora de entrada
+  salida        String?  // Opcional: hora de salida
+  motivo        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Producto {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre      String   @unique
+  categoria   String   // "helados", "toppings", "conos", "churros", etc.
+  stock       Int      @default(0)
+  stockMinimo Int      @default(5) // Alerta cuando llegue aquí
+  precio      Float?
+  activo      Boolean  @default(true)
+  movimientos MovimientoStock[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MovimientoStock {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  productoId  String   @db.ObjectId
+  producto    Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  tipo        String   // "entrada" o "salida"
+  cantidad    Int      // Siempre positivo
+  motivo      String   // "compra", "venta", "ajuste", "inventario"
+  trabajadorId String? @db.ObjectId
+  trabajador  Trabajador? @relation(fields: [trabajadorId], references: [id])
+  observaciones String?
+  fecha       DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model RegistroTemperatura {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  trabajadorId String  @db.ObjectId
+  trabajador   Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Cascade)
+  temperatura  Float   // Temperatura registrada en grados Celsius
+  hora         String  // "14:00", "18:00", "22:00"
+  fecha        DateTime // Fecha del registro
+  observaciones String? // Notas adicionales del trabajador
+  fotoTermometro String? // URL de foto del termómetro (opcional)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

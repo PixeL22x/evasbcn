@@ -6,8 +6,8 @@ import { ThemeProvider } from '../contexts/ThemeContext'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Evas Barcelona - Cierre de Tienda',
-  description: 'Aplicación gamificada para el cierre de la heladería Evas Barcelona',
+  title: 'Evas Barcelona - Sistema de Gestión de Tienda',
+  description: 'Sistema completo de gestión para la heladería Evas Barcelona',
 }
 
 export default function RootLayout({ children }) {

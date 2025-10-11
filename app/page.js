@@ -5,6 +5,9 @@ import { useAuth } from '../contexts/AuthContext'
 import SequentialTask from '../components/SequentialTask'
 import WorkerForm from '../components/WorkerForm'
 import PedidoHelados from '../components/PedidoHelados'
+import CambioTurno from '../components/CambioTurno'
+import StockWorker from '../components/StockWorker'
+import TemperaturaVitrina from '../components/TemperaturaVitrina'
 
 
 export default function Home() {
@@ -16,6 +19,9 @@ export default function Home() {
   const [showCelebration, setShowCelebration] = useState(false)
   const [showWorkerForm, setShowWorkerForm] = useState(false)
   const [showPedidoHelados, setShowPedidoHelados] = useState(false)
+  const [showCambioTurno, setShowCambioTurno] = useState(false)
+  const [showStockWorker, setShowStockWorker] = useState(false)
+  const [showTemperaturaVitrina, setShowTemperaturaVitrina] = useState(false)
   const [cierreId, setCierreId] = useState(null)
   const [workerName, setWorkerName] = useState('')
   const [loadingTasks, setLoadingTasks] = useState(false)
@@ -284,30 +290,66 @@ export default function Home() {
               Evas Barcelona
             </h1>
             <h2 className="text-base sm:text-lg lg:text-xl xl:text-2xl text-white/80 mb-1 sm:mb-2">
-              Sistema de Cierre de Tienda
+              Sistema de Gestión de Tienda
             </h2>
             <p className="text-white/60 text-xs sm:text-sm lg:text-base xl:text-lg max-w-2xl mx-auto px-2 sm:px-4">
-              Sigue el proceso paso a paso para cerrar la heladería de manera eficiente y profesional
+              Gestiona cierres, pedidos, stocks y más desde un solo lugar
             </p>
           </div>
 
           {/* Controles */}
           <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-            {/* Solo mostrar botón de empezar cierre para trabajadores */}
+            {/* Panel de control para trabajadores */}
             {user?.role === 'worker' && (
-              <div className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-5xl mx-auto">
+                {/* Cierre de Tienda */}
                 <button
                   onClick={handleStartGame}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 lg:px-12 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl text-base sm:text-lg lg:text-xl"
+                  className="bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
                 >
-                  🚀 Empezar Cierre
+                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🚀</div>
+                  <div className="text-lg sm:text-xl font-bold mb-1">Cierre de Tienda</div>
+                  <div className="text-xs sm:text-sm text-white/80">Proceso completo de cierre</div>
                 </button>
                 
+                {/* Pedido de Helados */}
                 <button
                   onClick={() => setShowPedidoHelados(true)}
-                  className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 lg:px-12 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl text-base sm:text-lg lg:text-xl"
+                  className="bg-gradient-to-br from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
                 >
-                  🍦 Hacer Pedido Helados
+                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🍦</div>
+                  <div className="text-lg sm:text-xl font-bold mb-1">Pedido Helados</div>
+                  <div className="text-xs sm:text-sm text-white/80">Realizar pedido de productos</div>
+                </button>
+                
+                {/* Cambio de Turno */}
+                <button
+                  onClick={() => setShowCambioTurno(true)}
+                  className="bg-gradient-to-br from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
+                >
+                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🔄</div>
+                  <div className="text-lg sm:text-xl font-bold mb-1">Cambio de Turno</div>
+                  <div className="text-xs sm:text-sm text-white/80">Solicitar cambio o cubrir turno</div>
+                </button>
+                
+                {/* Control de Stocks */}
+                <button
+                  onClick={() => setShowStockWorker(true)}
+                  className="bg-gradient-to-br from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
+                >
+                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">📦</div>
+                  <div className="text-lg sm:text-xl font-bold mb-1">Control de Stocks</div>
+                  <div className="text-xs sm:text-sm text-white/80">Gestionar inventario</div>
+                </button>
+                
+                {/* Temperatura Vitrina */}
+                <button
+                  onClick={() => setShowTemperaturaVitrina(true)}
+                  className="bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group sm:col-span-2"
+                >
+                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🌡️</div>
+                  <div className="text-lg sm:text-xl font-bold mb-1">Temperatura Vitrina</div>
+                  <div className="text-xs sm:text-sm text-white/80">Registrar temperatura de vitrinas</div>
                 </button>
               </div>
             )}
@@ -358,6 +400,37 @@ export default function Home() {
         {/* Modal de Pedido de Helados */}
         {showPedidoHelados && (
           <PedidoHelados onClose={() => setShowPedidoHelados(false)} />
+        )}
+        
+        {/* Modal de Cambio de Turno */}
+        {showCambioTurno && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-white">Cambio de Turno</h2>
+                <button
+                  onClick={() => setShowCambioTurno(false)}
+                  className="text-white/60 hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              <CambioTurno trabajadorActual={user?.name} />
+            </div>
+          </div>
+        )}
+        
+        {/* Modal de Stocks */}
+        {showStockWorker && (
+          <StockWorker 
+            onClose={() => setShowStockWorker(false)} 
+            trabajadorId={user?.id}
+          />
+        )}
+        
+        {/* Modal de Temperatura Vitrina */}
+        {showTemperaturaVitrina && (
+          <TemperaturaVitrina onClose={() => setShowTemperaturaVitrina(false)} />
         )}
       </div>
     )
@@ -410,6 +483,37 @@ export default function Home() {
           {showPedidoHelados && (
             <PedidoHelados onClose={() => setShowPedidoHelados(false)} />
           )}
+          
+          {/* Modal de Cambio de Turno */}
+          {showCambioTurno && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold text-white">Cambio de Turno</h2>
+                  <button
+                    onClick={() => setShowCambioTurno(false)}
+                    className="text-white/60 hover:text-white text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+                <CambioTurno trabajadorActual={user?.name} />
+              </div>
+            </div>
+          )}
+          
+          {/* Modal de Stocks */}
+          {showStockWorker && (
+            <StockWorker 
+              onClose={() => setShowStockWorker(false)} 
+              trabajadorId={user?.id}
+            />
+          )}
+          
+          {/* Modal de Temperatura Vitrina */}
+          {showTemperaturaVitrina && (
+            <TemperaturaVitrina onClose={() => setShowTemperaturaVitrina(false)} />
+          )}
         </div>
       </div>
     )
@@ -440,10 +544,41 @@ export default function Home() {
                trabajador={workerName}
              />
              
-             {/* Modal de Pedido de Helados */}
-             {showPedidoHelados && (
-               <PedidoHelados onClose={() => setShowPedidoHelados(false)} />
-             )}
-           </>
-         )
+            {/* Modal de Pedido de Helados */}
+            {showPedidoHelados && (
+              <PedidoHelados onClose={() => setShowPedidoHelados(false)} />
+            )}
+            
+            {/* Modal de Cambio de Turno */}
+            {showCambioTurno && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold text-white">Cambio de Turno</h2>
+                    <button
+                      onClick={() => setShowCambioTurno(false)}
+                      className="text-white/60 hover:text-white text-2xl"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <CambioTurno trabajadorActual={user?.name} />
+                </div>
+              </div>
+            )}
+            
+            {/* Modal de Stocks */}
+            {showStockWorker && (
+              <StockWorker 
+                onClose={() => setShowStockWorker(false)} 
+                trabajadorId={user?.id}
+              />
+            )}
+            
+            {/* Modal de Temperatura Vitrina */}
+            {showTemperaturaVitrina && (
+              <TemperaturaVitrina onClose={() => setShowTemperaturaVitrina(false)} />
+            )}
+          </>
+        )
 }
