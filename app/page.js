@@ -256,22 +256,22 @@ export default function Home() {
   // Pantalla de inicio
   if (!gameStarted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-3 sm:p-6 lg:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col p-3 sm:p-6 lg:p-8">
         {/* Header con usuario y logout */}
         {isAuthenticated() && (
-          <div className="absolute top-4 right-4 z-10">
-            <div className="bg-white/10 backdrop-blur-lg rounded-lg p-3 border border-white/20">
-              <div className="flex items-center space-x-3">
+          <div className="w-full flex justify-end mb-4 sm:mb-0 sm:absolute sm:top-4 sm:right-4 z-10">
+            <div className="bg-white/10 backdrop-blur-lg rounded-lg p-2 sm:p-3 border border-white/20">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 <div className="text-right">
-                  <p className="text-white text-sm font-medium">{user?.name}</p>
-                  <p className="text-white/60 text-xs capitalize">{user?.role}</p>
+                  <p className="text-white text-xs sm:text-sm font-medium">{user?.name}</p>
+                  <p className="text-white/60 text-[10px] sm:text-xs capitalize">{user?.role}</p>
                 </div>
                 <button
                   onClick={() => {
                     logout()
                     window.location.href = '/login'
                   }}
-                  className="bg-red-500/20 hover:bg-red-500/30 text-red-200 px-3 py-1 rounded text-sm transition-colors"
+                  className="bg-red-500/20 hover:bg-red-500/30 text-red-200 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm transition-colors"
                 >
                   Salir
                 </button>
@@ -280,7 +280,7 @@ export default function Home() {
           </div>
         )}
 
-        <div className="text-center w-full max-w-4xl mx-auto">
+        <div className="text-center w-full max-w-4xl mx-auto flex-1 flex flex-col justify-center">
           {/* Logo y Header */}
           <div className="mb-6 sm:mb-8 lg:mb-12">
             <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-white/10 backdrop-blur-sm rounded-full mb-4 sm:mb-6 lg:mb-8">
