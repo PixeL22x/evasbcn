@@ -57,72 +57,74 @@ export async function POST(request) {
         }
       ],
       tarde: [
-        // Pre-cierre / Limpieza Inicial (1-6)
+        // 🧊 Bloque 1 - Preparación Inicial
         {
-          nombre: 'Escurrir fregona y tirar agua del cubo',
-          duracion: 2,
-        },
-        {
-          nombre: 'Preparar cubeta con agua + fairy (para cucharas y separadores)',
+          nombre: '🧊 Bloque 1 - Preparar cubeta con agua + Fairy',
           duracion: 3,
         },
         {
-          nombre: 'Guardar cosas secas',
-          duracion: 2,
-        },
-        {
-          nombre: 'Poner todos los trapos en cubo con agua + lejía',
+          nombre: '🧊 Bloque 1 - Trapos cubo agua + lejía',
           duracion: 3,
         },
         {
-          nombre: 'Separar helados restos → congelador gris (parte superior)',
+          nombre: '🧊 Bloque 1 - Guardar cosas secas',
+          duracion: 2,
+        },
+        // 🍦 Bloque 2 - Helados y Limpieza
+        {
+          nombre: '🍦 Bloque 2 - Separar helados y quitar barras metálicas',
           duracion: 4,
         },
         {
-          nombre: 'Barrer y aspirar el local',
+          nombre: '🍦 Bloque 2 - Guardar smoothies + Milkshakes + Hielo Picado',
+          duracion: 3,
+        },
+        {
+          nombre: '🍦 Bloque 2 - Barrer y aspirar',
           duracion: 5,
         },
-        // Cierre al Público (7-8)
+        // 🪟 Bloque 3 - Cierre al Público
         {
-          nombre: 'Apagar luces todas menos blancas',
+          nombre: '🪟 Bloque 3 - Meter carteles',
           duracion: 2,
         },
         {
-          nombre: 'Meter carteles y cerrar puerta + persiana',
-          duracion: 5,
-        },
-        // Cierre Interno (9-15)
-        {
-          nombre: 'Limpiar con esponja lugar de cucharas ISA',
-          duracion: 4,
-        },
-        {
-          nombre: 'Guardar smoothies en la nevera blanca',
-          duracion: 3,
-        },
-        {
-          nombre: 'Tapar helados',
-          duracion: 3,
-        },
-        {
-          nombre: 'Guardar helados repetidos al arcón',
-          duracion: 4,
-        },
-        {
-          nombre: 'Sacar pinchos de los helados',
+          nombre: '🪟 Bloque 3 - Cerrar puerta',
           duracion: 2,
         },
         {
-          nombre: 'Sacar cucharas y pinchos a secar',
+          nombre: '🪟 Bloque 3 - Apagar luces menos blancas',
+          duracion: 2,
+        },
+        // 🍧 Bloque 4 - Organización Helados
+        {
+          nombre: '🍧 Bloque 4 - Sacar pinchos + cucharas',
+          duracion: 3,
+        },
+        {
+          nombre: '🍧 Bloque 4 - Tapar helados',
+          duracion: 3,
+        },
+        {
+          nombre: '🍧 Bloque 4 - Guardar helados Isa 1 hacia congelador enfrente blanco',
+          duracion: 3,
+        },
+        {
+          nombre: '🍧 Bloque 4 - Guardar helados Isa 2 congelador gris',
+          duracion: 3,
+        },
+        // 🧴 Bloque 5 - Limpieza y Documentación
+        {
+          nombre: '🧴 Bloque 5 - Sacar pinchos y cucharas a secar',
           duracion: 2,
         },
         {
-          nombre: 'Sacar basura',
+          nombre: '🧴 Bloque 5 - Sacar basura',
           duracion: 3,
         },
-        // Administrativo (16-17)
+        // 📋 Bloque 5.1 - Apuntar Info Cierre
         {
-          nombre: 'Apuntar info de cierre en libreta, imprimir y grapar',
+          nombre: '📋 Bloque 5.1 - Apuntar info cierre',
           duracion: 3,
           requiereFotos: true,
           fotosRequeridas: JSON.stringify([
@@ -132,15 +134,16 @@ export async function POST(request) {
             { tipo: 'ticket_ventas', descripcion: 'Ticket total' }
           ])
         },
+        // 💰 Bloque 5.2 - Ingresar Ventas
         {
-          nombre: 'Ingresar total de ventas del día',
+          nombre: '💰 Bloque 5.2 - Ingresa el total de ventas del día',
           duracion: 2,
           requiereInput: true,
           inputType: 'ventas'
         },
-        // Verificación (18)
+        // 📸 Bloque 5.3 - Fotos Máquinas Apagadas
         {
-          nombre: 'Enviar foto de máquinas apagadas (gofre, aire, crepera, ventilador techo)',
+          nombre: '📸 Bloque 5.3 - Enviar fotos máquinas apagadas',
           duracion: 2,
           requiereFotos: true,
           fotosRequeridas: JSON.stringify([
@@ -150,14 +153,23 @@ export async function POST(request) {
             { tipo: 'ventilador_apagado', descripcion: 'Ventilador de techo apagado' }
           ])
         },
-        // Apagados Finales (19-20)
+        // ⚙️ Bloque 6 - Apagado de Equipos
         {
-          nombre: 'Apagar justeat y TPV',
+          nombre: '⚙️ Bloque 6 - Apagar Just Eat y TPV',
           duracion: 3,
         },
         {
-          nombre: 'Apagar y cargar datafonos',
+          nombre: '⚙️ Bloque 6 - Apagar datáfonos y móvil, también cargarlos',
           duracion: 2,
+        },
+        // 🧽 Bloque 7 - Limpieza Final
+        {
+          nombre: '🧽 Bloque 7 - Limpiar con esponja lugar de cucharas',
+          duracion: 4,
+        },
+        {
+          nombre: '🧽 Bloque 7 - Fregar + Escurrir fregona y tirar agua del cubo',
+          duracion: 3,
         },
       ]
     }
