@@ -105,7 +105,7 @@ export default function SequentialTask({
   const getTaskIcon = (taskName) => {
     const icons = {
       // Pre-cierre / Limpieza Inicial (1-6)
-      'Escurrir fregona y tirar agua del cubo': '🧽',
+      '¿La pica está limpia?': '✅',
       'Preparar cubeta con agua + fairy (para cucharas y separadores)': '🧴',
       'Guardar cosas secas': '📦',
       'Poner todos los trapos en cubo con agua + lejía': '🧺',

@@ -52,7 +52,7 @@ export default function WorkerForm({ onStart, onCancel }) {
               ¡Hola {user?.name}!
             </h1>
             <p className="text-white/70 text-sm sm:text-base lg:text-lg">
-              Selecciona tu turno para iniciar el proceso de cierre
+              Selecciona tu turno para iniciar el cierre de tienda
             </p>
           </div>
 
@@ -71,9 +71,6 @@ export default function WorkerForm({ onStart, onCancel }) {
                 <div className="text-center">
                   <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">🌅</div>
                   <div className="text-lg sm:text-xl font-bold mb-1">Turno Mañana</div>
-                  <div className="text-sm text-white/70">
-                    Cierre de mañana
-                  </div>
                 </div>
               </button>
 
@@ -89,12 +86,6 @@ export default function WorkerForm({ onStart, onCancel }) {
                 <div className="text-center">
                   <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">🌆</div>
                   <div className="text-lg sm:text-xl font-bold mb-1">Turno Tarde</div>
-                  <div className="text-sm text-white/70 mb-2">
-                    20 tareas - 50 minutos total
-                  </div>
-                  <div className="text-xs text-white/60">
-                    Tiempo estimado: 30 min (Cierre) + 20 min (Pre-cierre)
-                  </div>
                 </div>
               </button>
             </div>

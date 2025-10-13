@@ -33,16 +33,8 @@ export async function POST(request) {
     const tareasPorTurno = {
       mañana: [
         {
-          nombre: 'Tirar agua del cubo',
-          duracion: 2,
-        },
-        {
-          nombre: 'Foto de la pica limpia',
+          nombre: '¿La pica está limpia?',
           duracion: 1,
-          requiereFotos: true,
-          fotosRequeridas: JSON.stringify([
-            { tipo: 'pica_limpia', descripcion: 'Pica limpia' }
-          ])
         },
         {
           nombre: 'Fotos de Cuaderno apuntes, 2 fotos TPV y 1 foto datafono detalle operaciones',
