@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react"
 import { formatCurrency } from "@/lib/utils"
-import { Clock, Users, TrendingUp, Timer } from "lucide-react"
+import { Clock, Users, TrendingUp, User } from "lucide-react"
 
 export function SectionCards() {
   const [stats, setStats] = useState({
     totalCierres: 0,
     totalTrabajadores: 0,
     ventasHoy: 0,
-    tiempoPromedioCierre: 0
+    trabajadorActual: null
   })
 
   useEffect(() => {
@@ -26,6 +26,16 @@ export function SectionCards() {
     } catch (error) {
       console.error('Error fetching stats:', error)
     }
+  }
+
+  const formatTimeRemaining = (minutos) => {
+    if (minutos <= 0) return 'Finalizado'
+    const horas = Math.floor(minutos / 60)
+    const mins = minutos % 60
+    if (horas > 0) {
+      return `${horas}h ${mins}min`
+    }
+    return `${mins}min`
   }
 
   const cards = [
@@ -51,11 +61,14 @@ export function SectionCards() {
       color: "bg-yellow-500"
     },
     {
-      title: "Tiempo Promedio",
-      value: `${stats.tiempoPromedioCierre} min`,
-      icon: Timer,
-      description: "Duración promedio de cierre",
-      color: "bg-purple-500"
+      title: "Trabajador Actual",
+      value: stats.trabajadorActual ? stats.trabajadorActual.nombre : "Sin turno",
+      icon: User,
+      description: stats.trabajadorActual 
+        ? `${stats.trabajadorActual.turno} (${stats.trabajadorActual.horaInicio}-${stats.trabajadorActual.horaFin})`
+        : "Fuera de horario",
+      color: stats.trabajadorActual ? "bg-purple-500" : "bg-gray-500",
+      extraInfo: stats.trabajadorActual ? formatTimeRemaining(stats.trabajadorActual.minutosRestantes) : null
     }
   ]
 
@@ -76,6 +89,11 @@ export function SectionCards() {
             <p className="text-xs text-muted-foreground">
               {card.description}
             </p>
+            {card.extraInfo && (
+              <p className="text-xs text-muted-foreground mt-1">
+                ⏰ {card.extraInfo} restantes
+              </p>
+            )}
           </div>
         </div>
       ))}

@@ -43,40 +43,14 @@ export async function GET() {
       }
     })
 
-    // Tiempo promedio de cierre (últimos 30 días)
-    const cierresCompletados = await prisma.cierre.findMany({
-      where: {
-        completado: true,
-        fechaFin: {
-          not: null
-        },
-        createdAt: {
-          gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) // últimos 30 días
-        }
-      },
-      select: {
-        fechaInicio: true,
-        fechaFin: true
-      }
-    })
-
-    let tiempoPromedioCierre = 0
-    if (cierresCompletados.length > 0) {
-      const tiemposCierre = cierresCompletados.map(cierre => {
-        const inicio = new Date(cierre.fechaInicio)
-        const fin = new Date(cierre.fechaFin)
-        return (fin.getTime() - inicio.getTime()) / (1000 * 60) // en minutos
-      })
-      
-      const tiempoTotal = tiemposCierre.reduce((sum, tiempo) => sum + tiempo, 0)
-      tiempoPromedioCierre = Math.round(tiempoTotal / tiemposCierre.length)
-    }
+    // Trabajador de turno actual
+    const trabajadorActual = await getTrabajadorTurnoActual()
 
     return NextResponse.json({
       totalCierres,
       totalTrabajadores,
       ventasHoy: ventasHoyResult._sum.totalVentas || 0,
-      tiempoPromedioCierre
+      trabajadorActual
     })
 
   } catch (error) {
@@ -85,5 +59,105 @@ export async function GET() {
       { error: 'Error interno del servidor' },
       { status: 500 }
     )
+  }
+}
+
+// Función para obtener el trabajador de turno actual
+async function getTrabajadorTurnoActual() {
+  try {
+    const now = new Date()
+    const currentHour = now.getHours()
+    const currentMinute = now.getMinutes()
+    const currentTime = currentHour * 60 + currentMinute // minutos desde medianoche
+    const dayOfWeek = now.getDay() // 0 = Domingo, 6 = Sábado
+    const today = now.toISOString().split('T')[0] // YYYY-MM-DD
+
+    // Determinar turno actual basado en la hora
+    let turnoActual = 'L' // Libre por defecto
+    
+    // Turno Mañana: 12:30 - 17:00 (753 - 1020 minutos)
+    // Turno Mañana (fines de semana): 11:30 - 17:00 (690 - 1020 minutos)
+    // Turno Tarde: 17:00 - 23:00 (1020 - 1380 minutos)
+    
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+    const morningStart = isWeekend ? 690 : 753 // 11:30 o 12:30
+    const morningEnd = 1020 // 17:00
+    const eveningStart = 1020 // 17:00
+    const eveningEnd = 1380 // 23:00
+
+    if (currentTime >= morningStart && currentTime < morningEnd) {
+      turnoActual = 'M' // Mañana
+    } else if (currentTime >= eveningStart && currentTime < eveningEnd) {
+      turnoActual = 'T' // Tarde
+    }
+
+    // Si no hay turno activo, retornar null
+    if (turnoActual === 'L') {
+      return null
+    }
+
+    // Buscar trabajadores activos
+    const trabajadores = await prisma.trabajador.findMany({
+      where: { activo: true },
+      include: {
+        reglasHorario: true,
+        excepcionesHorario: {
+          where: {
+            fecha: {
+              gte: new Date(today + 'T00:00:00.000Z'),
+              lt: new Date(today + 'T23:59:59.999Z')
+            }
+          }
+        }
+      }
+    })
+
+    // Buscar trabajador asignado para el turno actual
+    for (const trabajador of trabajadores) {
+      let turnoAsignado = null
+
+      // Verificar excepciones primero (tienen prioridad)
+      const excepcionHoy = trabajador.excepcionesHorario.find(exc => 
+        exc.fecha.toISOString().split('T')[0] === today
+      )
+      
+      if (excepcionHoy) {
+        turnoAsignado = excepcionHoy.turno
+      } else {
+        // Usar regla semanal
+        const reglaHoy = trabajador.reglasHorario.find(regla => regla.diaSemana === dayOfWeek)
+        if (reglaHoy) {
+          turnoAsignado = reglaHoy.turno
+        }
+      }
+
+      // Si este trabajador está asignado al turno actual
+      if (turnoAsignado === turnoActual) {
+        return {
+          nombre: trabajador.nombre,
+          turno: turnoActual === 'M' ? 'Mañana' : 'Tarde',
+          horaInicio: turnoActual === 'M' ? (isWeekend ? '11:30' : '12:30') : '17:00',
+          horaFin: turnoActual === 'M' ? '17:00' : '23:00',
+          minutosRestantes: turnoActual === 'M' 
+            ? morningEnd - currentTime 
+            : eveningEnd - currentTime
+        }
+      }
+    }
+
+    // Si no se encuentra trabajador asignado
+    return {
+      nombre: 'Sin asignar',
+      turno: turnoActual === 'M' ? 'Mañana' : 'Tarde',
+      horaInicio: turnoActual === 'M' ? (isWeekend ? '11:30' : '12:30') : '17:00',
+      horaFin: turnoActual === 'M' ? '17:00' : '23:00',
+      minutosRestantes: turnoActual === 'M' 
+        ? morningEnd - currentTime 
+        : eveningEnd - currentTime
+    }
+
+  } catch (error) {
+    console.error('Error al obtener trabajador actual:', error)
+    return null
   }
 }
