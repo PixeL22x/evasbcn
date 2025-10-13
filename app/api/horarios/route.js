@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getBarcelonaTimeInfo } from '@/lib/utils'
 
-function getDaysInMonth(year, month) {
-  // month: 1-12
-  const date = new Date(Date.UTC(year, month - 1, 1))
+function getDaysInMonth(anio, mes) {
+  // mes: 1-12 - Usar zona horaria de Barcelona
+  const date = new Date(anio, mes - 1, 1) // Usar fecha local de Barcelona
   const days = []
-  while (date.getUTCMonth() === month - 1) {
+  while (date.getMonth() === mes - 1) {
     const iso = date.toISOString().slice(0, 10)
-    const dayOfWeek = date.getUTCDay() // 0..6
-    const dayOfMonth = date.getUTCDate()
+    const dayOfWeek = date.getDay() // 0..6
+    const dayOfMonth = date.getDate()
     days.push({ iso, dayOfWeek, dayOfMonth })
-    date.setUTCDate(date.getUTCDate() + 1)
+    date.setDate(date.getDate() + 1)
   }
   return days
 }
@@ -43,9 +44,9 @@ export async function GET(request) {
       reglaByDow.set(r.diaSemana, r.turno)
     }
 
-    // Fetch exceptions in month range
-    const monthStart = new Date(Date.UTC(anio, mes - 1, 1))
-    const monthEnd = new Date(Date.UTC(anio, mes, 1))
+    // Fetch exceptions in month range - Usar zona horaria de Barcelona
+    const monthStart = new Date(anio, mes - 1, 1) // Fecha local de Barcelona
+    const monthEnd = new Date(anio, mes, 1) // Fecha local de Barcelona
     const excepciones = await prisma.excepcionHorario.findMany({
       where: {
         trabajadorId,
@@ -73,6 +74,7 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Error al obtener horarios' }, { status: 500 })
   }
 }
+
 
 
 

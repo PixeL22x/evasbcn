@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
+import { getBarcelonaTimeInfo } from '../../../../lib/utils'
 
 // Configurar como ruta dinámica
 export const dynamic = 'force-dynamic'
@@ -65,12 +66,9 @@ export async function GET() {
 // Función para obtener el trabajador de turno actual
 async function getTrabajadorTurnoActual() {
   try {
-    const now = new Date()
-    const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
-    const currentTime = currentHour * 60 + currentMinute // minutos desde medianoche
-    const dayOfWeek = now.getDay() // 0 = Domingo, 6 = Sábado
-    const today = now.toISOString().split('T')[0] // YYYY-MM-DD
+    // Usar zona horaria de Barcelona
+    const timeInfo = getBarcelonaTimeInfo()
+    const { hour: currentHour, minute: currentMinute, timeInMinutes: currentTime, dayOfWeek, today, isWeekend } = timeInfo
 
     // Determinar turno actual basado en la hora
     let turnoActual = 'L' // Libre por defecto
@@ -78,8 +76,6 @@ async function getTrabajadorTurnoActual() {
     // Turno Mañana: 12:30 - 17:00 (753 - 1020 minutos)
     // Turno Mañana (fines de semana): 11:30 - 17:00 (690 - 1020 minutos)
     // Turno Tarde: 17:00 - 23:00 (1020 - 1380 minutos)
-    
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
     const morningStart = isWeekend ? 690 : 753 // 11:30 o 12:30
     const morningEnd = 1020 // 17:00
     const eveningStart = 1020 // 17:00
@@ -104,8 +100,8 @@ async function getTrabajadorTurnoActual() {
         excepcionesHorario: {
           where: {
             fecha: {
-              gte: new Date(today + 'T00:00:00.000Z'),
-              lt: new Date(today + 'T23:59:59.999Z')
+              gte: new Date(today + 'T00:00:00.000+02:00'), // Barcelona timezone
+              lt: new Date(today + 'T23:59:59.999+02:00')   // Barcelona timezone
             }
           }
         }

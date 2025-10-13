@@ -4,6 +4,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
+import { BarcelonaTime } from "@/components/BarcelonaTime"
 import { useAuth } from "../contexts/AuthContext"
 import { Bell, Search, User, LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -23,6 +24,7 @@ export function SiteHeader() {
         <Separator orientation="vertical" className="mr-2 h-4" />
         <div className="flex items-center gap-2">
           <h1 className="text-sm sm:text-lg font-semibold">Panel Admin</h1>
+          <BarcelonaTime />
         </div>
       </div>
       <div className="ml-auto flex items-center gap-1 sm:gap-2 px-2 sm:px-4">
