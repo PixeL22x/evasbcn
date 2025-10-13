@@ -103,6 +103,7 @@ export default function HorariosPage() {
   const [trabajadores, setTrabajadores] = useState([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [savingProgress, setSavingProgress] = useState({ current: 0, total: 0 })
   const [view, setView] = useState('resumen') // 'resumen' o 'planning'
   
   // Planning state: { trabajadorId: { fecha: 'M'|'T'|'L' } }
@@ -169,23 +170,52 @@ export default function HorariosPage() {
 
   async function savePlanning() {
     setSaving(true)
+    setSavingProgress({ current: 0, total: 0 })
+    
     try {
-      // Save for each trabajador
+      // Preparar todas las excepciones para enviar en batch
+      const excepciones = []
+      
       for (const [trabajadorId, dias] of Object.entries(planning)) {
         for (const [fecha, turno] of Object.entries(dias)) {
-          await fetch('/api/horarios/excepciones', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ trabajadorId, fecha, turno })
+          excepciones.push({
+            trabajadorId,
+            fecha,
+            turno
           })
         }
       }
-      alert('Planning mensual guardado correctamente')
-      await loadMonthPlanning()
+      
+      if (excepciones.length === 0) {
+        alert('No hay cambios para guardar')
+        return
+      }
+      
+      setSavingProgress({ current: 0, total: excepciones.length })
+      
+      // Enviar todas las excepciones en una sola request
+      const response = await fetch('/api/horarios/excepciones/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ excepciones })
+      })
+      
+      setSavingProgress({ current: excepciones.length, total: excepciones.length })
+      
+      if (response.ok) {
+        const result = await response.json()
+        alert(`Planning mensual guardado correctamente (${result.excepciones.length} cambios)`)
+        await loadMonthPlanning()
+      } else {
+        const error = await response.json()
+        alert(`Error al guardar el planning: ${error.error}`)
+      }
     } catch (error) {
+      console.error('Error saving planning:', error)
       alert('Error al guardar el planning')
     } finally {
       setSaving(false)
+      setSavingProgress({ current: 0, total: 0 })
     }
   }
 
@@ -518,7 +548,18 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
             </div>
             <Button onClick={savePlanning} disabled={saving} size="lg">
               <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Guardando...' : 'Guardar Planning'}
+              {saving ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  {savingProgress.total > 0 ? (
+                    `Guardando... (${savingProgress.current}/${savingProgress.total})`
+                  ) : (
+                    'Guardando...'
+                  )}
+                </div>
+              ) : (
+                'Guardar Planning'
+              )}
             </Button>
           </div>
         </CardHeader>
