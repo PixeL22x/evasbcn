@@ -186,6 +186,10 @@ export default function HorariosPage() {
         }
       }
       
+      // Debug: Log de las excepciones que se van a enviar
+      console.log(`📤 Enviando ${excepciones.length} excepciones al servidor`)
+      console.log('🔍 Primeras 5 excepciones:', excepciones.slice(0, 5))
+      
       if (excepciones.length === 0) {
         alert('No hay cambios para guardar')
         return
@@ -415,6 +419,7 @@ export default function HorariosPage() {
                       setTurno={setTurno}
                       savePlanning={savePlanning}
                       saving={saving}
+                      savingProgress={savingProgress}
                       getTrabajadorStats={getTrabajadorStats}
                     />
                   )}
@@ -494,7 +499,7 @@ function ResumenView({ trabajadores, daysInMonth, planning, getTrabajadorStats }
   )
 }
 
-function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlanning, saving, getTrabajadorStats }) {
+function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlanning, saving, savingProgress, getTrabajadorStats }) {
   const [selectedTrabajador, setSelectedTrabajador] = useState(trabajadores[0]?.id || '')
   
   // Agrupar días por semanas (empezando en Lunes)
