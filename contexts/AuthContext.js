@@ -1,10 +1,12 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect } from 'react'
+import bcrypt from 'bcryptjs'
 
 const AuthContext = createContext()
 
-// Solo mantenemos el admin hardcodeado por seguridad
+// Hash de la contraseña del admin (generado con bcrypt)
+const ADMIN_HASH = '$2b$12$QQoOblwBmcut6Fodi7DXOOjdfTHwd2SVi9iRSPEnSe/B0BFSrtOfG'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -29,18 +31,21 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     try {
-      // Verificar usuario admin hardcodeado
-      if (username === 'admin' && password === 'gomba') {
-        const userToSave = {
-          username: 'admin',
-          role: 'admin',
-          name: 'Administrador'
+      // Verificar usuario admin con hash
+      if (username === 'admin') {
+        const isValidPassword = await bcrypt.compare(password, ADMIN_HASH)
+        if (isValidPassword) {
+          const userToSave = {
+            username: 'admin',
+            role: 'admin',
+            name: 'Administrador'
+          }
+          setUser(userToSave)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user', JSON.stringify(userToSave))
+          }
+          return { success: true, user: userToSave }
         }
-        setUser(userToSave)
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(userToSave))
-        }
-        return { success: true, user: userToSave }
       }
 
       // Verificar trabajadores en la base de datos
@@ -48,21 +53,26 @@ export function AuthProvider({ children }) {
       if (response.ok) {
         const data = await response.json()
         const trabajador = data.trabajadores.find(t => 
-          t.nombre === username && t.password === password && t.activo
+          t.nombre === username && t.activo
         )
         
         if (trabajador) {
-          const userToSave = {
-            username: trabajador.nombre,
-            role: 'worker',
-            name: trabajador.nombre,
-            id: trabajador.id
+          // Verificar contraseña con hash
+          const isValidPassword = await bcrypt.compare(password, trabajador.password)
+          
+          if (isValidPassword) {
+            const userToSave = {
+              username: trabajador.nombre,
+              role: 'worker',
+              name: trabajador.nombre,
+              id: trabajador.id
+            }
+            setUser(userToSave)
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('user', JSON.stringify(userToSave))
+            }
+            return { success: true, user: userToSave }
           }
-          setUser(userToSave)
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('user', JSON.stringify(userToSave))
-          }
-          return { success: true, user: userToSave }
         }
       }
       

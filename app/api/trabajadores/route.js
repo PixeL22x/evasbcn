@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '../../../lib/prisma'
+import bcrypt from 'bcryptjs'
 
 // GET - Obtener todos los trabajadores
 export async function GET() {
@@ -48,11 +49,15 @@ export async function POST(request) {
       )
     }
 
+    // Hash de la contraseña antes de guardar
+    const saltRounds = 12
+    const hashedPassword = await bcrypt.hash(password, saltRounds)
+
     // Crear nuevo trabajador
     const nuevoTrabajador = await prisma.trabajador.create({
       data: {
         nombre,
-        password // En producción, aquí deberías hashear la contraseña
+        password: hashedPassword // Guardamos el hash, no la contraseña
       }
     })
 
