@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
   const login = async (username, password) => {
     try {
       // Verificar usuario admin hardcodeado
-      if (username === 'admin' && password === 'admin') {
+      if (username === 'admin' && password === 'gomba') {
         const userToSave = {
           username: 'admin',
           role: 'admin',

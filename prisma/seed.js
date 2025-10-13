@@ -5,17 +5,6 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Sembrando datos iniciales...')
 
-  // Crear usuario administrador
-  const admin = await prisma.trabajador.upsert({
-    where: { nombre: 'admin' },
-    update: {},
-    create: {
-      nombre: 'admin',
-      password: 'admin123',
-      activo: true,
-    },
-  })
-
   // Crear usuario trabajador de prueba
   const worker = await prisma.trabajador.upsert({
     where: { nombre: 'trabajador1' },
@@ -28,7 +17,6 @@ async function main() {
   })
 
   console.log('✅ Datos iniciales creados:')
-  console.log('   - Admin:', admin)
   console.log('   - Trabajador:', worker)
 }
 
