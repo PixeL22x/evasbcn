@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
+import bcrypt from 'bcryptjs'
 
 // DELETE - Eliminar trabajador
 export async function DELETE(request, { params }) {
@@ -72,8 +73,13 @@ export async function PUT(request, { params }) {
     // Preparar datos para actualizar
     const updateData = {}
     if (nombre !== undefined) updateData.nombre = nombre
-    if (password !== undefined && password !== '') updateData.password = password
     if (activo !== undefined) updateData.activo = activo
+    
+    // Hash de la contraseña si se proporciona
+    if (password !== undefined && password !== '') {
+      const saltRounds = 12
+      updateData.password = await bcrypt.hash(password, saltRounds)
+    }
 
     // Actualizar trabajador
     const trabajadorActualizado = await prisma.trabajador.update({

@@ -5,9 +5,6 @@ import bcrypt from 'bcryptjs'
 
 const AuthContext = createContext()
 
-// Hash de la contraseña del admin (generado con bcrypt)
-const ADMIN_HASH = '$2b$12$QQoOblwBmcut6Fodi7DXOOjdfTHwd2SVi9iRSPEnSe/B0BFSrtOfG'
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -31,24 +28,7 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     try {
-      // Verificar usuario admin con hash
-      if (username === 'admin') {
-        const isValidPassword = await bcrypt.compare(password, ADMIN_HASH)
-        if (isValidPassword) {
-          const userToSave = {
-            username: 'admin',
-            role: 'admin',
-            name: 'Administrador'
-          }
-          setUser(userToSave)
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('user', JSON.stringify(userToSave))
-          }
-          return { success: true, user: userToSave }
-        }
-      }
-
-      // Verificar trabajadores en la base de datos
+      // Verificar trabajadores en la base de datos (incluyendo admin)
       const response = await fetch('/api/trabajadores')
       if (response.ok) {
         const data = await response.json()
@@ -63,8 +43,8 @@ export function AuthProvider({ children }) {
           if (isValidPassword) {
             const userToSave = {
               username: trabajador.nombre,
-              role: 'worker',
-              name: trabajador.nombre,
+              role: trabajador.nombre === 'admin' ? 'admin' : 'worker',
+              name: trabajador.nombre === 'admin' ? 'Administrador' : trabajador.nombre,
               id: trabajador.id
             }
             setUser(userToSave)
