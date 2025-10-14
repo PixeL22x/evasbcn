@@ -551,13 +551,14 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                 Asigna los turnos para cada trabajador usando el calendario
               </CardDescription>
             </div>
-            <Button onClick={savePlanning} disabled={saving} size="lg">
+            <Button onClick={savePlanning} disabled={saving} size="lg" className="w-full md:w-auto">
               <Save className="h-4 w-4 mr-2" />
               {saving ? (
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   {savingProgress.total > 0 ? (
-                    `Guardando... (${savingProgress.current}/${savingProgress.total})`
+                    <span className="hidden sm:inline">Guardando... ({savingProgress.current}/{savingProgress.total})</span>
+                    <span className="sm:hidden">Guardando...</span>
                   ) : (
                     'Guardando...'
                   )}
@@ -579,7 +580,7 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                   <button
                     key={t.id}
                     onClick={() => setSelectedTrabajador(t.id)}
-                    className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                    className={`px-3 py-2 sm:px-4 sm:py-2 rounded-lg border-2 transition-all text-sm sm:text-base ${
                       selectedTrabajador === t.id
                         ? 'border-primary bg-primary text-primary-foreground'
                         : 'border-gray-200 dark:border-gray-700 hover:border-primary'
@@ -634,21 +635,22 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
 
           {/* Calendario por semanas */}
           <div className="space-y-3">
-            {/* Header días de la semana */}
-            <div className="grid grid-cols-7 gap-2">
+            {/* Header días de la semana - Responsive */}
+            <div className="grid grid-cols-7 gap-1 sm:gap-2">
               {DIAS_SEMANA.map((dia, index) => (
-                <div key={index} className="text-center font-bold text-sm p-2">
-                  {dia}
+                <div key={index} className="text-center font-bold text-xs sm:text-sm p-1 sm:p-2">
+                  <span className="hidden sm:inline">{dia}</span>
+                  <span className="sm:hidden">{dia.charAt(0)}</span>
                 </div>
               ))}
             </div>
 
-            {/* Semanas */}
+            {/* Semanas - Responsive */}
             {weeks.map((week, weekIndex) => (
-              <div key={weekIndex} className="grid grid-cols-7 gap-2">
+              <div key={weekIndex} className="grid grid-cols-7 gap-1 sm:gap-2">
                 {week.map((day, dayIndex) => {
                   if (!day) {
-                    return <div key={dayIndex} className="aspect-square" />
+                    return <div key={dayIndex} className="aspect-square min-h-[60px] sm:min-h-[80px]" />
                   }
                   
                   const turno = planning[selectedTrabajador]?.[day.iso] || 'L'
@@ -658,25 +660,32 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                   const turnoHoras = getTurnoHours(turno, day.dayOfWeek)
                   
                   return (
-                    <div key={day.iso} className="aspect-square">
-                      <div className={`h-full border-2 ${turnoInfo.borderColor} ${turnoInfo.bgLight} ${turnoInfo.darkBg} ${turnoInfo.darkBorder} rounded-lg p-1.5 flex flex-col transition-all hover:shadow-md ${isWeekend ? 'ring-2 ring-purple-300 dark:ring-purple-700' : ''}`}>
-                        <div className="text-center font-bold text-sm mb-0.5 flex items-center justify-center gap-1">
+                    <div key={day.iso} className="aspect-square min-h-[60px] sm:min-h-[80px]">
+                      <div className={`h-full border-2 ${turnoInfo.borderColor} ${turnoInfo.bgLight} ${turnoInfo.darkBg} ${turnoInfo.darkBorder} rounded-lg p-1 sm:p-1.5 flex flex-col transition-all hover:shadow-md ${isWeekend ? 'ring-2 ring-purple-300 dark:ring-purple-700' : ''}`}>
+                        {/* Día del mes */}
+                        <div className="text-center font-bold text-xs sm:text-sm mb-0.5 flex items-center justify-center gap-1">
                           {day.dayOfMonth}
-                          {isWeekend && <span className="text-[9px] text-purple-600 dark:text-purple-400">★</span>}
+                          {isWeekend && <span className="text-[8px] sm:text-[9px] text-purple-600 dark:text-purple-400">★</span>}
                         </div>
+                        
+                        {/* Icono del turno */}
                         <div className={`flex-1 flex items-center justify-center ${turnoInfo.textColor} ${turnoInfo.darkText} mb-0.5`}>
-                          <Icon className="h-6 w-6" />
+                          <Icon className="h-4 w-4 sm:h-6 sm:w-6" />
                         </div>
+                        
+                        {/* Horas */}
                         {turno !== 'L' && (
-                          <div className="text-[9px] text-center text-muted-foreground mb-0.5">
+                          <div className="text-[8px] sm:text-[9px] text-center text-muted-foreground mb-0.5">
                             {turnoHoras}h
                           </div>
                         )}
+                        
+                        {/* Botones de turno - Responsive */}
                         <div className="space-y-0.5">
                           <div className="grid grid-cols-2 gap-0.5">
                             <button
                               onClick={() => setTurno(selectedTrabajador, day.iso, 'M')}
-                              className={`text-[11px] px-1 py-0.5 rounded font-bold transition-all ${
+                              className={`text-[9px] sm:text-[11px] px-0.5 sm:px-1 py-0.5 rounded font-bold transition-all ${
                                 turno === 'M'
                                   ? `${TURNOS['M'].color} text-white shadow-sm` 
                                   : 'bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
@@ -686,7 +695,7 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                             </button>
                             <button
                               onClick={() => setTurno(selectedTrabajador, day.iso, 'T')}
-                              className={`text-[11px] px-1 py-0.5 rounded font-bold transition-all ${
+                              className={`text-[9px] sm:text-[11px] px-0.5 sm:px-1 py-0.5 rounded font-bold transition-all ${
                                 turno === 'T'
                                   ? `${TURNOS['T'].color} text-white shadow-sm` 
                                   : 'bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
@@ -697,7 +706,7 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                           </div>
                           <button
                             onClick={() => setTurno(selectedTrabajador, day.iso, 'L')}
-                            className={`w-full text-[11px] px-1 py-0.5 rounded font-bold transition-all ${
+                            className={`w-full text-[9px] sm:text-[11px] px-0.5 sm:px-1 py-0.5 rounded font-bold transition-all ${
                               turno === 'L'
                                 ? `${TURNOS['L'].color} text-white shadow-sm` 
                                 : 'bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
@@ -745,6 +754,7 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                 <Button
                   variant="outline"
                   size="sm"
+                  className="text-xs sm:text-sm"
                   onClick={() => {
                     daysInMonth.forEach(day => {
                       if (day.dayOfWeek >= 1 && day.dayOfWeek <= 5) {
@@ -756,11 +766,13 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                   }}
                 >
                   <Sun className="h-3 w-3 mr-1" />
-                  Lun-Vie Mañanas
+                  <span className="hidden sm:inline">Lun-Vie Mañanas</span>
+                  <span className="sm:hidden">L-V M</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="text-xs sm:text-sm"
                   onClick={() => {
                     daysInMonth.forEach(day => {
                       if (day.dayOfWeek >= 1 && day.dayOfWeek <= 5) {
@@ -772,11 +784,13 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                   }}
                 >
                   <Moon className="h-3 w-3 mr-1" />
-                  Lun-Vie Tardes
+                  <span className="hidden sm:inline">Lun-Vie Tardes</span>
+                  <span className="sm:hidden">L-V T</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="text-xs sm:text-sm"
                   onClick={() => {
                     daysInMonth.forEach(day => {
                       setTurno(selectedTrabajador, day.iso, 'L')
@@ -784,7 +798,8 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                   }}
                 >
                   <Coffee className="h-3 w-3 mr-1" />
-                  Todo Libre
+                  <span className="hidden sm:inline">Todo Libre</span>
+                  <span className="sm:hidden">Libre</span>
                 </Button>
               </div>
             </div>
