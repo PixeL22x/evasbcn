@@ -51,8 +51,8 @@ export async function POST(request) {
       const result = await prisma.$transaction(async (tx) => {
         // Preparar fechas en UTC para este trabajador
         const fechas = excepcionesTrabajador.map(exc => {
-          const barcelonaDate = new Date(`${exc.fecha}T00:00:00`)
-          return fromZonedTime(barcelonaDate, barcelonaTimeZone)
+          // Crear fecha directamente en UTC para evitar problemas de zona horaria
+          return new Date(`${exc.fecha}T00:00:00.000Z`)
         })
         
         // Eliminar todas las excepciones existentes para este trabajador en estas fechas
@@ -65,8 +65,8 @@ export async function POST(request) {
         
         // Preparar datos para createMany
         const dataToCreate = excepcionesTrabajador.map(excepcion => {
-          const barcelonaDate = new Date(`${excepcion.fecha}T00:00:00`)
-          const utcDate = fromZonedTime(barcelonaDate, barcelonaTimeZone)
+          // Crear fecha directamente en UTC para evitar problemas de zona horaria
+          const utcDate = new Date(`${excepcion.fecha}T00:00:00.000Z`)
           
           return {
             trabajadorId: excepcion.trabajadorId,
