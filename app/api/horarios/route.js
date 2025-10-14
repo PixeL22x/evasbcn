@@ -5,23 +5,16 @@ import { fromZonedTime, toZonedTime } from 'date-fns-tz'
 import { getBarcelonaTimeInfo } from '@/lib/utils'
 
 function getDaysInMonth(anio, mes) {
-  // mes: 1-12 - Usar zona horaria de Barcelona
-  const barcelonaTimeZone = 'Europe/Madrid'
-  
-  // Crear fecha en zona horaria de Barcelona
-  const barcelonaDate = new Date(anio, mes - 1, 1)
-  const utcDate = fromZonedTime(barcelonaDate, barcelonaTimeZone)
-  
+  // mes: 1-12 - Usar UTC para consistencia con frontend
   const days = []
-  let currentDate = new Date(anio, mes - 1, 1)
+  const date = new Date(Date.UTC(anio, mes - 1, 1))
   
-  while (currentDate.getMonth() === mes - 1) {
-    const utcDayDate = fromZonedTime(currentDate, barcelonaTimeZone)
-    const iso = utcDayDate.toISOString().slice(0, 10)
-    const dayOfWeek = currentDate.getDay() // 0..6
-    const dayOfMonth = currentDate.getDate()
+  while (date.getUTCMonth() === mes - 1) {
+    const iso = date.toISOString().slice(0, 10)
+    const dayOfWeek = date.getUTCDay() // 0..6 - Consistente con frontend
+    const dayOfMonth = date.getUTCDate()
     days.push({ iso, dayOfWeek, dayOfMonth })
-    currentDate.setDate(currentDate.getDate() + 1)
+    date.setUTCDate(date.getUTCDate() + 1)
   }
   
   return days
