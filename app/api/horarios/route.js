@@ -1,18 +1,29 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { startOfMonth, endOfMonth, startOfDay, endOfDay, format, parseISO } from 'date-fns'
+import { fromZonedTime, toZonedTime } from 'date-fns-tz'
 import { getBarcelonaTimeInfo } from '@/lib/utils'
 
 function getDaysInMonth(anio, mes) {
   // mes: 1-12 - Usar zona horaria de Barcelona
-  const date = new Date(anio, mes - 1, 1) // Usar fecha local de Barcelona
+  const barcelonaTimeZone = 'Europe/Madrid'
+  
+  // Crear fecha en zona horaria de Barcelona
+  const barcelonaDate = new Date(anio, mes - 1, 1)
+  const utcDate = fromZonedTime(barcelonaDate, barcelonaTimeZone)
+  
   const days = []
-  while (date.getMonth() === mes - 1) {
-    const iso = date.toISOString().slice(0, 10)
-    const dayOfWeek = date.getDay() // 0..6
-    const dayOfMonth = date.getDate()
+  let currentDate = new Date(anio, mes - 1, 1)
+  
+  while (currentDate.getMonth() === mes - 1) {
+    const utcDayDate = fromZonedTime(currentDate, barcelonaTimeZone)
+    const iso = utcDayDate.toISOString().slice(0, 10)
+    const dayOfWeek = currentDate.getDay() // 0..6
+    const dayOfMonth = currentDate.getDate()
     days.push({ iso, dayOfWeek, dayOfMonth })
-    date.setDate(date.getDate() + 1)
+    currentDate.setDate(currentDate.getDate() + 1)
   }
+  
   return days
 }
 
@@ -45,8 +56,14 @@ export async function GET(request) {
     }
 
     // Fetch exceptions in month range - Usar zona horaria de Barcelona
-    const monthStart = new Date(anio, mes - 1, 1) // Fecha local de Barcelona
-    const monthEnd = new Date(anio, mes, 1) // Fecha local de Barcelona
+    const barcelonaTimeZone = 'Europe/Madrid'
+    const monthStartBarcelona = new Date(anio, mes - 1, 1)
+    const monthEndBarcelona = new Date(anio, mes, 1)
+    
+    // Convertir a UTC para la consulta a la base de datos
+    const monthStart = fromZonedTime(monthStartBarcelona, barcelonaTimeZone)
+    const monthEnd = fromZonedTime(monthEndBarcelona, barcelonaTimeZone)
+    
     const excepciones = await prisma.excepcionHorario.findMany({
       where: {
         trabajadorId,
