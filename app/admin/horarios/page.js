@@ -557,8 +557,10 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   {savingProgress.total > 0 ? (
-                    <span className="hidden sm:inline">Guardando... ({savingProgress.current}/{savingProgress.total})</span>
-                    <span className="sm:hidden">Guardando...</span>
+                    <>
+                      <span className="hidden sm:inline">Guardando... ({savingProgress.current}/{savingProgress.total})</span>
+                      <span className="sm:hidden">Guardando...</span>
+                    </>
                   ) : (
                     'Guardando...'
                   )}
