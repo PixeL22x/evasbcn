@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { validateAndCompressPhoto, getImageInfo } from '../lib/image-compression'
 
 export default function PhotoTask({ 
   task, 
@@ -59,55 +60,153 @@ export default function PhotoTask({
     // Forzar re-render cuando cambian las fotos para actualizar canComplete
   }, [fotos])
 
-  const handleImageUpload = (tipo, file, preview) => {
-    
-    setFotos(prev => {
-      const newState = {
+  const handleImageUpload = async (tipo, file, preview) => {
+    try {
+      setUploadProgress(`Procesando foto ${tipo}...`)
+      
+      // Obtener información de la imagen
+      const imageInfo = await getImageInfo(file)
+      console.log(`📸 Foto ${tipo}:`, imageInfo)
+      
+      // Comprimir automáticamente si es necesario
+      setUploadProgress(`Comprimiendo foto ${tipo}...`)
+      const compressedFile = await validateAndCompressPhoto(file)
+      
+      // Crear preview de la imagen comprimida
+      const compressedPreview = URL.createObjectURL(compressedFile)
+      
+      setFotos(prev => {
+        const newState = {
+          ...prev,
+          [tipo]: {
+            ...prev[tipo],
+            file: compressedFile,
+            preview: compressedPreview,
+            uploaded: false,
+            uploading: true,
+            descripcion: prev[tipo]?.descripcion || '',
+            originalSize: imageInfo.sizeMB,
+            compressedSize: Math.round(compressedFile.size / 1024 / 1024 * 100) / 100,
+            needsCompression: imageInfo.needsCompression
+          }
+        }
+        return newState
+      })
+      
+      setUploadProgress(`Subiendo foto ${tipo}...`)
+      console.log(`✅ Foto ${tipo} procesada, iniciando subida inmediata`)
+      
+      // Subir inmediatamente a Cloudinary
+      await uploadSinglePhoto(tipo, compressedFile, imageInfo)
+      
+      setUploadProgress('')
+      
+    } catch (error) {
+      console.error(`❌ Error procesando foto ${tipo}:`, error)
+      setUploadProgress('')
+      
+      // Actualizar estado con error
+      setFotos(prev => ({
         ...prev,
         [tipo]: {
           ...prev[tipo],
-          file,
-          preview,
-          uploaded: false,
-          descripcion: prev[tipo]?.descripcion || ''
+          error: error.message,
+          uploading: false
+        }
+      }))
+      
+      alert(`Error al procesar la foto ${tipo}: ${error.message}`)
+    }
+  }
+
+  const uploadSinglePhoto = async (tipo, file, imageInfo) => {
+    try {
+      console.log(`☁️ Subiendo foto ${tipo} inmediatamente...`)
+      
+      const formData = new FormData()
+      formData.append('cierreId', cierreId)
+      formData.append('trabajador', trabajador)
+      formData.append('tareaId', task.id)
+      formData.append('tipo', tipo)
+      formData.append('descripcion', fotos[tipo]?.descripcion || tipo)
+      formData.append('file', file)
+
+      const response = await fetch('/api/tarea/foto-individual', {
+        method: 'POST',
+        body: formData
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error subiendo foto')
+      }
+
+      console.log(`✅ Foto ${tipo} subida exitosamente`)
+      
+      // Actualizar estado con éxito
+      setFotos(prev => ({
+        ...prev,
+        [tipo]: {
+          ...prev[tipo],
+          uploaded: true,
+          uploading: false,
+          url: result.foto.url,
+          publicId: result.foto.publicId
+        }
+      }))
+
+      // Verificar si todas las fotos están subidas para completar la tarea
+      setTimeout(() => {
+        checkAndCompleteTask()
+      }, 100)
+
+    } catch (error) {
+      console.error(`❌ Error subiendo foto ${tipo}:`, error)
+      
+      // Actualizar estado con error
+      setFotos(prev => ({
+        ...prev,
+        [tipo]: {
+          ...prev[tipo],
+          error: error.message,
+          uploading: false
+        }
+      }))
+      
+      throw error
+    }
+  }
+
+  const checkAndCompleteTask = () => {
+    setFotos(currentFotos => {
+      // Verificar si todas las fotos están subidas
+      let fotosRequeridasArray = []
+      if (task.fotosRequeridas) {
+        if (typeof task.fotosRequeridas === 'string') {
+          try {
+            fotosRequeridasArray = JSON.parse(task.fotosRequeridas)
+          } catch (error) {
+            console.error('Error parsing fotosRequeridas:', error)
+            return currentFotos
+          }
+        } else if (Array.isArray(task.fotosRequeridas)) {
+          fotosRequeridasArray = task.fotosRequeridas
         }
       }
-      return newState
-    })
-    
-    // Usar un timeout más largo para asegurar que el estado se actualice
-    setTimeout(() => {
-      setFotos(currentFotos => {
-        
-        // Verificar si todas las fotos están listas
-        let fotosRequeridasArray = []
-        if (task.fotosRequeridas) {
-          if (typeof task.fotosRequeridas === 'string') {
-            try {
-              fotosRequeridasArray = JSON.parse(task.fotosRequeridas)
-            } catch (error) {
-              console.error('Error parsing fotosRequeridas:', error)
-              return currentFotos
-            }
-          } else if (Array.isArray(task.fotosRequeridas)) {
-            fotosRequeridasArray = task.fotosRequeridas
-          }
-        }
 
-        const todasLasFotosSubidas = fotosRequeridasArray.every(foto => {
-          const tieneArchivo = currentFotos[foto.tipo] && currentFotos[foto.tipo].file
-          return tieneArchivo
-        })
-
-
-        if (todasLasFotosSubidas && !isUploading && !isCompleted) {
-          // Llamar handleComplete con el estado actual
-          handleCompleteWithState(currentFotos)
-        }
-        
-        return currentFotos
+      const todasLasFotosSubidas = fotosRequeridasArray.every(foto => {
+        const fotoData = currentFotos[foto.tipo]
+        return fotoData && fotoData.file && fotoData.uploaded && !fotoData.error
       })
-    }, 200)
+
+      if (todasLasFotosSubidas && !isUploading && !isCompleted) {
+        console.log('🎉 Todas las fotos subidas, completando tarea...')
+        handleCompleteWithState(currentFotos)
+      }
+      
+      return currentFotos
+    })
   }
 
 
@@ -221,11 +320,11 @@ export default function PhotoTask({
         }
       }
 
-      // Subir fotos al servidor
-      const fotosResponse = await fetch(`${window.location.origin}/api/tarea/fotos`, {
-        method: 'POST',
-        body: formData,
-      })
+        // Subir fotos al servidor
+        const fotosResponse = await fetch(`${window.location.origin}/api/tarea/fotos`, {
+          method: 'POST',
+          body: formData,
+        })
 
       if (!fotosResponse.ok) {
         const errorData = await fotosResponse.json().catch(() => ({}))
@@ -297,88 +396,12 @@ export default function PhotoTask({
     }
 
     setIsUploading(true)
-    setUploadProgress('Preparando fotos para subir...')
+    setUploadProgress('Completando tarea...')
 
     try {
-      // Parsear fotosRequeridas para obtener el array
-      let fotosRequeridasArray = []
-      if (task.fotosRequeridas) {
-        if (typeof task.fotosRequeridas === 'string') {
-          try {
-            fotosRequeridasArray = JSON.parse(task.fotosRequeridas)
-          } catch (error) {
-            console.error('Error parsing fotosRequeridas:', error)
-            fotosRequeridasArray = []
-          }
-        } else if (Array.isArray(task.fotosRequeridas)) {
-          fotosRequeridasArray = task.fotosRequeridas
-        }
-      }
+      console.log('🎉 Todas las fotos ya están subidas, completando tarea...')
 
-      // Preparar fotos individuales para envío uno por uno
-      const fotosParaSubir = []
-      fotosRequeridasArray.forEach((foto, index) => {
-        if (fotosState[foto.tipo]?.file) {
-          fotosParaSubir.push({
-            file: fotosState[foto.tipo].file,
-            tipo: foto.tipo,
-            descripcion: foto.descripcion,
-            index
-          })
-        }
-      })
-
-      console.log(`📤 Enviando ${fotosParaSubir.length} fotos individualmente...`)
-
-      // Subir fotos una por una para evitar error 413
-      for (let i = 0; i < fotosParaSubir.length; i++) {
-        const { file, tipo, descripcion } = fotosParaSubir[i]
-        
-        setUploadProgress(`Subiendo foto ${i + 1} de ${fotosParaSubir.length}: ${descripcion}`)
-        
-        // Crear FormData individual para cada foto
-        const individualFormData = new FormData()
-        individualFormData.append('tareaId', task.id)
-        individualFormData.append('cierreId', cierreId)
-        individualFormData.append('trabajador', trabajador)
-        individualFormData.append(`foto_0`, file)
-        individualFormData.append(`tipo_0`, tipo)
-        individualFormData.append(`descripcion_0`, descripcion)
-
-        console.log(`📤 Subiendo foto ${i + 1}/${fotosParaSubir.length}: ${tipo}`)
-
-        const fotosResponse = await fetch(`${window.location.origin}/api/tarea/fotos`, {
-          method: 'POST',
-          body: individualFormData,
-        })
-
-        if (!fotosResponse.ok) {
-          const errorData = await fotosResponse.json().catch(() => ({}))
-          console.error('❌ Error response from server:', errorData)
-          
-          let errorMessage = `Error al subir foto ${i + 1}`
-          if (errorData.error) {
-            errorMessage = errorData.error
-          }
-          if (errorData.details) {
-            errorMessage += `: ${errorData.details}`
-          }
-          
-          throw new Error(errorMessage)
-        }
-
-        const data = await fotosResponse.json()
-        console.log(`✅ Foto ${i + 1} subida exitosamente:`, data)
-        
-        // Pequeña pausa entre fotos para no saturar el servidor
-        if (i < fotosParaSubir.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 500))
-        }
-      }
-
-      setUploadProgress('¡Todas las fotos subidas con éxito!')
-
-      // Marcar la tarea como completada
+      // Marcar la tarea como completada (las fotos ya están en la BD)
       const tareaResponse = await fetch(`${window.location.origin}/api/tarea`, {
         method: 'PUT',
         headers: {
@@ -391,23 +414,32 @@ export default function PhotoTask({
         }),
       })
 
-      if (tareaResponse.ok) {
-        setIsCompleted(true)
-        onComplete(task.id)
-        // Auto-avanzar después de subir las fotos
-        setTimeout(() => {
-          onNext()
-        }, 1500) // Esperar 1.5 segundos para que el usuario vea el mensaje de éxito
-      } else {
-        throw new Error('Error al marcar la tarea como completada')
+      if (!tareaResponse.ok) {
+        const errorData = await tareaResponse.json().catch(() => ({}))
+        console.error('❌ Error completando tarea:', errorData)
+        throw new Error(errorData.error || 'Error completando tarea')
       }
+
+      const tareaData = await tareaResponse.json()
+      console.log('✅ Tarea completada exitosamente:', tareaData)
+
+      setUploadProgress('¡Tarea completada con éxito!')
+      setIsCompleted(true)
+
+      // Llamar a onComplete después de un breve delay para mostrar el mensaje
+      setTimeout(() => {
+        onComplete(task.id)
+        onNext()
+      }, 1000)
     } catch (error) {
       console.error('❌ Error al completar la tarea:', error)
       
       // Mostrar mensaje de error más específico
       let userMessage = 'Error al completar la tarea. Inténtalo de nuevo.'
       
-      if (error.message.includes('Cloudinary')) {
+      if (error.message.includes('Request timeout') || error.message.includes('Timeout')) {
+        userMessage = 'La subida de fotos tardó demasiado tiempo. Inténtalo de nuevo con fotos más pequeñas.'
+      } else if (error.message.includes('Cloudinary')) {
         userMessage = 'Error al subir las fotos al servidor. Verifica tu conexión a internet e inténtalo de nuevo.'
       } else if (error.message.includes('compresión') || error.message.includes('Sharp')) {
         userMessage = 'Error al procesar las imágenes. Inténtalo con fotos más pequeñas.'
@@ -415,12 +447,14 @@ export default function PhotoTask({
         userMessage = 'Error al guardar la información. Inténtalo de nuevo en unos momentos.'
       } else if (error.message.includes('variables de entorno')) {
         userMessage = 'Error de configuración del servidor. Contacta al administrador.'
-      } else if (error.message.includes('413') || error.message.includes('Content Too Large')) {
-        userMessage = 'Las fotos son demasiado grandes. Inténtalo con imágenes más pequeñas.'
+      } else if (error.message.includes('413') || error.message.includes('Content Too Large') || error.message.includes('demasiado grande')) {
+        userMessage = 'Las fotos son demasiado grandes. Inténtalo con imágenes más pequeñas (máximo 10MB por foto).'
       } else if (error.message.includes('timeout')) {
         userMessage = 'La subida de fotos tardó demasiado. Inténtalo de nuevo.'
       } else if (error.message.includes('network') || error.message.includes('ENOTFOUND')) {
         userMessage = 'Error de conexión de red. Verifica tu internet e inténtalo de nuevo.'
+      } else if (error.message.includes('Archivo demasiado grande')) {
+        userMessage = 'Una o más fotos son demasiado grandes. Redúcelas de tamaño e inténtalo de nuevo.'
       }
       
       alert(userMessage)
@@ -482,7 +516,7 @@ export default function PhotoTask({
               </p>
             )}
             <p className="text-blue-400 text-xs mt-1">
-              ℹ️ Las fotos se subirán automáticamente al completar esta tarea
+              ⚡ Las fotos se suben automáticamente al seleccionarlas
             </p>
           </div>
 
@@ -566,10 +600,34 @@ export default function PhotoTask({
                         alt="Preview"
                         className="w-full h-32 object-cover rounded-lg border border-white/20"
                       />
+                      <div className="mt-2 space-y-1">
+                        {/* Estado de la foto */}
+                        {fotos[foto.tipo].uploading && (
+                          <div className="text-blue-400 text-xs">
+                            ⏳ Subiendo...
+                          </div>
+                        )}
+                        {fotos[foto.tipo].uploaded && (
+                          <div className="text-green-400 text-xs">
+                            ✅ Subida exitosa
+                          </div>
+                        )}
+                        {fotos[foto.tipo].error && (
+                          <div className="text-red-400 text-xs">
+                            ❌ Error: {fotos[foto.tipo].error}
+                          </div>
+                        )}
+                        {/* Información de compresión */}
+                        {fotos[foto.tipo].originalSize && (
+                          <div className="text-white/60 text-xs">
+                            📦 {fotos[foto.tipo].originalSize}MB → {fotos[foto.tipo].compressedSize}MB
+                          </div>
+                        )}
+                      </div>
                       <button
                         onClick={() => handleImageRemove(foto.tipo)}
                         className="mt-2 w-full bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm"
-                        disabled={isUploading}
+                        disabled={isUploading || fotos[foto.tipo]?.uploading}
                       >
                         Eliminar foto
                       </button>
@@ -620,7 +678,10 @@ export default function PhotoTask({
                   📸 Sube todas las fotos requeridas
                 </div>
                 <div className="text-white/60 text-sm">
-                  La tarea se completará automáticamente cuando subas todas las fotos
+                  Cada foto se sube automáticamente al seleccionarla
+                </div>
+                <div className="text-blue-400 text-xs mt-1">
+                  ⚡ Carga progresiva: menos timeouts, mejor experiencia
                 </div>
               </div>
             )}
