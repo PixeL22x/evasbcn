@@ -103,6 +103,45 @@ export async function POST(request) {
       })
     }
 
+    // Obtener comparativa con el día anterior para el último cierre
+    let comparativaMensaje = ''
+    if (stats.cierres.length > 0) {
+      const ultimoCierre = stats.cierres[0]
+      const fechaUltimoCierre = new Date(ultimoCierre.fechaInicio)
+      const fechaAnterior = new Date(fechaUltimoCierre)
+      fechaAnterior.setDate(fechaAnterior.getDate() - 1)
+
+      const cierreAnterior = await prisma.cierre.findFirst({
+        where: {
+          trabajador: ultimoCierre.trabajador,
+          turno: ultimoCierre.turno,
+          fechaInicio: {
+            gte: new Date(fechaAnterior.getFullYear(), fechaAnterior.getMonth(), fechaAnterior.getDate()),
+            lt: new Date(fechaAnterior.getFullYear(), fechaAnterior.getMonth(), fechaAnterior.getDate() + 1)
+          },
+          completado: true
+        },
+        orderBy: { fechaInicio: 'desc' }
+      })
+
+      if (cierreAnterior && cierreAnterior.totalVentas) {
+        const ventasActuales = parseFloat(ultimoCierre.totalVentas) || 0
+        const ventasAnteriores = parseFloat(cierreAnterior.totalVentas) || 0
+        const diferencia = ventasActuales - ventasAnteriores
+        const porcentaje = Math.round((diferencia / ventasAnteriores) * 100)
+
+        let emoji = '📊'
+        if (porcentaje > 0) emoji = '📈'
+        else if (porcentaje < 0) emoji = '📉'
+        else emoji = '➡️'
+
+        comparativaMensaje = `
+📊 *Comparativa último cierre:*
+${emoji} ${porcentaje > 0 ? `+${porcentaje}%` : porcentaje < 0 ? `${porcentaje}%` : 'Igual'} vs día anterior (€${ventasAnteriores})
+        `.trim()
+      }
+    }
+
     const mensaje = `
 📊 *ESTADÍSTICAS DE VENTAS*
 
@@ -115,12 +154,13 @@ ${turno ? `🕐 *Turno:* ${turno}` : ''}
 • Cierres completados: ${stats.cierresCompletados}
 • Ventas totales: €${stats.totalVentas}
 • Promedio por cierre: €${stats.promedioVentas}
-• Total de fotos: ${stats.totalFotos}
+
+${comparativaMensaje}
 
 ${stats.cierres.length > 0 ? `
 📋 *Últimos cierres:*
 ${stats.cierres.slice(0, 5).map(c => 
-  `• ${c.trabajador} (${c.turno}): €${c.totalVentas || 0} - ${c.totalFotos} fotos`
+  `• ${c.trabajador} (${c.turno}): €${c.totalVentas || 0} - ${new Date(c.fechaInicio).toLocaleDateString('es-ES')}`
 ).join('\n')}
 ` : ''}
     `.trim()

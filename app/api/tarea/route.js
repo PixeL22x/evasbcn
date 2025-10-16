@@ -47,7 +47,6 @@ export async function PUT(request) {
 
           // Enviar notificación a Telegram
           try {
-            const fotos = cierreActualizado.tareas.flatMap(tarea => tarea.fotos)
             await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/telegram/notify`, {
               method: 'POST',
               headers: {
@@ -58,8 +57,7 @@ export async function PUT(request) {
                 trabajador: cierreActualizado.trabajador,
                 turno: cierreActualizado.turno,
                 totalVentas: cierreActualizado.totalVentas,
-                fechaFin: cierreActualizado.fechaFin,
-                fotos: fotos
+                fechaFin: cierreActualizado.fechaFin
               })
             })
             console.log('✅ Notificación de cierre enviada a Telegram')

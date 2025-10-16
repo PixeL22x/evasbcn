@@ -1,17 +1,92 @@
 import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 // Configuración del bot de Telegram
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID
 
+// Función para obtener comparativa con el día anterior
+async function obtenerComparativaVentas(fechaFin, trabajador, turno) {
+  try {
+    const fechaActual = new Date(fechaFin)
+    const fechaAnterior = new Date(fechaActual)
+    fechaAnterior.setDate(fechaAnterior.getDate() - 1)
+
+    // Obtener ventas del día anterior (mismo trabajador y turno)
+    const cierreAnterior = await prisma.cierre.findFirst({
+      where: {
+        trabajador: trabajador,
+        turno: turno,
+        fechaInicio: {
+          gte: new Date(fechaAnterior.getFullYear(), fechaAnterior.getMonth(), fechaAnterior.getDate()),
+          lt: new Date(fechaAnterior.getFullYear(), fechaAnterior.getMonth(), fechaAnterior.getDate() + 1)
+        },
+        completado: true
+      },
+      orderBy: { fechaInicio: 'desc' }
+    })
+
+    if (!cierreAnterior || !cierreAnterior.totalVentas) {
+      return {
+        mensaje: '📈 No hay datos del día anterior para comparar',
+        porcentaje: null
+      }
+    }
+
+    const ventasActuales = parseFloat(totalVentas) || 0
+    const ventasAnteriores = parseFloat(cierreAnterior.totalVentas) || 0
+
+    if (ventasAnteriores === 0) {
+      return {
+        mensaje: '📈 No hay ventas del día anterior para comparar',
+        porcentaje: null
+      }
+    }
+
+    const diferencia = ventasActuales - ventasAnteriores
+    const porcentaje = Math.round((diferencia / ventasAnteriores) * 100)
+
+    let emoji = '📊'
+    let mensaje = ''
+    
+    if (porcentaje > 0) {
+      emoji = '📈'
+      mensaje = `${emoji} *+${porcentaje}%* vs ayer (€${ventasAnteriores})`
+    } else if (porcentaje < 0) {
+      emoji = '📉'
+      mensaje = `${emoji} *${porcentaje}%* vs ayer (€${ventasAnteriores})`
+    } else {
+      emoji = '➡️'
+      mensaje = `${emoji} *Igual* que ayer (€${ventasAnteriores})`
+    }
+
+    return {
+      mensaje: mensaje,
+      porcentaje: porcentaje,
+      ventasAnteriores: ventasAnteriores,
+      diferencia: diferencia
+    }
+
+  } catch (error) {
+    console.error('Error obteniendo comparativa:', error)
+    return {
+      mensaje: '❌ Error obteniendo comparativa',
+      porcentaje: null
+    }
+  }
+}
+
 export async function POST(request) {
   try {
-    const { cierreId, trabajador, turno, totalVentas, fechaFin, fotos } = await request.json()
+    const { cierreId, trabajador, turno, totalVentas, fechaFin } = await request.json()
 
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
       console.log('⚠️ Variables de Telegram no configuradas')
       return NextResponse.json({ message: 'Telegram no configurado' }, { status: 200 })
     }
+
+    // Obtener comparativa con el día anterior
+    const comparativa = await obtenerComparativaVentas(fechaFin, trabajador, turno)
 
     // Crear mensaje de resumen
     const mensaje = `
@@ -19,11 +94,13 @@ export async function POST(request) {
 
 👤 *Trabajador:* ${trabajador}
 🕐 *Turno:* ${turno}
-💰 *Ventas Totales:* €${totalVentas}
+💰 *Ventas Totales:* €${totalVentas || 0}
+
+📊 *Comparativa con día anterior:*
+${comparativa.mensaje}
+
 📅 *Fecha:* ${new Date(fechaFin).toLocaleDateString('es-ES')}
 🕒 *Hora:* ${new Date(fechaFin).toLocaleTimeString('es-ES')}
-
-${fotos && fotos.length > 0 ? `📸 *Fotos subidas:* ${fotos.length}` : ''}
 
 ✅ *Estado:* Cierre completado exitosamente
     `.trim()

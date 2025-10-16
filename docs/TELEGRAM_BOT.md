@@ -9,8 +9,8 @@ Sistema de notificaciones automáticas para recibir información de ventas y cie
 - **Información incluida**:
   - 👤 Trabajador y turno
   - 💰 Ventas totales del día
-  - 📸 Número de fotos subidas
-  - 🕒 Fecha y hora del cierre
+  - 📊 Comparativa en porcentaje con el día anterior
+  - 📅 Fecha y hora del cierre
 
 ### 📈 Estadísticas por Demanda
 - Envío de estadísticas filtradas por fecha, trabajador o turno
@@ -131,10 +131,12 @@ POST /api/estadisticas
 👤 Trabajador: Piero
 🕐 Turno: tarde
 💰 Ventas Totales: €245.50
+
+📊 Comparativa con día anterior:
+📈 +15% vs ayer (€213.00)
+
 📅 Fecha: 15/01/2024
 🕒 Hora: 22:30:15
-
-📸 Fotos subidas: 8
 
 ✅ Estado: Cierre completado exitosamente
 ```
