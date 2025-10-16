@@ -7,6 +7,8 @@ export async function GET(request) {
     const fecha = searchParams.get('fecha') // YYYY-MM-DD
     const trabajador = searchParams.get('trabajador')
     const turno = searchParams.get('turno')
+    
+    // Force redeploy - fix for production
 
     // Construir filtros
     const where = {}
