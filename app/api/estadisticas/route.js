@@ -35,8 +35,7 @@ export async function GET(request) {
       where,
       include: {
         tareas: {
-          where: { requiereFotos: true },
-          include: { fotos: true }
+          where: { requiereFotos: true }
         }
       },
       orderBy: { fechaInicio: 'desc' }
@@ -51,7 +50,7 @@ export async function GET(request) {
       trabajadores: [...new Set(cierres.map(c => c.trabajador))],
       turnos: [...new Set(cierres.map(c => c.turno))],
       totalFotos: cierres.reduce((sum, c) => 
-        sum + c.tareas.reduce((taskSum, t) => taskSum + t.fotos.length, 0), 0
+        sum + c.tareas.reduce((taskSum, t) => taskSum + (t.fotosSubidas?.length || 0), 0), 0
       ),
       cierres: cierres.map(cierre => ({
         id: cierre.id,
@@ -61,7 +60,7 @@ export async function GET(request) {
         fechaFin: cierre.fechaFin,
         totalVentas: cierre.totalVentas,
         completado: cierre.completado,
-        totalFotos: cierre.tareas.reduce((sum, t) => sum + t.fotos.length, 0),
+        totalFotos: cierre.tareas.reduce((sum, t) => sum + (t.fotosSubidas?.length || 0), 0),
         duracionMinutos: cierre.fechaFin ? 
           Math.round((new Date(cierre.fechaFin) - new Date(cierre.fechaInicio)) / 60000) : null
       }))
