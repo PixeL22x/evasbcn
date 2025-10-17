@@ -9,7 +9,7 @@ export default function AdminLayout({ children }) {
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    if (!loading && !isAuthenticated()) {
       router.push('/login')
     }
   }, [isAuthenticated, loading, router])
@@ -25,7 +25,7 @@ export default function AdminLayout({ children }) {
     )
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated()) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8 border border-white/20 text-center">
@@ -44,7 +44,7 @@ export default function AdminLayout({ children }) {
 
   // Solo mostrar mensaje de acceso denegado si el usuario está autenticado y no es admin
   // No mostrar nada si no está autenticado (se redirigirá automáticamente)
-  if (isAuthenticated && user && user.role && user.role !== 'admin') {
+  if (isAuthenticated() && user && user.role && user.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8 border border-white/20 text-center">
