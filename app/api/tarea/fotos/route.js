@@ -5,21 +5,28 @@ import { uploadImage } from '../../../../lib/cloudinary'
 export async function POST(request) {
   try {
     console.log('📸 Iniciando subida de fotos de tarea...')
-    const formData = await request.formData()
     
-    const cierreId = formData.get('cierreId')
-    const trabajador = formData.get('trabajador')
-    const tareaId = formData.get('tareaId')
+    // Configurar timeout para la operación completa
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout after 90 seconds')), 90000)
+    })
+    
+    const uploadPromise = async () => {
+      const formData = await request.formData()
+      
+      const cierreId = formData.get('cierreId')
+      const trabajador = formData.get('trabajador')
+      const tareaId = formData.get('tareaId')
 
-    console.log('📋 Datos recibidos:', { cierreId, trabajador, tareaId })
+      console.log('📋 Datos recibidos:', { cierreId, trabajador, tareaId })
 
-    if (!cierreId || !trabajador || !tareaId) {
-      console.error('❌ Faltan datos requeridos:', { cierreId, trabajador, tareaId })
-      return NextResponse.json(
-        { error: 'Faltan datos requeridos' },
-        { status: 400 }
-      )
-    }
+      if (!cierreId || !trabajador || !tareaId) {
+        console.error('❌ Faltan datos requeridos:', { cierreId, trabajador, tareaId })
+        return NextResponse.json(
+          { error: 'Faltan datos requeridos' },
+          { status: 400 }
+        )
+      }
 
     // Obtener las fotos del formulario
     console.log('🔍 Recolectando fotos del FormData...')
@@ -56,52 +63,68 @@ export async function POST(request) {
 
     console.log(`📊 Total de fotos a procesar: ${fotosParaSubir.length}`)
 
-    // Función para procesar una foto individual
-    const procesarFoto = async (fotoData) => {
-      const { file, tipo, descripcion, index } = fotoData
-      
-      try {
-        console.log(`🔄 Procesando foto ${index + 1}/${fotosParaSubir.length}: ${tipo}`)
+      // Función para procesar una foto individual con timeout individual
+      const procesarFoto = async (fotoData) => {
+        const { file, tipo, descripcion, index } = fotoData
         
-        // Convertir el archivo a buffer
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
+        const fotoTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error(`Timeout uploading photo ${tipo}`)), 60000)
+        })
         
-        // Generar nombre único para la imagen
-        const fileName = `tarea_${tareaId}_${tipo}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        const folder = `evas-barcelona/cierres/${cierreId}`
-        
-        // Subir a Cloudinary (con compresión automática)
-        const result = await uploadImage(buffer, fileName, folder)
-        
-        return {
-          tipo,
-          descripcion,
-          url: result.secure_url,
-          publicId: result.public_id,
-          width: result.width,
-          height: result.height,
-          timestamp: new Date()
-        }
-        } catch (uploadError) {
-          console.error(`❌ Error procesando foto ${tipo}:`, uploadError)
-          
-          // Categorizar el error para mejor debugging
-          let errorCategory = 'unknown'
-          if (uploadError.message.includes('Cloudinary')) {
-            errorCategory = 'cloudinary'
-          } else if (uploadError.message.includes('Sharp')) {
-            errorCategory = 'compression'
-          } else if (uploadError.message.includes('timeout')) {
-            errorCategory = 'timeout'
-          } else if (uploadError.message.includes('network') || uploadError.message.includes('ENOTFOUND')) {
-            errorCategory = 'network'
+        const fotoUploadPromise = async () => {
+          try {
+            console.log(`🔄 Procesando foto ${index + 1}/${fotosParaSubir.length}: ${tipo}`)
+            
+            // Validar tamaño del archivo (máximo 50MB para archivos originales)
+            if (file.size > 50 * 1024 * 1024) {
+              throw new Error(`Foto ${tipo} es demasiado grande (${Math.round(file.size / 1024 / 1024)}MB). Máximo permitido: 50MB`)
+            }
+            
+            // Convertir el archivo a buffer
+            const bytes = await file.arrayBuffer()
+            const buffer = Buffer.from(bytes)
+            
+            // Generar nombre único para la imagen
+            const fileName = `tarea_${tareaId}_${tipo}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            const folder = `evas-barcelona/cierres/${cierreId}`
+            
+            // Subir a Cloudinary con timeout individual
+            const result = await uploadImage(buffer, fileName, folder)
+            
+            return {
+              tipo,
+              descripcion,
+              url: result.secure_url,
+              publicId: result.public_id,
+              width: result.width,
+              height: result.height,
+              timestamp: new Date()
+            }
+          } catch (uploadError) {
+            console.error(`❌ Error procesando foto ${tipo}:`, uploadError)
+            
+            // Categorizar el error para mejor debugging
+            let errorCategory = 'unknown'
+            if (uploadError.message.includes('Cloudinary')) {
+              errorCategory = 'cloudinary'
+            } else if (uploadError.message.includes('Sharp')) {
+              errorCategory = 'compression'
+            } else if (uploadError.message.includes('timeout')) {
+              errorCategory = 'timeout'
+            } else if (uploadError.message.includes('network') || uploadError.message.includes('ENOTFOUND')) {
+              errorCategory = 'network'
+            } else if (uploadError.message.includes('demasiado grande')) {
+              errorCategory = 'file_size'
+            }
+            
+            console.error(`❌ Error category: ${errorCategory}`)
+            throw uploadError
           }
-          
-          console.error(`❌ Error category: ${errorCategory}`)
-          throw uploadError
         }
-    }
+        
+        // Ejecutar con timeout individual
+        return Promise.race([fotoUploadPromise(), fotoTimeoutPromise])
+      }
 
     // Subir fotos en paralelo (máximo 3 a la vez para no sobrecargar)
     console.log('🚀 Iniciando subida paralela de fotos...')
@@ -173,12 +196,16 @@ export async function POST(request) {
     })
     console.log('✅ Fotos guardadas en base de datos exitosamente')
 
-    return NextResponse.json({
-      success: true,
-      message: 'Fotos de tarea guardadas correctamente',
-      tarea: updatedTarea,
-      fotosCount: fotos.length
-    })
+      return NextResponse.json({
+        success: true,
+        message: 'Fotos de tarea guardadas correctamente',
+        tarea: updatedTarea,
+        fotosCount: fotos.length
+      })
+    }
+    
+    // Ejecutar con timeout global
+    return Promise.race([uploadPromise(), timeoutPromise])
 
   } catch (error) {
     console.error('❌ Error al subir fotos de tarea:', error)
@@ -187,8 +214,17 @@ export async function POST(request) {
     // Proporcionar más detalles del error
     let errorMessage = 'Error interno del servidor'
     let errorDetails = error.message
+    let statusCode = 500
     
-    if (error.message.includes('Cloudinary')) {
+    if (error.message.includes('Request timeout')) {
+      errorMessage = 'Timeout de la operación'
+      errorDetails = 'La subida de fotos tardó demasiado tiempo'
+      statusCode = 408
+    } else if (error.message.includes('Timeout uploading photo')) {
+      errorMessage = 'Timeout subiendo foto'
+      errorDetails = 'Una foto específica tardó demasiado en subirse'
+      statusCode = 408
+    } else if (error.message.includes('Cloudinary')) {
       errorMessage = 'Error al subir fotos a Cloudinary'
       errorDetails = 'Problema con el servicio de almacenamiento de imágenes'
     } else if (error.message.includes('Sharp')) {
@@ -197,6 +233,10 @@ export async function POST(request) {
     } else if (error.message.includes('Prisma') || error.message.includes('database')) {
       errorMessage = 'Error al guardar en la base de datos'
       errorDetails = 'Problema al almacenar la información de las fotos'
+    } else if (error.message.includes('demasiado grande')) {
+      errorMessage = 'Archivo demasiado grande'
+      errorDetails = error.message
+      statusCode = 413
     }
     
     return NextResponse.json(
@@ -207,7 +247,7 @@ export async function POST(request) {
         // Solo en desarrollo, mostrar stack completo
         ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
       },
-      { status: 500 }
+      { status: statusCode }
     )
   }
 }

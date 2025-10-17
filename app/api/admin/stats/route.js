@@ -7,10 +7,32 @@ export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const now = new Date()
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    // Usar la misma lógica que getTrabajadorTurnoActual para obtener fecha de Barcelona
+    const timeInfo = getBarcelonaTimeInfo()
+    const { today } = timeInfo
+    
+    // Crear fecha de inicio del día usando la fecha de Barcelona
+    // Usar una fecha específica para evitar problemas de zona horaria
+    const startOfDay = new Date(today + 'T00:00:00.000Z')
+    
+    // Debug: mostrar información
+    console.log('Stats Debug:', {
+      today: today,
+      startOfDay: startOfDay.toISOString(),
+      currentTime: new Date().toISOString()
+    })
+    
+    // Debug: verificar cierres del día 17
+    const cierresHoy = await prisma.cierre.findMany({
+      where: {
+        fechaFin: {
+          gte: startOfDay
+        }
+      },
+      select: { fechaFin: true, turno: true, totalVentas: true, completado: true },
+      orderBy: { fechaFin: 'desc' }
+    })
+    console.log('Cierres desde startOfDay:', cierresHoy)
 
     // Ventas del turno mañana (solo turno mañana para evitar duplicación)
     const ventasTurnoMananaResult = await prisma.cierre.aggregate({
