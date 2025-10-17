@@ -12,12 +12,20 @@ export async function GET() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-    // Total de cierres este mes
-    const totalCierres = await prisma.cierre.count({
+    // Ventas del turno mañana (solo turno mañana para evitar duplicación)
+    const ventasTurnoMananaResult = await prisma.cierre.aggregate({
+      _sum: {
+        totalVentas: true
+      },
       where: {
-        createdAt: {
-          gte: startOfMonth
-        }
+        completado: true,
+        fechaFin: {
+          gte: startOfDay
+        },
+        totalVentas: {
+          not: null
+        },
+        turno: "mañana"  // Solo contar ventas del turno de mañana
       }
     })
 
@@ -49,7 +57,7 @@ export async function GET() {
     const trabajadorActual = await getTrabajadorTurnoActual()
 
     return NextResponse.json({
-      totalCierres,
+      ventasTurnoManana: ventasTurnoMananaResult._sum.totalVentas || 0,
       totalTrabajadores,
       ventasHoy: ventasHoyResult._sum.totalVentas || 0,
       trabajadorActual

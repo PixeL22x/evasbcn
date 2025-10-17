@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { formatCurrency } from "@/lib/utils"
-import { Clock, Users, TrendingUp, User } from "lucide-react"
+import { Sun, Users, TrendingUp, User } from "lucide-react"
 
 export function SectionCards() {
   const [stats, setStats] = useState({
-    totalCierres: 0,
+    ventasTurnoManana: 0,
     totalTrabajadores: 0,
     ventasHoy: 0,
     trabajadorActual: null
@@ -40,18 +40,18 @@ export function SectionCards() {
 
   const cards = [
     {
-      title: "Cierres Completados",
-      value: stats.totalCierres,
-      icon: Clock,
-      description: "Total este mes",
-      color: "bg-blue-500"
-    },
-    {
       title: "Trabajadores Activos", 
       value: stats.totalTrabajadores,
       icon: Users,
       description: "Empleados registrados",
       color: "bg-green-500"
+    },
+    {
+      title: "Total Ventas Turno Mañana",
+      value: formatCurrency(stats.ventasTurnoManana),
+      icon: Sun,
+      description: "Ventas del turno mañana",
+      color: "bg-orange-500"
     },
     {
       title: "Ventas de Hoy",
