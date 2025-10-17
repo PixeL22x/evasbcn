@@ -93,11 +93,6 @@ const data = {
       icon: Thermometer,
     },
     {
-      title: "Backups",
-      url: "/admin/backup",
-      icon: Database,
-    },
-    {
       title: "Reportes",
       url: "/admin/reportes",
       icon: FileText,
