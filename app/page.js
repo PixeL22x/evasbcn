@@ -267,9 +267,8 @@ export default function Home() {
                   <p className="text-white/60 text-[10px] sm:text-xs capitalize">{user?.role}</p>
                 </div>
                 <button
-                  onClick={() => {
-                    logout()
-                    window.location.href = '/login'
+                  onClick={async () => {
+                    await logout()
                   }}
                   className="bg-red-500/20 hover:bg-red-500/30 text-red-200 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm transition-colors"
                 >
