@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import fs from 'fs'
 import path from 'path'
 
+// Verificar si estamos en un entorno serverless (Vercel)
+const isServerless = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
+
 // GET - Obtener información de backups y configuración o descargar backup
 export async function GET(request) {
   try {
@@ -94,7 +97,8 @@ export async function POST(request) {
       const backup = await createBackup()
       return NextResponse.json({ 
         message: 'Backup creado exitosamente', 
-        backup 
+        backup,
+        isServerless: isServerless
       })
     }
 
@@ -149,44 +153,58 @@ async function createBackup() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
     const filename = `backup-${timestamp}.json`
 
-    // Crear directorio de backups si no existe
-    const backupDir = path.join(process.cwd(), 'backups')
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true })
-    }
-
-    // Guardar backup
-    const filePath = path.join(backupDir, filename)
-    fs.writeFileSync(filePath, JSON.stringify(backupData, null, 2))
-
-    // Actualizar configuración con último backup
-    const configPath = path.join(backupDir, 'backup-config.json')
-    let config = {
-      autoBackup: false,
-      interval: 'daily',
-      lastBackup: new Date().toISOString(),
-      maxBackups: 10
-    }
-
-    if (fs.existsSync(configPath)) {
-      try {
-        const configData = fs.readFileSync(configPath, 'utf8')
-        config = { ...config, ...JSON.parse(configData) }
-      } catch (error) {
-        console.error('Error reading backup config:', error)
+    if (isServerless) {
+      // En producción (Vercel), devolver el backup como JSON directamente
+      const jsonData = JSON.stringify(backupData, null, 2)
+      
+      return {
+        filename,
+        size: Buffer.byteLength(jsonData, 'utf8'),
+        created: new Date().toISOString(),
+        data: jsonData, // Incluir los datos para descarga directa
+        isServerless: true
       }
-    }
+    } else {
+      // En localhost, guardar archivo como antes
+      const backupDir = path.join(process.cwd(), 'backups')
+      if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true })
+      }
 
-    config.lastBackup = new Date().toISOString()
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
+      // Guardar backup
+      const filePath = path.join(backupDir, filename)
+      fs.writeFileSync(filePath, JSON.stringify(backupData, null, 2))
 
-    // Limpiar backups antiguos si excede el máximo
-    await cleanupOldBackups(backupDir, config.maxBackups)
+      // Actualizar configuración con último backup
+      const configPath = path.join(backupDir, 'backup-config.json')
+      let config = {
+        autoBackup: false,
+        interval: 'daily',
+        lastBackup: new Date().toISOString(),
+        maxBackups: 10
+      }
 
-    return {
-      filename,
-      size: fs.statSync(filePath).size,
-      created: new Date().toISOString()
+      if (fs.existsSync(configPath)) {
+        try {
+          const configData = fs.readFileSync(configPath, 'utf8')
+          config = { ...config, ...JSON.parse(configData) }
+        } catch (error) {
+          console.error('Error reading backup config:', error)
+        }
+      }
+
+      config.lastBackup = new Date().toISOString()
+      fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
+
+      // Limpiar backups antiguos si excede el máximo
+      await cleanupOldBackups(backupDir, config.maxBackups)
+
+      return {
+        filename,
+        size: fs.statSync(filePath).size,
+        created: new Date().toISOString(),
+        isServerless: false
+      }
     }
 
   } catch (error) {

@@ -57,8 +57,27 @@ export default function BackupPage() {
       })
 
       if (response.ok) {
-        await fetchBackupInfo() // Refrescar la lista
-        alert('✅ Backup creado exitosamente')
+        const result = await response.json()
+        
+        // Si estamos en producción (serverless), descargar directamente
+        if (result.isServerless && result.backup.data) {
+          // Crear blob con los datos del backup
+          const blob = new Blob([result.backup.data], { type: 'application/json' })
+          const url = window.URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = result.backup.filename
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+          
+          alert(`✅ Backup creado y descargado exitosamente: ${result.backup.filename}`)
+        } else {
+          // En localhost, refrescar la lista
+          await fetchBackupInfo()
+          alert('✅ Backup creado exitosamente')
+        }
       } else {
         alert('❌ Error al crear el backup')
       }
