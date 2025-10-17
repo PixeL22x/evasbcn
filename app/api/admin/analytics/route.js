@@ -48,9 +48,10 @@ export async function GET(request) {
 
     const cierresCompletados = cierres.filter(c => c.completado)
     
-    // Calcular KPIs
-    const ventasPromedio = cierresCompletados.length > 0 
-      ? cierresCompletados.reduce((sum, c) => sum + (c.totalVentas || 0), 0) / cierresCompletados.length
+    // Calcular KPIs (solo considerar cierres de tarde para ventas)
+    const cierresTardeCompletados = cierresCompletados.filter(c => c.turno === "tarde")
+    const ventasPromedio = cierresTardeCompletados.length > 0 
+      ? cierresTardeCompletados.reduce((sum, c) => sum + (c.totalVentas || 0), 0) / cierresTardeCompletados.length
       : 0
 
     const tiempoPromedio = 35 // Simulado

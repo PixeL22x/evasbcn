@@ -28,7 +28,7 @@ export async function GET() {
       }
     })
 
-    // Ventas de hoy (suma de totalVentas de cierres completados hoy)
+    // Ventas de hoy (solo turno de noche para evitar duplicación)
     const ventasHoyResult = await prisma.cierre.aggregate({
       _sum: {
         totalVentas: true
@@ -40,7 +40,8 @@ export async function GET() {
         },
         totalVentas: {
           not: null
-        }
+        },
+        turno: "tarde"  // Solo contar ventas del turno de tarde (total del día)
       }
     })
 

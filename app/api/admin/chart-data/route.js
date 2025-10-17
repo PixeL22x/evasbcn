@@ -25,7 +25,7 @@ export async function GET(request) {
     const endDate = new Date()
     const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000)
 
-    // Obtener datos de cierres por día
+    // Obtener datos de cierres por día (solo turno de noche para ventas)
     const cierres = await prisma.cierre.findMany({
       where: {
         createdAt: {
@@ -36,7 +36,8 @@ export async function GET(request) {
       select: {
         createdAt: true,
         totalVentas: true,
-        completado: true
+        completado: true,
+        turno: true
       }
     })
 
@@ -59,7 +60,8 @@ export async function GET(request) {
       const dateStr = cierre.createdAt.toISOString().split('T')[0]
       if (dataByDate[dateStr]) {
         dataByDate[dateStr].cierres += 1
-        if (cierre.totalVentas && cierre.completado) {
+        // Solo sumar ventas del turno de tarde para evitar duplicación
+        if (cierre.totalVentas && cierre.completado && cierre.turno === "tarde") {
           dataByDate[dateStr].ventas += cierre.totalVentas
         }
       }

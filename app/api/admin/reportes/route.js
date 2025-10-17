@@ -50,8 +50,10 @@ export async function GET(request) {
     const totalCierres = cierres.length
     const cierresCompletados = cierres.filter(c => c.completado)
     
-    const ventasPromedio = cierresCompletados.length > 0 
-      ? cierresCompletados.reduce((sum, c) => sum + (c.totalVentas || 0), 0) / cierresCompletados.length
+    // Solo considerar cierres de tarde para ventas promedio
+    const cierresTardeCompletados = cierresCompletados.filter(c => c.turno === "tarde")
+    const ventasPromedio = cierresTardeCompletados.length > 0 
+      ? cierresTardeCompletados.reduce((sum, c) => sum + (c.totalVentas || 0), 0) / cierresTardeCompletados.length
       : 0
 
     // Calcular tiempo promedio (simulado)
@@ -73,7 +75,10 @@ export async function GET(request) {
         }
       }
       trabajadorStats[cierre.trabajador].cierresCompletados++
-      trabajadorStats[cierre.trabajador].ventasTotal += cierre.totalVentas || 0
+      // Solo sumar ventas de cierres de tarde para evitar duplicación
+      if (cierre.turno === "tarde") {
+        trabajadorStats[cierre.trabajador].ventasTotal += cierre.totalVentas || 0
+      }
     })
 
     const trabajadorStatsArray = Object.values(trabajadorStats).map(stats => ({
