@@ -41,14 +41,27 @@ export async function PUT(request) {
 
           // Enviar notificación simple a Telegram
           try {
+            // Obtener hora de Barcelona
+            const fechaBarcelona = new Date(cierreActualizado.fechaFin).toLocaleString('es-ES', {
+              timeZone: 'Europe/Madrid',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            })
+            
+            const [fecha, hora] = fechaBarcelona.split(', ')
+            
             const mensaje = `
 🎉 *CIERRE COMPLETADO*
 
 👤 *Trabajador:* ${cierreActualizado.trabajador}
 🕐 *Turno:* ${cierreActualizado.turno}
 💰 *Ventas Totales:* €${cierreActualizado.totalVentas || 0}
-📅 *Fecha:* ${new Date(cierreActualizado.fechaFin).toLocaleDateString('es-ES')}
-🕒 *Hora:* ${new Date(cierreActualizado.fechaFin).toLocaleTimeString('es-ES')}
+📅 *Fecha:* ${fecha}
+🕒 *Hora:* ${hora}
             `.trim()
 
             const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
