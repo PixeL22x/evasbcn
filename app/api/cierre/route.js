@@ -46,6 +46,12 @@ export async function POST(request) {
             { tipo: 'ticket_tpv_2', descripcion: 'Ticket TPV 2' },
             { tipo: 'datafono_detalle', descripcion: 'Datafono detalle operaciones' }
           ])
+        },
+        {
+          nombre: 'Total de ventas del día',
+          duracion: 2,
+          requiereInput: true,
+          inputType: 'ventas'
         }
       ],
       tarde: [

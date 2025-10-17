@@ -31,13 +31,56 @@ export async function PUT(request) {
         
         if (todasCompletadas) {
           // Marcar el cierre como completado y establecer fecha de fin
-          await prisma.cierre.update({
+          const cierreActualizado = await prisma.cierre.update({
             where: { id: cierreId },
             data: {
               completado: true,
               fechaFin: new Date(),
             },
           })
+
+          // Enviar notificación simple a Telegram
+          try {
+            const mensaje = `
+🎉 *CIERRE COMPLETADO*
+
+👤 *Trabajador:* ${cierreActualizado.trabajador}
+🕐 *Turno:* ${cierreActualizado.turno}
+💰 *Ventas Totales:* €${cierreActualizado.totalVentas || 0}
+📅 *Fecha:* ${new Date(cierreActualizado.fechaFin).toLocaleDateString('es-ES')}
+🕒 *Hora:* ${new Date(cierreActualizado.fechaFin).toLocaleTimeString('es-ES')}
+            `.trim()
+
+            const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
+            const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID
+
+            if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+              const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`
+              
+              const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  chat_id: TELEGRAM_CHAT_ID,
+                  text: mensaje,
+                  parse_mode: 'Markdown'
+                }),
+              })
+
+              if (response.ok) {
+                console.log('✅ Notificación de cierre enviada a Telegram')
+              } else {
+                console.error('⚠️ Error enviando notificación a Telegram:', await response.text())
+              }
+            } else {
+              console.log('⚠️ Telegram no configurado - saltando notificación')
+            }
+          } catch (telegramError) {
+            console.error('⚠️ Error enviando notificación a Telegram:', telegramError)
+            // No fallar la operación principal por un error de Telegram
+          }
         }
       }
     }

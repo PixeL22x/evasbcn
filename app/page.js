@@ -474,7 +474,7 @@ export default function Home() {
                 onClick={handleResetGame}
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-sm sm:text-base"
               >
-                🔄 Nuevo Cierre
+                🏠 Ir al Menu Principal
               </button>
             </div>
           </div>
