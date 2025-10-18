@@ -72,6 +72,7 @@ export async function POST(request) {
           subtareas: JSON.stringify([
             'Separar helados y quitar barras metálicas',
             'Guardar smoothies + Milkshakes + Hielo Picado',
+            'Cerrar cajas de galletas',
             'Barrer y aspirar'
           ])
         },
@@ -133,7 +134,9 @@ export async function POST(request) {
             { tipo: 'crepera_apagada', descripcion: 'Crepera apagada' },
             { tipo: 'waflera_apagada', descripcion: 'Waflera apagada' },
             { tipo: 'aire_apagado', descripcion: 'Aire acondicionado apagado' },
-            { tipo: 'ventilador_apagado', descripcion: 'Ventilador de techo apagado' }
+            { tipo: 'ventilador_apagado', descripcion: 'Ventilador de techo apagado' },
+            { tipo: 'isa1_apagada', descripcion: 'ISA 1 apagada' },
+            { tipo: 'isa2_apagada', descripcion: 'ISA 2 apagada' }
           ])
         },
         // ⚙️ Bloque 6 - Apagado de Equipos
