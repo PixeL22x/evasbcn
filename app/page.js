@@ -468,12 +468,18 @@ export default function Home() {
                      </div>
                    </div>
 
-            <div className="flex justify-center">
+            <div className="flex flex-col gap-3 sm:gap-4">
               <button
                 onClick={handleResetGame}
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-sm sm:text-base"
               >
                 🏠 Ir al Menu Principal
+              </button>
+              <button
+                onClick={logout}
+                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-sm sm:text-base"
+              >
+                🚪 Cerrar sesión
               </button>
             </div>
           </div>
