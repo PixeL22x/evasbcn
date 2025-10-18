@@ -47,14 +47,14 @@ export function SectionCards() {
       color: "bg-green-500"
     },
     {
-      title: "Total Ventas Turno Mañana",
+      title: "Ventas turno mañana",
       value: formatCurrency(stats.ventasTurnoManana),
       icon: Sun,
       description: "Ventas del turno mañana",
       color: "bg-orange-500"
     },
     {
-      title: "Ventas de Hoy",
+      title: "Total ventas del día",
       value: formatCurrency(stats.ventasHoy),
       icon: TrendingUp,
       description: "Ingresos del día",
