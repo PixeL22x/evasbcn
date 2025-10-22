@@ -46,7 +46,7 @@ export default function WorkerForm({ onStart, onCancel }) {
         <div className="bg-white/10 backdrop-blur-lg rounded-lg sm:rounded-xl lg:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20">
           <div className="text-center mb-4 sm:mb-6 lg:mb-8">
             <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-white/10 backdrop-blur-sm rounded-full mb-3 sm:mb-4 lg:mb-6">
-              <span className="text-2xl sm:text-3xl lg:text-4xl">👷</span>
+              <span className="text-2xl sm:text-3xl lg:text-4xl">🍦</span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 sm:mb-2">
               ¡Hola {user?.name}!
