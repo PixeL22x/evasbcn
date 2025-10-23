@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Line, LineChart } from "recharts"
 import {
   Card,
   CardContent,
@@ -59,7 +59,37 @@ export function ChartAreaInteractive() {
     }
   }
 
-  const filteredData = chartData
+  // Función para determinar el color basado en la tendencia
+  const getTrendColor = (currentValue, previousValue) => {
+    if (!previousValue) return "hsl(142, 76%, 36%)" // Verde por defecto para el primer punto
+    
+    const difference = currentValue - previousValue
+    const percentageChange = (difference / previousValue) * 100
+    
+    if (percentageChange > 5) {
+      return "hsl(142, 76%, 36%)" // Verde para subidas significativas (>5%)
+    } else if (percentageChange < -5) {
+      return "hsl(0, 84%, 60%)" // Rojo para bajadas significativas (<-5%)
+    } else {
+      return "hsl(45, 93%, 47%)" // Amarillo para cambios menores (±5%)
+    }
+  }
+
+  // Procesar datos para agregar información de tendencia
+  const processedData = chartData.map((item, index) => {
+    const previousValue = index > 0 ? chartData[index - 1].ventas : null
+    const trendColor = getTrendColor(item.ventas, previousValue)
+    
+    return {
+      ...item,
+      trendColor,
+      trend: previousValue ? 
+        (item.ventas > previousValue ? 'up' : item.ventas < previousValue ? 'down' : 'stable') : 
+        'neutral'
+    }
+  })
+
+  const filteredData = processedData
 
   return (
     <Card>
@@ -67,7 +97,7 @@ export function ChartAreaInteractive() {
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Ventas</CardTitle>
           <CardDescription>
-            Mostrando datos de ventas totales
+            Mostrando datos de ventas totales con indicadores de tendencia
           </CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
@@ -95,18 +125,18 @@ export function ChartAreaInteractive() {
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
         >
-          <AreaChart data={filteredData}>
+          <LineChart data={filteredData}>
             <defs>
               <linearGradient id="fillVentas" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-ventas)"
-                  stopOpacity={0.8}
+                  stopColor="hsl(142, 76%, 36%)"
+                  stopOpacity={0.3}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-ventas)"
-                  stopOpacity={0.1}
+                  stopColor="hsl(142, 76%, 36%)"
+                  stopOpacity={0.05}
                 />
               </linearGradient>
             </defs>
@@ -142,6 +172,11 @@ export function ChartAreaInteractive() {
                     })
                   }}
                   indicator="dot"
+                  formatter={(value, name, props) => {
+                    const trend = props.payload.trend
+                    const trendIcon = trend === 'up' ? '📈' : trend === 'down' ? '📉' : '➡️'
+                    return [`${value}€ ${trendIcon}`, name]
+                  }}
                 />
               }
             />
@@ -149,10 +184,58 @@ export function ChartAreaInteractive() {
               dataKey="ventas"
               type="natural"
               fill="url(#fillVentas)"
-              stroke="var(--color-ventas)"
+              stroke="none"
             />
-          </AreaChart>
+            <Line
+              dataKey="ventas"
+              type="natural"
+              stroke="hsl(142, 76%, 36%)"
+              strokeWidth={3}
+              dot={(props) => {
+                const { cx, cy, payload } = props
+                return (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={4}
+                    fill={payload.trendColor}
+                    stroke="white"
+                    strokeWidth={2}
+                  />
+                )
+              }}
+              activeDot={(props) => {
+                const { cx, cy, payload } = props
+                return (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={6}
+                    fill={payload.trendColor}
+                    stroke="white"
+                    strokeWidth={3}
+                  />
+                )
+              }}
+            />
+          </LineChart>
         </ChartContainer>
+        
+        {/* Leyenda de colores */}
+        <div className="flex justify-center gap-4 mt-4 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <span className="text-muted-foreground">Subida (+5%)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <span className="text-muted-foreground">Estable (±5%)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <span className="text-muted-foreground">Bajada (-5%)</span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
