@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -13,6 +14,8 @@ import {
 export function DataTable({ data: initialData }) {
   const [cierres, setCierres] = useState(initialData || [])
   const [loading, setLoading] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(5)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
     if (!initialData) {
@@ -33,6 +36,19 @@ export function DataTable({ data: initialData }) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadMoreCierres = () => {
+    setLoadingMore(true)
+    // Simular carga (en realidad los datos ya están cargados)
+    setTimeout(() => {
+      setVisibleCount(prev => Math.min(prev + 5, cierres.length))
+      setLoadingMore(false)
+    }, 500)
+  }
+
+  const resetView = () => {
+    setVisibleCount(5)
   }
 
   if (loading) {
@@ -56,7 +72,7 @@ export function DataTable({ data: initialData }) {
         <CardHeader>
           <CardTitle>Cierres Recientes</CardTitle>
           <CardDescription>
-            Historial de los últimos cierres completados
+            Últimos cierres completados (carga incremental)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -80,43 +96,82 @@ export function DataTable({ data: initialData }) {
                     </td>
                   </tr>
                 ) : (
-                  cierres.slice(0, 10).map((cierre) => (
-                    <tr key={cierre.id} className="border-b hover:bg-muted/50">
-                      <td className="p-2">
-                        <div className="font-medium">{cierre.trabajador}</div>
-                      </td>
-                      <td className="p-2 text-sm text-muted-foreground">
-                        {formatDate(cierre.fechaInicio)}
-                      </td>
-                      <td className="p-2 text-sm text-muted-foreground">
-                        {cierre.fechaFin ? formatDate(cierre.fechaFin) : '-'}
-                      </td>
-                      <td className="p-2">
-                        <div className="font-medium">
-                          {cierre.totalVentas ? formatCurrency(cierre.totalVentas) : '-'}
-                        </div>
-                      </td>
-                      <td className="p-2">
-                        <div className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          cierre.completado 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
-                        }`}>
-                          {cierre.completado ? 'Completado' : 'En Progreso'}
-                        </div>
-                      </td>
-                      <td className="p-2 text-sm text-muted-foreground">
-                        {cierre.tareas ? 
-                          `${cierre.tareas.filter(t => t.completada).length}/${cierre.tareas.length}` 
-                          : '0/0'
-                        }
-                      </td>
-                    </tr>
-                  ))
+                  <>
+                    {cierres.slice(0, visibleCount).map((cierre, index) => (
+                      <tr key={cierre.id} className={`border-b hover:bg-muted/50 ${index % 2 === 0 ? 'bg-background' : 'bg-muted/30'}`}>
+                        <td className="p-2">
+                          <div className="font-medium">{cierre.trabajador}</div>
+                        </td>
+                        <td className="p-2 text-sm text-muted-foreground">
+                          {formatDate(cierre.fechaInicio)}
+                        </td>
+                        <td className="p-2 text-sm text-muted-foreground">
+                          {cierre.fechaFin ? formatDate(cierre.fechaFin) : '-'}
+                        </td>
+                        <td className="p-2">
+                          <div className="font-medium">
+                            {cierre.totalVentas ? formatCurrency(cierre.totalVentas) : '-'}
+                          </div>
+                        </td>
+                        <td className="p-2">
+                          <div className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            cierre.completado 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+                          }`}>
+                            {cierre.completado ? 'Completado' : 'En Progreso'}
+                          </div>
+                        </td>
+                        <td className="p-2 text-sm text-muted-foreground">
+                          {cierre.tareas ? 
+                            `${cierre.tareas.filter(t => t.completada).length}/${cierre.tareas.length}` 
+                            : '0/0'
+                          }
+                        </td>
+                      </tr>
+                    ))}
+                  </>
                 )}
               </tbody>
             </table>
           </div>
+          
+          {/* Controles de carga incremental */}
+          {cierres.length > 5 && (
+            <div className="flex justify-center items-center gap-3 mt-4">
+              {visibleCount < cierres.length ? (
+                <Button 
+                  variant="outline" 
+                  onClick={loadMoreCierres}
+                  disabled={loadingMore}
+                  className="px-6"
+                >
+                  {loadingMore ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                      Cargando...
+                    </>
+                  ) : (
+                    `Cargar 5 más`
+                  )}
+                </Button>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  Mostrando todos los cierres ({cierres.length})
+                </div>
+              )}
+              
+              {visibleCount > 5 && (
+                <Button 
+                  variant="ghost" 
+                  onClick={resetView}
+                  className="px-4 text-sm"
+                >
+                  Ver menos
+                </Button>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
   )

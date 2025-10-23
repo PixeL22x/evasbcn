@@ -30,7 +30,7 @@ const chartConfig = {
 }
 
 export function ChartAreaInteractive() {
-  const [timeRange, setTimeRange] = useState("90d")
+  const [timeRange, setTimeRange] = useState("7d")
   const [chartData, setChartData] = useState([])
 
   useEffect(() => {
@@ -105,17 +105,17 @@ export function ChartAreaInteractive() {
             className="w-[160px] rounded-lg sm:ml-auto"
             aria-label="Select a value"
           >
-            <SelectValue placeholder="Last 3 months" />
+            <SelectValue placeholder="Últimos 7 días" />
           </SelectTrigger>
           <SelectContent className="rounded-xl">
-            <SelectItem value="90d" className="rounded-lg">
-              Últimos 3 meses
+            <SelectItem value="7d" className="rounded-lg">
+              Últimos 7 días
             </SelectItem>
             <SelectItem value="30d" className="rounded-lg">
               Últimos 30 días
             </SelectItem>
-            <SelectItem value="7d" className="rounded-lg">
-              Últimos 7 días
+            <SelectItem value="90d" className="rounded-lg">
+              Últimos 3 meses
             </SelectItem>
           </SelectContent>
         </Select>

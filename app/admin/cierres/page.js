@@ -25,6 +25,8 @@ export default function CierresPage() {
   const [loading, setLoading] = useState(true)
   const [selectedCierre, setSelectedCierre] = useState(null)
   const [showDetails, setShowDetails] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(6)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
     fetchCierres()
@@ -83,6 +85,19 @@ export default function CierresPage() {
   const closeDetails = () => {
     setShowDetails(false)
     setSelectedCierre(null)
+  }
+
+  const loadMoreCierres = () => {
+    setLoadingMore(true)
+    // Simular carga (en realidad los datos ya están cargados)
+    setTimeout(() => {
+      setVisibleCount(prev => Math.min(prev + 6, cierres.length))
+      setLoadingMore(false)
+    }, 500)
+  }
+
+  const resetView = () => {
+    setVisibleCount(6)
   }
 
   const getProgressPercentage = (tareas) => {
@@ -169,7 +184,7 @@ export default function CierresPage() {
                   <div>
                     <h1 className="text-3xl font-bold">Gestión de Cierres</h1>
                     <p className="text-muted-foreground">
-                      Administra y supervisa todos los procesos de cierre
+                      Administra y supervisa todos los procesos de cierre (carga progresiva)
                     </p>
                   </div>
                 </div>
@@ -180,86 +195,125 @@ export default function CierresPage() {
                     <p className="mt-2 text-muted-foreground">Cargando cierres...</p>
                   </div>
                 ) : (
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {cierres.length === 0 ? (
-                      <div className="col-span-full text-center py-8">
-                        <p className="text-muted-foreground">No hay cierres registrados</p>
-                      </div>
-                    ) : (
-                      cierres.map((cierre) => (
-                        <Card key={cierre.id} className="hover:shadow-lg transition-shadow">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <CardTitle className="text-lg">{cierre.trabajador}</CardTitle>
-                              {getStatusBadge(cierre)}
-                            </div>
-                            <CardDescription>
-                              Iniciado: {formatDate(cierre.fechaInicio)}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm">
-                                  {cierre.fechaFin ? 
-                                    `Finalizado: ${formatDate(cierre.fechaFin)}` : 
-                                    'En progreso'
-                                  }
-                                </span>
+                  <>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {cierres.length === 0 ? (
+                        <div className="col-span-full text-center py-8">
+                          <p className="text-muted-foreground">No hay cierres registrados</p>
+                        </div>
+                      ) : (
+                        cierres.slice(0, visibleCount).map((cierre) => (
+                          <Card key={cierre.id} className="hover:shadow-lg transition-shadow">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-lg">{cierre.trabajador}</CardTitle>
+                                {getStatusBadge(cierre)}
                               </div>
-                              
-                              {cierre.totalVentas && (
+                              <CardDescription>
+                                Iniciado: {formatDate(cierre.fechaInicio)}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium">
-                                    Ventas: {formatCurrency(cierre.totalVentas)}
+                                  <Clock className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-sm">
+                                    {cierre.fechaFin ? 
+                                      `Finalizado: ${formatDate(cierre.fechaFin)}` : 
+                                      'En progreso'
+                                    }
                                   </span>
                                 </div>
-                              )}
+                                
+                                {cierre.totalVentas && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium">
+                                      Ventas: {formatCurrency(cierre.totalVentas)}
+                                    </span>
+                                  </div>
+                                )}
 
-                              {cierre.tareas && cierre.tareas.length > 0 && (
-                                <div>
-                                  <div className="flex justify-between text-sm mb-1">
-                                    <span>Progreso</span>
-                                    <span>{getProgressPercentage(cierre.tareas)}%</span>
+                                {cierre.tareas && cierre.tareas.length > 0 && (
+                                  <div>
+                                    <div className="flex justify-between text-sm mb-1">
+                                      <span>Progreso</span>
+                                      <span>{getProgressPercentage(cierre.tareas)}%</span>
+                                    </div>
+                                    <div className="w-full bg-secondary rounded-full h-2">
+                                      <div 
+                                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                                        style={{ width: `${getProgressPercentage(cierre.tareas)}%` }}
+                                      />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {cierre.tareas.filter(t => t.completada).length} de {cierre.tareas.length} tareas completadas
+                                    </p>
                                   </div>
-                                  <div className="w-full bg-secondary rounded-full h-2">
-                                    <div 
-                                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                                      style={{ width: `${getProgressPercentage(cierre.tareas)}%` }}
-                                    />
-                                  </div>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {cierre.tareas.filter(t => t.completada).length} de {cierre.tareas.length} tareas completadas
-                                  </p>
+                                )}
+
+                                <div className="flex gap-2 pt-2">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="flex-1"
+                                    onClick={() => handleViewDetails(cierre)}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    Ver Detalles
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-destructive hover:text-destructive"
+                                    onClick={() => handleDeleteCierre(cierre.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
-                              )}
-
-                              <div className="flex gap-2 pt-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="flex-1"
-                                  onClick={() => handleViewDetails(cierre)}
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  Ver Detalles
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="text-destructive hover:text-destructive"
-                                  onClick={() => handleDeleteCierre(cierre.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
                               </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
+                            </CardContent>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                    
+                    {/* Controles de carga progresiva */}
+                    {cierres.length > 6 && (
+                      <div className="flex justify-center items-center gap-3 mt-6">
+                        {visibleCount < cierres.length ? (
+                          <Button 
+                            variant="outline" 
+                            onClick={loadMoreCierres}
+                            disabled={loadingMore}
+                            className="px-6"
+                          >
+                            {loadingMore ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                                Cargando...
+                              </>
+                            ) : (
+                              `Cargar 6 más`
+                            )}
+                          </Button>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">
+                            Mostrando todos los cierres ({cierres.length})
+                          </div>
+                        )}
+                        
+                        {visibleCount > 6 && (
+                          <Button 
+                            variant="ghost" 
+                            onClick={resetView}
+                            className="px-4 text-sm"
+                          >
+                            Ver menos
+                          </Button>
+                        )}
+                      </div>
                     )}
-                  </div>
+                  </>
                 )}
 
                 {/* Modal de detalles del cierre */}
