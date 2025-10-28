@@ -61,13 +61,13 @@ export function ChartAreaInteractive() {
 
   // Función para determinar el color basado en la tendencia
   const getTrendColor = (currentValue, previousValue) => {
-    if (!previousValue) return "hsl(142, 76%, 36%)" // Verde por defecto para el primer punto
+    if (!previousValue) return "hsl(217, 91%, 60%)" // Azul por defecto para el primer punto
     
     const difference = currentValue - previousValue
     const percentageChange = (difference / previousValue) * 100
     
     if (percentageChange > 5) {
-      return "hsl(142, 76%, 36%)" // Verde para subidas significativas (>5%)
+      return "hsl(217, 91%, 60%)" // Azul para subidas significativas (>5%)
     } else if (percentageChange < -5) {
       return "hsl(0, 84%, 60%)" // Rojo para bajadas significativas (<-5%)
     } else {
@@ -130,12 +130,12 @@ export function ChartAreaInteractive() {
               <linearGradient id="fillVentas" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="hsl(142, 76%, 36%)"
+                  stopColor="hsl(217, 91%, 60%)"
                   stopOpacity={0.3}
                 />
                 <stop
                   offset="95%"
-                  stopColor="hsl(142, 76%, 36%)"
+                  stopColor="hsl(217, 91%, 60%)"
                   stopOpacity={0.05}
                 />
               </linearGradient>
@@ -189,7 +189,7 @@ export function ChartAreaInteractive() {
             <Line
               dataKey="ventas"
               type="natural"
-              stroke="hsl(142, 76%, 36%)"
+              stroke="hsl(217, 91%, 60%)"
               strokeWidth={3}
               dot={(props) => {
                 const { cx, cy, payload } = props
