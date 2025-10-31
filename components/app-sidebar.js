@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Thermometer,
   Database,
+  Bot,
 } from "lucide-react"
 import { useSolicitudesCount } from "@/hooks/use-solicitudes-count"
 
@@ -116,6 +117,11 @@ const data = {
       title: "Backup",
       url: "/admin/backup",
       icon: Database,
+    },
+    {
+      title: "Bots",
+      url: "/admin/bots",
+      icon: Bot,
     },
   ],
 }
