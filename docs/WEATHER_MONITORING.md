@@ -4,7 +4,7 @@ Sistema automático de alertas meteorológicas para proteger el toldo de la tien
 
 ## 🎯 Funcionalidad
 
-El sistema monitorea las condiciones meteorológicas **3 veces al día** (02:14 AM, 12:00 PM y 18:00 PM) y envía alertas por Telegram cuando detecta condiciones peligrosas que requieren cerrar el toldo:
+El sistema monitorea las condiciones meteorológicas **3 veces al día** (02:20 AM, 12:00 PM y 18:00 PM) y envía alertas por Telegram cuando detecta condiciones peligrosas que requieren cerrar el toldo:
 
 - **Viento fuerte**: > 30 km/h (configurable)
 - **Ráfagas muy fuertes**: > 50 km/h (configurable)
@@ -80,43 +80,51 @@ http://localhost:3000/api/weather/monitor
 
 Para ejecutar automáticamente a las **12:00 PM** y **18:00 PM**, puedes usar:
 
-#### Opción 1: Vercel Cron Jobs (Producción)
+#### Opción 1: Cron-Job.org (Recomendado - Gratis)
 
-Si tu proyecto está en Vercel, el archivo `vercel.json` ya está configurado con los crons:
+**Solución recomendada**: Usar [cron-job.org](https://cron-job.org) que es completamente gratuito y sin límites estrictos.
 
-```json
-{
-  "crons": [
-    {
-      "path": "/api/weather/monitor",
-      "schedule": "14 1 * * *"
-    },
-    {
-      "path": "/api/weather/monitor",
-      "schedule": "0 11 * * *"
-    },
-    {
-      "path": "/api/weather/monitor",
-      "schedule": "0 17 * * *"
-    }
-  ]
-}
-```
+**Pasos para configurar:**
 
-**Horarios configurados (horario de invierno UTC+1):**
-- `14 1 * * *` = 01:14 UTC = **02:14 AM** hora de Barcelona
-- `0 11 * * *` = 11:00 UTC = **12:00 PM** hora de Barcelona
-- `0 17 * * *` = 17:00 UTC = **18:00 PM** hora de Barcelona
+1. Ve a [cron-job.org](https://cron-job.org) y crea una cuenta gratuita
+2. Crea **3 trabajos cron** con estos horarios:
 
-**Nota**: Los horarios están en UTC. Para horario de verano (UTC+2), ajusta manualmente en `vercel.json` si es necesario.
+   **Trabajo 1 - 02:20 AM (hora de Barcelona, horario de invierno UTC+1):**
+   - URL: `https://tu-dominio.vercel.app/api/weather/monitor`
+   - Método: `GET`
+   - Horario: `20 1 * * *` (01:20 UTC = 02:20 AM hora Barcelona en invierno)
+   - Descripción: "Monitoreo meteorológico 02:20 AM"
+
+   **Trabajo 2 - 12:00 PM (hora de Barcelona, horario de invierno UTC+1):**
+   - URL: `https://tu-dominio.vercel.app/api/weather/monitor`
+   - Método: `GET`
+   - Horario: `0 11 * * *` (11:00 UTC = 12:00 PM hora Barcelona en invierno)
+   - Descripción: "Monitoreo meteorológico 12:00 PM"
+
+   **Trabajo 3 - 18:00 PM (hora de Barcelona, horario de invierno UTC+1):**
+   - URL: `https://tu-dominio.vercel.app/api/weather/monitor`
+   - Método: `GET`
+   - Horario: `0 17 * * *` (17:00 UTC = 18:00 PM hora Barcelona en invierno)
+   - Descripción: "Monitoreo meteorológico 18:00 PM"
+
+**Nota**: Ajusta los horarios UTC según la estación:
+- **Horario de invierno (UTC+1)**: Resta 1 hora → 01:20, 11:00, 17:00 UTC
+- **Horario de verano (UTC+2)**: Resta 2 horas → 00:20, 10:00, 16:00 UTC
+
+**Ventajas de cron-job.org:**
+- ✅ Completamente gratis
+- ✅ Sin límites estrictos
+- ✅ Funciona con cualquier dominio
+- ✅ Configuración simple y visual
+- ✅ Logs de ejecución disponibles
 
 #### Opción 2: Cron del Sistema (Linux/Mac)
 
 Agrega al crontab (`crontab -e`):
 
 ```bash
-# Monitoreo meteorológico a las 02:14 AM, 12:00 PM y 18:00 PM (hora de Barcelona)
-14 2 * * * curl -X GET http://localhost:3000/api/weather/monitor >/dev/null 2>&1
+# Monitoreo meteorológico a las 02:20 AM, 12:00 PM y 18:00 PM (hora de Barcelona)
+20 2 * * * curl -X GET http://localhost:3000/api/weather/monitor >/dev/null 2>&1
 0 12 * * * curl -X GET http://localhost:3000/api/weather/monitor >/dev/null 2>&1
 0 18 * * * curl -X GET http://localhost:3000/api/weather/monitor >/dev/null 2>&1
 ```
@@ -126,19 +134,10 @@ Agrega al crontab (`crontab -e`):
 #### Opción 3: Windows Task Scheduler
 
 1. Abre "Programador de tareas" en Windows
-2. Crea tareas básicas para:
+2. Crea **3 tareas básicas** para:
+   - **02:20 AM**: Ejecutar `curl http://localhost:3000/api/weather/monitor`
    - **12:00 PM**: Ejecutar `curl http://localhost:3000/api/weather/monitor`
    - **18:00 PM**: Ejecutar `curl http://localhost:3000/api/weather/monitor`
-
-#### Opción 4: Servicio Externo (EasyCron, cron-job.org)
-
-Usa un servicio externo que llame a tu endpoint a las horas programadas:
-- [cron-job.org](https://cron-job.org) (gratis)
-- [EasyCron](https://www.easycron.com) (gratis con límites)
-
-Configura:
-- URL: `https://tu-dominio.com/api/weather/monitor`
-- Horario: 12:00 PM y 18:00 PM (hora de Barcelona)
 
 ## 📊 Respuesta de la API
 

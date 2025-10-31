@@ -4,19 +4,5 @@
     "app/api/**/*.js": {
       "maxDuration": 30
     }
-  },
-  "crons": [
-    {
-      "path": "/api/weather/monitor",
-      "schedule": "14 1 * * *"
-    },
-    {
-      "path": "/api/weather/monitor",
-      "schedule": "0 11 * * *"
-    },
-    {
-      "path": "/api/weather/monitor",
-      "schedule": "0 17 * * *"
-    }
-  ]
+  }
 }

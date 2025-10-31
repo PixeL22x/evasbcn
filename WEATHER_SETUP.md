@@ -55,26 +55,32 @@ http://localhost:3000/api/weather/monitor
 curl http://localhost:3000/api/weather/monitor
 ```
 
-## ⏰ Configurar Monitoreo Automático (02:14 AM, 12 PM y 18 PM)
+## ⏰ Configurar Monitoreo Automático (02:20 AM, 12 PM y 18 PM)
 
-### Opción 1: Vercel Cron (si usas Vercel)
+### ⭐ Recomendado: Cron-Job.org (Gratis)
 
-Agrega a `vercel.json`:
+**La mejor opción es usar [cron-job.org](https://cron-job.org)** que es completamente gratis y funciona perfectamente:
 
-```json
-{
-  "crons": [
-    {
-      "path": "/api/weather/monitor",
-      "schedule": "0 12 * * *"
-    },
-    {
-      "path": "/api/weather/monitor",
-      "schedule": "0 18 * * *"
-    }
-  ]
-}
-```
+1. Ve a [cron-job.org](https://cron-job.org) y crea una cuenta gratuita
+2. Crea **3 trabajos cron**:
+
+   **Trabajo 1 - 02:20 AM:**
+   - URL: `https://tu-dominio.vercel.app/api/weather/monitor`
+   - Horario: `20 1 * * *` (01:20 UTC = 02:20 AM hora Barcelona en invierno)
+
+   **Trabajo 2 - 12:00 PM:**
+   - URL: `https://tu-dominio.vercel.app/api/weather/monitor`
+   - Horario: `0 11 * * *` (11:00 UTC = 12:00 PM hora Barcelona en invierno)
+
+   **Trabajo 3 - 18:00 PM:**
+   - URL: `https://tu-dominio.vercel.app/api/weather/monitor`
+   - Horario: `0 17 * * *` (17:00 UTC = 18:00 PM hora Barcelona en invierno)
+
+**Nota**: Reemplaza `tu-dominio.vercel.app` con tu dominio real de Vercel.
+
+### Opción 1: Cron-Job.org (Recomendado)
+
+Ver instrucciones arriba ⬆️
 
 ### Opción 2: Cron del Sistema (Linux/Mac)
 
@@ -89,13 +95,13 @@ Agrega:
 0 18 * * * curl -X GET http://localhost:3000/api/weather/monitor >/dev/null 2>&1
 ```
 
-### Opción 3: Servicio Externo (cron-job.org)
+### Opción 3: Otros Servicios Externos
 
-1. Ve a [cron-job.org](https://cron-job.org)
-2. Crea 3 trabajos:
-   - 02:14 AM: `https://tu-dominio.com/api/weather/monitor`
-   - 12:00 PM: `https://tu-dominio.com/api/weather/monitor`
-   - 18:00 PM: `https://tu-dominio.com/api/weather/monitor`
+Alternativas a cron-job.org:
+- [EasyCron](https://www.easycron.com) - Plan gratuito disponible
+- [UptimeRobot](https://uptimerobot.com) - Plan gratuito con monitoreo
+
+Configura los mismos 3 horarios: 02:20 AM, 12:00 PM y 18:00 PM
 
 ## 💡 Nota Importante
 
