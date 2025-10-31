@@ -21,16 +21,35 @@ export function useSolicitudesCount() {
   }
 
   useEffect(() => {
+    // Cargar inicialmente
     fetchCount()
     
-    // Actualizar el conteo cada 30 segundos
-    const interval = setInterval(fetchCount, 30000)
+    // Actualizar cuando el usuario vuelve a la pestaña (después de estar en otra pestaña)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchCount()
+      }
+    }
     
-    return () => clearInterval(interval)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [])
 
   return { count, loading, refetch: fetchCount }
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
