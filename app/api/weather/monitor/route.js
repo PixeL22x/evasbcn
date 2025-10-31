@@ -9,10 +9,30 @@ import { getWeatherData, evaluarCondicionesToldo, formatearMensajeTelegram } fro
  * El historial se guarda en el chat de Telegram
  * 
  * GET /api/weather/monitor - Realiza monitoreo meteorológico
+ * 
+ * Este endpoint es público y puede ser llamado desde cron-job.org
+ * Configurado para evitar caché y autenticación de Vercel
  */
+
+// Configurar el route handler para evitar caché y autenticación
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const revalidate = 0
+
 export async function GET(request) {
   try {
     console.log('🌤️ Iniciando monitoreo meteorológico...')
+    
+    // Log del origen de la petición para debugging
+    const userAgent = request.headers.get('user-agent') || 'unknown'
+    const origin = request.headers.get('origin') || request.headers.get('referer') || 'unknown'
+    console.log('📡 Petición recibida desde:', { userAgent, origin })
+    
+    // Opcional: Verificar si viene de cron-job.org (opcional, solo para logging)
+    const isFromCronJob = userAgent.includes('cron-job') || origin.includes('cron-job')
+    if (isFromCronJob) {
+      console.log('✅ Petición recibida de cron-job.org')
+    }
 
     // 1. Consultar datos meteorológicos
     let weatherData
@@ -86,8 +106,8 @@ export async function GET(request) {
       // No fallar la operación completa si Telegram falla
     }
 
-    // 4. Retornar respuesta
-    return NextResponse.json({
+    // 4. Retornar respuesta con headers CORS para permitir peticiones externas
+    const response = NextResponse.json({
       success: true,
       message: 'Monitoreo meteorológico completado',
       data: {
@@ -110,6 +130,19 @@ export async function GET(request) {
         fecha: new Date().toISOString()
       }
     })
+    
+    // Headers CORS para permitir peticiones desde cron-job.org
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type')
+    
+    // Headers para evitar caché en Vercel
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+    
+    return response
 
   } catch (error) {
     console.error('❌ Error en monitoreo meteorológico:', error)
@@ -126,4 +159,19 @@ export async function GET(request) {
  */
 export async function POST(request) {
   return GET(request)
+}
+
+/**
+ * OPTIONS /api/weather/monitor - Manejar preflight CORS
+ */
+export async function OPTIONS(request) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+    },
+  })
 }
