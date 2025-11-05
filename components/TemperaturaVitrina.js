@@ -16,7 +16,7 @@ export default function TemperaturaVitrina({ onClose }) {
   const horasPermitidas = [
     { value: '14:00', label: '14:00 - Mediodía' },
     { value: '18:00', label: '18:00 - Tarde' },
-    { value: '22:00', label: '22:00 - Noche' }
+    { value: '21:00', label: '21:00 - Noche' }
   ]
 
   // Cargar registros del día actual
@@ -269,7 +269,7 @@ export default function TemperaturaVitrina({ onClose }) {
           <div className="mt-4 sm:mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 sm:p-4 mx-4 sm:mx-0 mb-4 sm:mb-0">
             <h3 className="text-blue-200 font-semibold mb-2">📋 Instrucciones</h3>
             <ul className="text-blue-200/80 text-sm space-y-1">
-              <li>• Registra la temperatura 3 veces al día: 14:00, 18:00 y 22:00</li>
+              <li>• Registra la temperatura 3 veces al día: 14:00, 18:00 y 21:00</li>
               <li>• La temperatura ideal para helados es entre -18°C y -10°C</li>
               <li>• Si la temperatura está fuera del rango seguro, contacta al supervisor</li>
               <li>• Solo puedes registrar cada hora una vez por día</li>

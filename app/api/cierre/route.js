@@ -139,7 +139,6 @@ export async function POST(request) {
             { tipo: 'crepera_apagada', descripcion: 'Crepera apagada' },
             { tipo: 'waflera_apagada', descripcion: 'Waflera apagada' },
             { tipo: 'aire_apagado', descripcion: 'Aire acondicionado apagado' },
-            { tipo: 'isa1_apagada', descripcion: 'ISA 1 apagada' },
             { tipo: 'isa2_apagada', descripcion: 'ISA 2 apagada' }
           ])
         },

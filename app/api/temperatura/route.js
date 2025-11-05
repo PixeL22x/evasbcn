@@ -89,10 +89,10 @@ export async function POST(request) {
     }
 
     // Validar hora permitida
-    const horasPermitidas = ['14:00', '18:00', '22:00']
+    const horasPermitidas = ['14:00', '18:00', '21:00']
     if (!horasPermitidas.includes(hora)) {
       return NextResponse.json(
-        { error: 'Hora no permitida. Solo se permite 14:00, 18:00 o 22:00' },
+        { error: 'Hora no permitida. Solo se permite 14:00, 18:00 o 21:00' },
         { status: 400 }
       )
     }
@@ -152,6 +152,17 @@ export async function POST(request) {
     )
   }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
