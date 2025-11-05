@@ -8,6 +8,13 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata = {
   title: 'Evas Barcelona - Sistema de Gestión de Tienda',
   description: 'Sistema completo de gestión para la heladería Evas Barcelona',
+  icons: {
+    icon: [
+      { url: '/favicon.png', type: 'image/png' },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 }
 
 export default function RootLayout({ children }) {
