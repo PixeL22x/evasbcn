@@ -77,20 +77,23 @@ export default function ResenaWorker({ onClose }) {
   const renderEstrellas = (calificacionSeleccionada) => {
     return (
       <div className="flex gap-2 justify-center">
-        {[1, 2, 3, 4, 5].map((estrella) => (
-          <button
-            key={estrella}
-            type="button"
-            onClick={() => setCalificacion(estrella)}
-            className={`text-4xl sm:text-5xl transition-all duration-200 transform hover:scale-110 ${
-              estrella <= calificacionSeleccionada
-                ? getCalificacionColor(estrella)
-                : 'text-white/20'
-            }`}
-          >
-            ⭐
-          </button>
-        ))}
+        {[1, 2, 3, 4, 5].map((estrella) => {
+          const estaSeleccionada = estrella <= calificacionSeleccionada && calificacionSeleccionada > 0
+          const colorClase = estaSeleccionada 
+            ? getCalificacionColor(calificacionSeleccionada)
+            : 'text-white/20'
+          
+          return (
+            <button
+              key={estrella}
+              type="button"
+              onClick={() => setCalificacion(estrella)}
+              className={`text-4xl sm:text-5xl transition-all duration-200 transform hover:scale-110 ${colorClase}`}
+            >
+              ⭐
+            </button>
+          )
+        })}
       </div>
     )
   }
