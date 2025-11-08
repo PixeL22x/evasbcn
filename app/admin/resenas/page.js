@@ -25,12 +25,16 @@ import { Star, Search, Filter, TrendingUp, Trash2 } from "lucide-react"
 export default function ResenasPage() {
   const [resenas, setResenas] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const [totalResenas, setTotalResenas] = useState(0)
   const [searchTerm, setSearchTerm] = useState("")
   const [filtroTrabajador, setFiltroTrabajador] = useState("todos")
   const [filtroCalificacion, setFiltroCalificacion] = useState("todos")
   const [trabajadores, setTrabajadores] = useState([])
   const [fechaDesde, setFechaDesde] = useState("")
   const [fechaHasta, setFechaHasta] = useState("")
+  const [currentPage, setCurrentPage] = useState(0)
 
   useEffect(() => {
     fetchResenas()
@@ -49,13 +53,32 @@ export default function ResenasPage() {
     }
   }
 
-  const fetchResenas = async () => {
+  const fetchResenas = async (reset = true) => {
     try {
-      setLoading(true)
+      let skip = 0
+      
+      if (reset) {
+        setLoading(true)
+        setCurrentPage(0)
+        setResenas([]) // Limpiar reseñas antes de cargar nuevas
+        skip = 0
+      } else {
+        setLoadingMore(true)
+        // Calcular skip basado en el número actual de reseñas
+        skip = resenas.length
+      }
+      
       let url = '/api/resenas?'
+      const limit = 5
+      
+      url += `limit=${limit}&skip=${skip}&`
       
       if (filtroTrabajador !== 'todos') {
         url += `trabajadorId=${filtroTrabajador}&`
+      }
+      
+      if (filtroCalificacion !== 'todos') {
+        url += `calificacion=${filtroCalificacion}&`
       }
       
       if (fechaDesde) {
@@ -69,14 +92,18 @@ export default function ResenasPage() {
       const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
-        let resenasData = data.resenas || []
+        const resenasData = data.resenas || []
         
-        // Aplicar filtro de calificación
-        if (filtroCalificacion !== 'todos') {
-          resenasData = resenasData.filter(r => r.calificacion === parseInt(filtroCalificacion))
+        if (reset) {
+          setResenas(resenasData)
+          setCurrentPage(1)
+        } else {
+          setResenas(prev => [...prev, ...resenasData])
+          setCurrentPage(prev => prev + 1)
         }
         
-        setResenas(resenasData)
+        setTotalResenas(data.total || 0)
+        setHasMore(data.hasMore || false)
       } else {
         console.error('Error response:', response.status)
       }
@@ -84,11 +111,16 @@ export default function ResenasPage() {
       console.error('Error fetching resenas:', error)
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
+  const loadMoreResenas = () => {
+    fetchResenas(false)
+  }
+
   useEffect(() => {
-    fetchResenas()
+    fetchResenas(true)
   }, [filtroTrabajador, filtroCalificacion, fechaDesde, fechaHasta])
 
   const handleDeleteResena = async (id) => {
@@ -119,10 +151,10 @@ export default function ResenasPage() {
 
   const getCalificacionBadge = (calificacion) => {
     const colors = {
-      5: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      4: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-      3: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-      2: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+      5: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      4: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+      3: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+      2: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
       1: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
     }
     return (
@@ -132,15 +164,19 @@ export default function ResenasPage() {
     )
   }
 
+  const getCalificacionColor = (cal) => {
+    if (cal === 5) return 'text-yellow-400'
+    if (cal >= 3) return 'text-orange-400'
+    return 'text-red-400' // 1 y 2 estrellas
+  }
+
   const renderEstrellas = (calificacion) => {
     return (
       <div className="flex gap-1">
-        {[1, 2, 3, 4, 5].map((estrella) => (
+        {Array.from({ length: calificacion }, (_, i) => (
           <span
-            key={estrella}
-            className={`text-lg ${
-              estrella <= calificacion ? 'text-yellow-400' : 'text-gray-300'
-            }`}
+            key={i}
+            className={`text-lg ${getCalificacionColor(calificacion)}`}
           >
             ⭐
           </span>
@@ -348,6 +384,27 @@ export default function ResenasPage() {
                         </Card>
                       ))
                     )}
+                  </div>
+                )}
+                
+                {/* Botón Cargar Más */}
+                {!loading && filteredResenas.length > 0 && hasMore && (
+                  <div className="flex justify-center mt-6">
+                    <Button
+                      onClick={loadMoreResenas}
+                      disabled={loadingMore}
+                      variant="outline"
+                      className="min-w-[200px]"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                          Cargando...
+                        </>
+                      ) : (
+                        `Cargar más (${totalResenas - filteredResenas.length} restantes)`
+                      )}
+                    </Button>
                   </div>
                 )}
               </div>

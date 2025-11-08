@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { Star } from 'lucide-react'
 
 export default function ResenaWorker({ onClose }) {
   const { user } = useAuth()
@@ -10,6 +11,7 @@ export default function ResenaWorker({ onClose }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [showCelebration, setShowCelebration] = useState(false)
   const [resenasHoy, setResenasHoy] = useState([])
 
   // Cargar reseñas del día actual
@@ -52,12 +54,22 @@ export default function ResenaWorker({ onClose }) {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess('Reseña registrada exitosamente')
+        // Feedback especial para 5 estrellas
+        if (calificacion === 5) {
+          setShowCelebration(true)
+          setSuccess('🎉 ¡EXCELENTE! Reseña de 5 estrellas registrada. ¡Gracias por tu excelente trabajo! 🎉')
+          // Ocultar celebración después de 6 segundos
+          setTimeout(() => {
+            setShowCelebration(false)
+            setSuccess('')
+          }, 6000)
+        } else {
+          setSuccess('Reseña registrada exitosamente')
+          setTimeout(() => setSuccess(''), 3000)
+        }
         setCalificacion(0)
         setFechaResena(new Date().toISOString().split('T')[0])
         loadResenasHoy() // Recargar reseñas
-        // Limpiar mensaje de éxito después de 3 segundos
-        setTimeout(() => setSuccess(''), 3000)
       } else {
         setError(data.error || 'Error al guardar la reseña')
       }
@@ -69,9 +81,9 @@ export default function ResenaWorker({ onClose }) {
   }
 
   const getCalificacionColor = (cal) => {
-    if (cal >= 4) return 'text-green-400'
-    if (cal === 3) return 'text-yellow-400'
-    return 'text-red-400'
+    if (cal === 5) return 'text-yellow-400'
+    if (cal >= 3) return 'text-orange-400'
+    return 'text-red-400' // 1 y 2 estrellas
   }
 
   const renderEstrellas = (calificacionSeleccionada) => {
@@ -88,9 +100,14 @@ export default function ResenaWorker({ onClose }) {
               key={estrella}
               type="button"
               onClick={() => setCalificacion(estrella)}
-              className={`text-4xl sm:text-5xl transition-all duration-200 transform hover:scale-110 ${colorClase}`}
+              className={`transition-all duration-200 transform hover:scale-110 ${colorClase}`}
+              aria-label={`${estrella} estrella${estrella > 1 ? 's' : ''}`}
             >
-              ⭐
+              <Star 
+                size={48} 
+                className={estaSeleccionada ? 'fill-current' : 'fill-none'}
+                strokeWidth={estaSeleccionada ? 0 : 2}
+              />
             </button>
           )
         })}
@@ -100,6 +117,36 @@ export default function ResenaWorker({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-y-auto">
+      {/* Overlay de celebración para 5 estrellas */}
+      {showCelebration && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+        >
+          <div className="bg-gradient-to-br from-yellow-400 via-orange-400 to-yellow-500 rounded-2xl p-6 sm:p-12 shadow-2xl transform scale-105 border-4 border-yellow-300 animate-bounce w-full max-w-md mx-auto">
+            <div className="text-center">
+              <div className="text-5xl sm:text-8xl mb-4 animate-pulse">🎉</div>
+              <h2 className="text-2xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">
+                ¡EXCELENTE!
+              </h2>
+              <p className="text-base sm:text-2xl text-white font-semibold drop-shadow-md">
+                Reseña de 5 estrellas registrada
+              </p>
+              <p className="text-sm sm:text-xl text-white/90 mt-2 drop-shadow-md">
+                ¡Gracias por tu excelente trabajo!
+              </p>
+              <div className="flex justify-center gap-2 mt-6">
+                <span className="text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: '0s' }}>⭐</span>
+                <span className="text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: '0.1s' }}>⭐</span>
+                <span className="text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: '0.2s' }}>⭐</span>
+                <span className="text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: '0.3s' }}>⭐</span>
+                <span className="text-2xl sm:text-3xl animate-bounce" style={{ animationDelay: '0.4s' }}>⭐</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="min-h-screen flex flex-col items-center justify-start sm:justify-center p-0 sm:p-4 lg:p-8">
         <div className="w-full max-w-4xl bg-white/10 backdrop-blur-lg rounded-none sm:rounded-xl lg:rounded-2xl border-0 sm:border border-white/20 relative min-h-screen sm:min-h-0">
           
@@ -129,10 +176,10 @@ export default function ResenaWorker({ onClose }) {
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 px-4 sm:px-0 pb-4 sm:pb-0">
             
             {/* Formulario */}
-            <div className="bg-white/5 rounded-lg p-4 sm:p-6">
+            <div className="bg-white/5 rounded-lg p-4 sm:p-6 overflow-hidden w-full min-w-0">
               <h2 className="text-xl font-semibold text-white mb-4">Nueva Reseña</h2>
               
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6 w-full min-w-0">
                 {/* Calificación */}
                 <div>
                   <label className="block text-sm font-medium text-white/80 mb-4 text-center">
@@ -147,20 +194,26 @@ export default function ResenaWorker({ onClose }) {
                 </div>
 
                 {/* Fecha de la reseña */}
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
+                <div className="w-full min-w-0">
+                  <label className="block text-sm font-medium text-white/80 mb-2 text-center sm:text-left">
                     Fecha de la Reseña
                   </label>
-                  <input
-                    type="date"
-                    value={fechaResena}
-                    onChange={(e) => setFechaResena(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    style={{ colorScheme: 'dark' }}
-                    required
-                  />
-                  <p className="text-xs text-white/60 mt-1">
+                  <div className="flex justify-center sm:block">
+                    <input
+                      type="date"
+                      value={fechaResena}
+                      onChange={(e) => setFechaResena(e.target.value)}
+                      max={new Date().toISOString().split('T')[0]}
+                      className="w-full min-w-0 px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                      style={{ 
+                        colorScheme: 'dark', 
+                        boxSizing: 'border-box',
+                        maxWidth: '100%'
+                      }}
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-white/60 mt-1 text-center sm:text-left">
                     Selecciona la fecha en que se recibió la reseña
                   </p>
                 </div>
@@ -172,9 +225,9 @@ export default function ResenaWorker({ onClose }) {
                   </div>
                 )}
 
-                {success && (
+                {success && !showCelebration && (
                   <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3">
-                    <p className="text-green-200 text-sm">{success}</p>
+                    <p className="text-green-200 text-sm font-medium">{success}</p>
                   </div>
                 )}
 
@@ -219,16 +272,20 @@ export default function ResenaWorker({ onClose }) {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <div className="flex gap-1">
-                            {[1, 2, 3, 4, 5].map((estrella) => (
-                              <span
-                                key={estrella}
-                                className={`text-lg ${
-                                  estrella <= resena.calificacion ? getCalificacionColor(resena.calificacion) : 'text-white/20'
-                                }`}
-                              >
-                                ⭐
-                              </span>
-                            ))}
+                            {[1, 2, 3, 4, 5].map((estrella) => {
+                              const estaSeleccionada = estrella <= resena.calificacion
+                              const colorClase = estaSeleccionada 
+                                ? getCalificacionColor(resena.calificacion)
+                                : 'text-white/20'
+                              return (
+                                <Star
+                                  key={estrella}
+                                  size={20}
+                                  className={`${colorClase} ${estaSeleccionada ? 'fill-current' : 'fill-none'}`}
+                                  strokeWidth={estaSeleccionada ? 0 : 1.5}
+                                />
+                              )
+                            })}
                           </div>
                         </div>
                         <span className={`text-lg font-bold ${getCalificacionColor(resena.calificacion)}`}>

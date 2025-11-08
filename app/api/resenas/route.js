@@ -1,18 +1,25 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '../../../lib/prisma'
 
-// GET - Obtener reseñas
+// GET - Obtener reseñas con paginación
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
     const trabajadorId = searchParams.get('trabajadorId')
     const fechaDesde = searchParams.get('fechaDesde')
     const fechaHasta = searchParams.get('fechaHasta')
+    const calificacion = searchParams.get('calificacion')
+    const limit = parseInt(searchParams.get('limit')) || 5
+    const skip = parseInt(searchParams.get('skip')) || 0
 
     let whereClause = {}
 
     if (trabajadorId) {
       whereClause.trabajadorId = trabajadorId
+    }
+
+    if (calificacion && calificacion !== 'todos') {
+      whereClause.calificacion = parseInt(calificacion)
     }
 
     if (fechaDesde || fechaHasta) {
@@ -29,23 +36,33 @@ export async function GET(request) {
       }
     }
 
-    const resenas = await prisma.resena.findMany({
-      where: whereClause,
-      include: {
-        trabajador: {
-          select: {
-            nombre: true
+    // Obtener reseñas con paginación
+    const [resenas, total] = await Promise.all([
+      prisma.resena.findMany({
+        where: whereClause,
+        include: {
+          trabajador: {
+            select: {
+              nombre: true
+            }
           }
-        }
-      },
-      orderBy: {
-        fechaResena: 'desc'
-      }
-    })
+        },
+        orderBy: {
+          fechaResena: 'desc'
+        },
+        take: limit,
+        skip: skip
+      }),
+      prisma.resena.count({
+        where: whereClause
+      })
+    ])
 
     return NextResponse.json({ 
       success: true,
-      resenas 
+      resenas,
+      total,
+      hasMore: skip + limit < total
     })
   } catch (error) {
     console.error('Error al obtener reseñas:', error)
