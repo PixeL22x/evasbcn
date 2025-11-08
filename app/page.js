@@ -8,6 +8,7 @@ import PedidoHelados from '../components/PedidoHelados'
 import CambioTurno from '../components/CambioTurno'
 import StockWorker from '../components/StockWorker'
 import TemperaturaVitrina from '../components/TemperaturaVitrina'
+import ResenaWorker from '../components/ResenaWorker'
 
 
 export default function Home() {
@@ -22,6 +23,7 @@ export default function Home() {
   const [showCambioTurno, setShowCambioTurno] = useState(false)
   const [showStockWorker, setShowStockWorker] = useState(false)
   const [showTemperaturaVitrina, setShowTemperaturaVitrina] = useState(false)
+  const [showResenaWorker, setShowResenaWorker] = useState(false)
   const [cierreId, setCierreId] = useState(null)
   const [workerName, setWorkerName] = useState('')
   const [loadingTasks, setLoadingTasks] = useState(false)
@@ -344,11 +346,21 @@ export default function Home() {
                 {/* Temperatura Vitrina */}
                 <button
                   onClick={() => setShowTemperaturaVitrina(true)}
-                  className="bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group sm:col-span-2"
+                  className="bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
                 >
                   <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🌡️</div>
                   <div className="text-lg sm:text-xl font-bold mb-1">Temperatura Vitrina</div>
                   <div className="text-xs sm:text-sm text-white/80">Registrar temperatura de vitrinas</div>
+                </button>
+                
+                {/* Registrar Reseña */}
+                <button
+                  onClick={() => setShowResenaWorker(true)}
+                  className="bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
+                >
+                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">⭐</div>
+                  <div className="text-lg sm:text-xl font-bold mb-1">Registrar Reseña</div>
+                  <div className="text-xs sm:text-sm text-white/80">Registrar reseñas de Google</div>
                 </button>
               </div>
             )}
@@ -430,6 +442,11 @@ export default function Home() {
         {/* Modal de Temperatura Vitrina */}
         {showTemperaturaVitrina && (
           <TemperaturaVitrina onClose={() => setShowTemperaturaVitrina(false)} />
+        )}
+        
+        {/* Modal de Reseñas */}
+        {showResenaWorker && (
+          <ResenaWorker onClose={() => setShowResenaWorker(false)} />
         )}
       </div>
     )

@@ -17,6 +17,7 @@ import {
   Thermometer,
   Database,
   Bot,
+  Star,
 } from "lucide-react"
 import { useSolicitudesCount } from "@/hooks/use-solicitudes-count"
 
@@ -92,6 +93,11 @@ const data = {
       title: "Temperatura Vitrina",
       url: "/admin/temperatura",
       icon: Thermometer,
+    },
+    {
+      title: "Reseñas",
+      url: "/admin/resenas",
+      icon: Star,
     },
     {
       title: "Reportes",

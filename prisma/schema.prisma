@@ -51,6 +51,7 @@ model Trabajador {
   excepcionesHorario ExcepcionHorario[]
   movimientosStock MovimientoStock[]
   registrosTemperatura RegistroTemperatura[]
+  resenas   Resena[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -147,6 +148,17 @@ model RegistroTemperatura {
   fecha        DateTime // Fecha del registro
   observaciones String? // Notas adicionales del trabajador
   fotoTermometro String? // URL de foto del termómetro (opcional)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Resena {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  trabajadorId String  @db.ObjectId
+  trabajador   Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Cascade)
+  calificacion Int     // 1-5 estrellas
+  fechaResena DateTime // Fecha en que se recibió la reseña
+  fechaRegistro DateTime @default(now()) // Fecha en que el trabajador la registró
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
