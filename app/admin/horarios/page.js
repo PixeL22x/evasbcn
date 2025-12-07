@@ -382,15 +382,15 @@ export default function HorariosPage() {
               <div className="container mx-auto px-4 py-6 max-w-[1600px]">
                 <div className="space-y-6">
                   {/* Header */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                      <h1 className="text-3xl font-bold flex items-center gap-2">
-                        <Calendar className="h-8 w-8" />
-                        Planning de Horarios
-                        <span className="text-sm font-normal text-muted-foreground ml-2 bg-muted px-2 py-0.5 rounded-full border">{configName}</span>
+                      <h1 className="text-2xl md:text-3xl font-bold flex flex-wrap items-center gap-2">
+                        <Calendar className="h-6 w-6 md:h-8 md:w-8" />
+                        Planning
+                        <span className="text-xs md:text-sm font-normal text-muted-foreground ml-2 bg-muted px-2 py-0.5 rounded-full border truncate max-w-[150px] md:max-w-none">{configName}</span>
                       </h1>
-                      <p className="text-muted-foreground mt-1 text-sm">
-                        Lun-Mié: Solo tarde • Jue-Vie: Mañana + Tarde • Fin de semana: Mañana + Tarde
+                      <p className="text-muted-foreground mt-1 text-xs md:text-sm">
+                        Gestiona los turnos y horarios del personal.
                       </p>
                     </div>
                   </div>
@@ -398,57 +398,67 @@ export default function HorariosPage() {
                   {/* Navegación Mes */}
                   <Card>
                     <CardContent className="pt-6">
-                      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => changeMonth(-1)}
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                          </Button>
-                          <div className="min-w-[200px] text-center">
-                            <div className="font-bold text-xl capitalize">{monthLabel}</div>
-                            <div className="text-sm text-muted-foreground">{daysInMonth.length} días</div>
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                          <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => changeMonth(-1)}
+                              className="h-8 w-8 md:h-10 md:w-10"
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <div className="min-w-[150px] md:min-w-[200px] text-center">
+                              <div className="font-bold text-lg md:text-xl capitalize">{monthLabel}</div>
+                              <div className="text-xs md:text-sm text-muted-foreground">{daysInMonth.length} días</div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => changeMonth(1)}
+                              className="h-8 w-8 md:h-10 md:w-10"
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => changeMonth(1)}
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </div>
 
-                        <div className="flex gap-2">
-                          <Button
-                            variant={view === 'resumen' ? 'default' : 'outline'}
-                            onClick={() => setView('resumen')}
-                          >
-                            <BarChart3 className="h-4 w-4 mr-2" />
-                            Ver Resumen
-                          </Button>
-                          <Button
-                            variant={view === 'planning' ? 'default' : 'outline'}
-                            onClick={() => setView('planning')}
-                          >
-                            <CalendarCheck className="h-4 w-4 mr-2" />
-                            Hacer Planning
-                          </Button>
-                          <Button
-                            variant={view === 'configuracion' ? 'default' : 'outline'}
-                            onClick={() => setView('configuracion')}
-                          >
-                            <Settings className="h-4 w-4 mr-2" />
-                            Configuración
-                          </Button>
+                          <div className="flex w-full sm:w-auto overflow-x-auto gap-2 pb-1 sm:pb-0">
+                            <Button
+                              variant={view === 'resumen' ? 'default' : 'outline'}
+                              onClick={() => setView('resumen')}
+                              size="sm"
+                              className="flex-1 sm:flex-none whitespace-nowrap"
+                            >
+                              <BarChart3 className="h-3 w-3 md:h-4 md:w-4 mr-2" />
+                              Resumen
+                            </Button>
+                            <Button
+                              variant={view === 'planning' ? 'default' : 'outline'}
+                              onClick={() => setView('planning')}
+                              size="sm"
+                              className="flex-1 sm:flex-none whitespace-nowrap"
+                            >
+                              <CalendarCheck className="h-3 w-3 md:h-4 md:w-4 mr-2" />
+                              Planning
+                            </Button>
+                            <Button
+                              variant={view === 'configuracion' ? 'default' : 'outline'}
+                              onClick={() => setView('configuracion')}
+                              size="sm"
+                              className="flex-1 sm:flex-none whitespace-nowrap"
+                            >
+                              <Settings className="h-3 w-3 md:h-4 md:w-4 mr-2" />
+                              Config
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
                   {/* Estadísticas Globales */}
-                  <div className="grid gap-4 md:grid-cols-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Mañanas</CardTitle>
@@ -757,19 +767,19 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
           {/* Selector de trabajador */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2">Seleccionar Trabajador</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex overflow-x-auto gap-2 pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
               {trabajadores.map(t => {
                 const tStats = getTrabajadorStats(t.id)
                 return (
                   <button
                     key={t.id}
                     onClick={() => setSelectedTrabajador(t.id)}
-                    className={`px-3 py-2 sm:px-4 sm:py-2 rounded-lg border-2 transition-all text-sm sm:text-base ${selectedTrabajador === t.id
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-primary'
+                    className={`flex-shrink-0 px-3 py-2 sm:px-4 sm:py-3 rounded-lg border-2 transition-all text-sm ${selectedTrabajador === t.id
+                      ? 'border-primary bg-primary text-primary-foreground shadow-md'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-primary/50 bg-card'
                       }`}
                   >
-                    <div className="font-medium">{t.nombre}</div>
+                    <div className="font-medium whitespace-nowrap">{t.nombre}</div>
                     <div className="text-xs opacity-80">{tStats.totalHoras}h</div>
                   </button>
                 )
@@ -816,8 +826,8 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
             </div>
           )}
 
-          {/* Calendario por semanas */}
-          <div className="space-y-3">
+          {/* Calendario por semanas - Desktop Grid */}
+          <div className="hidden md:block space-y-3">
             {/* Header días de la semana - Responsive */}
             <div className="grid grid-cols-7 gap-1 sm:gap-2">
               {DIAS_SEMANA.map((dia, index) => (
@@ -842,17 +852,11 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                   const isWeekend = day.dayOfWeek === 0 || day.dayOfWeek === 6
                   const turnoHoras = turno ? getTurnoHours(turno, day.dayOfWeek) : 0
 
-                  // Cycle logic: null -> M -> T -> L -> null
+                  // Cycle logic for Grid
                   const handleCycle = () => {
                     const cycle = [null, 'M', 'T', 'L']
                     const currentIndex = cycle.indexOf(turno || null)
                     const nextTurno = cycle[(currentIndex + 1) % cycle.length]
-
-                    // If next is null, we delete the entry (or set to undefined)
-                    // But our setTurno likely expects a value or we might need a way to clear it.
-                    // Let's assume setTurno handles it, or we pass undefined for 'delete'
-                    // For now, let's just cycle string values. If we want 'empty', we need to check how setTurno works.
-                    // setTurno just updates the object. If we pass null, it sets it to null.
                     setTurno(selectedTrabajador, day.iso, nextTurno)
                   }
 
@@ -897,6 +901,66 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
             ))}
           </div>
 
+          {/* Calendario List View - Mobile Only */}
+          <div className="md:hidden space-y-2 mt-4">
+            <h3 className="text-sm font-medium mb-2 text-muted-foreground uppercase tracking-wide">Días del mes</h3>
+            {daysInMonth.map((day) => {
+              const turno = planning[selectedTrabajador]?.[day.iso] || null
+              const turnoInfo = turno ? turnosConfig[turno] : null
+              const Icon = turnoInfo?.icon
+              const isWeekend = day.dayOfWeek === 0 || day.dayOfWeek === 6
+              const turnoHoras = turno ? getTurnoHours(turno, day.dayOfWeek) : 0
+              const dayName = DIAS_SEMANA[day.dayOfWeek === 0 ? 6 : day.dayOfWeek - 1]
+
+              const handleCycle = () => {
+                const cycle = [null, 'M', 'T', 'L']
+                const currentIndex = cycle.indexOf(turno || null)
+                const nextTurno = cycle[(currentIndex + 1) % cycle.length]
+                setTurno(selectedTrabajador, day.iso, nextTurno)
+              }
+
+              return (
+                <div
+                  key={day.iso}
+                  onClick={handleCycle}
+                  className={`flex items-center justify-between p-3 rounded-lg border active:scale-[0.98] transition-all cursor-pointer
+                    ${turno
+                      ? `${turnoInfo.borderColor} ${turnoInfo.bgLight} ${turnoInfo.darkBg} ${turnoInfo.darkBorder}`
+                      : 'border-dashed border-gray-200 hover:border-primary/50'
+                    }
+                    ${isWeekend ? 'border-l-4 border-l-purple-400 bg-purple-50/30' : ''}
+                  `}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isWeekend ? 'bg-purple-100 text-purple-700' : 'bg-muted text-muted-foreground'}`}>
+                      {day.dayOfMonth}
+                    </div>
+                    <div>
+                      <div className="font-medium text-sm">{dayName}</div>
+                      {isWeekend && <div className="text-[10px] text-purple-600">Fin de Semana</div>}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {turno ? (
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <div className={`font-bold text-sm ${turnoInfo.textColor}`}>{turnoInfo.label}</div>
+                          {turno !== 'L' && <div className="text-xs text-muted-foreground">{turnoHoras}h ({turnoInfo[day.dayOfWeek]?.start}-{turnoInfo[day.dayOfWeek]?.end})</div>}
+                        </div>
+                        <div className={`p-2 rounded-full ${turnoInfo.color} text-white`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic">Tocar para asignar</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
           {/* Leyenda y herramientas */}
           <div className="mt-6 pt-6 border-t space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -933,7 +997,7 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs sm:text-sm"
+                  className="flex-1 sm:flex-none text-xs sm:text-sm"
                   onClick={() => {
                     daysInMonth.forEach(day => {
                       if (day.dayOfWeek >= 1 && day.dayOfWeek <= 5) {
@@ -946,12 +1010,12 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                 >
                   <Sun className="h-3 w-3 mr-1" />
                   <span className="hidden sm:inline">Lun-Vie Mañanas</span>
-                  <span className="sm:hidden">L-V M</span>
+                  <span className="sm:hidden">L-V Mañanas</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs sm:text-sm"
+                  className="flex-1 sm:flex-none text-xs sm:text-sm"
                   onClick={() => {
                     daysInMonth.forEach(day => {
                       if (day.dayOfWeek >= 1 && day.dayOfWeek <= 5) {
@@ -964,12 +1028,12 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
                 >
                   <Moon className="h-3 w-3 mr-1" />
                   <span className="hidden sm:inline">Lun-Vie Tardes</span>
-                  <span className="sm:hidden">L-V T</span>
+                  <span className="sm:hidden">L-V Tardes</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs sm:text-sm"
+                  className="flex-1 sm:flex-none text-xs sm:text-sm"
                   onClick={() => {
                     daysInMonth.forEach(day => {
                       setTurno(selectedTrabajador, day.iso, 'L')

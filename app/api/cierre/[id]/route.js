@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
 
 // Obtener un cierre específico por ID
+// Obtener un cierre específico por ID
 export async function GET(request, { params }) {
   try {
-    const { id } = params
+    const { id } = await params
 
     if (!id) {
       return NextResponse.json(
@@ -40,7 +41,7 @@ export async function GET(request, { params }) {
 // Actualizar un cierre específico por ID
 export async function PUT(request, { params }) {
   try {
-    const { id } = params
+    const { id } = await params
     const { totalVentas, fechaFin } = await request.json()
 
     if (!id) {
@@ -52,7 +53,7 @@ export async function PUT(request, { params }) {
 
     // Construir objeto de datos a actualizar
     const updateData = {}
-    
+
     if (totalVentas !== undefined && totalVentas !== null) {
       updateData.totalVentas = parseFloat(totalVentas)
     }

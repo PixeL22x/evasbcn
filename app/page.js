@@ -571,15 +571,8 @@ export default function Home() {
       )}
 
       {/* Modal de Fichaje (also here for safety if accessible during tasks, usually not but keeps consistency) */}
-      {showFichajeWorker && (
-        <FichajeWorker
-          onClose={() => setShowFichajeWorker(false)}
-          trabajadorId={user?.id}
-          trabajadorNombre={user?.name}
-        />
-      )}
 
-      {/* Modal de Cambio de Turno */}
+      {/* Modal de Cambio de Turno - Rendered here to ensure it's available even during tasks if needed */}
       {showCambioTurno && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto">

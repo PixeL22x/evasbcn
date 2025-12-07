@@ -195,29 +195,31 @@ export function ScheduleSettings({ onSave }) {
 
                 {/* TURNO MAÑANA */}
                 <div className="border rounded-lg p-4 space-y-4 bg-amber-50/50 dark:bg-amber-900/10">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-2 font-bold text-amber-700 dark:text-amber-500">
                             <Sun className="h-4 w-4" />
                             Turno Mañana (M)
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => copyToWeekdays('M')}
-                                className="text-xs"
+                                className="text-xs flex-1 sm:flex-none"
                             >
                                 <Copy className="h-3 w-3 mr-1" />
-                                Copiar Lun a L-V
+                                <span className="sm:hidden">Lun-Vie</span>
+                                <span className="hidden sm:inline">Copiar Lun a L-V</span>
                             </Button>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => copyToWeekend('M')}
-                                className="text-xs"
+                                className="text-xs flex-1 sm:flex-none"
                             >
                                 <Copy className="h-3 w-3 mr-1" />
-                                Copiar Sáb a S-D
+                                <span className="sm:hidden">Sáb-Dom</span>
+                                <span className="hidden sm:inline">Copiar Sáb a S-D</span>
                             </Button>
                         </div>
                     </div>
@@ -282,29 +284,31 @@ export function ScheduleSettings({ onSave }) {
 
                 {/* TURNO TARDE */}
                 <div className="border rounded-lg p-4 space-y-4 bg-blue-50/50 dark:bg-blue-900/10">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-2 font-bold text-blue-700 dark:text-blue-500">
                             <Moon className="h-4 w-4" />
                             Turno Tarde (T)
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => copyToWeekdays('T')}
-                                className="text-xs"
+                                className="text-xs flex-1 sm:flex-none"
                             >
                                 <Copy className="h-3 w-3 mr-1" />
-                                Copiar Lun a L-V
+                                <span className="sm:hidden">Lun-Vie</span>
+                                <span className="hidden sm:inline">Copiar Lun a L-V</span>
                             </Button>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => copyToWeekend('T')}
-                                className="text-xs"
+                                className="text-xs flex-1 sm:flex-none"
                             >
                                 <Copy className="h-3 w-3 mr-1" />
-                                Copiar Sáb a S-D
+                                <span className="sm:hidden">Sáb-Dom</span>
+                                <span className="hidden sm:inline">Copiar Sáb a S-D</span>
                             </Button>
                         </div>
                     </div>
@@ -367,10 +371,10 @@ export function ScheduleSettings({ onSave }) {
                     </div>
                 </div>
 
-                <div className="flex justify-end pt-4">
-                    <Button onClick={saveConfig} disabled={saving}>
+                <div className="flex justify-end pt-4 sticky bottom-0 bg-background/95 backdrop-blur py-4 -mx-4 px-4 sm:static sm:bg-transparent sm:py-0 sm:px-0 border-t sm:border-t-0">
+                    <Button onClick={saveConfig} disabled={saving} className="w-full sm:w-auto shadow-lg sm:shadow-none">
                         {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                        Guardar Cambios de Horario
+                        Guardar Cambios
                     </Button>
                 </div>
 

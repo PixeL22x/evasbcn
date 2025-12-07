@@ -149,17 +149,17 @@ export default function TrabajadoresPage() {
           <SiteHeader />
           <div className="flex flex-1 flex-col overflow-hidden bg-background">
             <main className="flex-1 overflow-y-auto">
-              <div className="container mx-auto px-6 py-8 max-w-[1400px]">
+              <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-[1400px]">
 
                 {/* Header */}
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
                   <div>
                     <h1 className="text-2xl font-bold tracking-tight text-foreground">Plantilla</h1>
                     <p className="text-muted-foreground mt-1 text-sm">
                       Gestiona el personal, contratos y documentación laboral.
                     </p>
                   </div>
-                  <Button onClick={() => setShowAddForm(true)} className="shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
+                  <Button onClick={() => setShowAddForm(true)} className="w-full md:w-auto shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
                     <Plus className="h-4 w-4 mr-2" /> Nuevo Empleado
                   </Button>
                 </div>
@@ -194,28 +194,30 @@ export default function TrabajadoresPage() {
                   </div>
                 ) : (
                   <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-                    <Table>
-                      <TableHeader className="bg-muted/30">
-                        <TableRow className="hover:bg-transparent">
-                          <TableHead className="w-[300px]">Empleado</TableHead>
-                          <TableHead>Cargo</TableHead>
-                          <TableHead className="hidden md:table-cell">Contacto</TableHead>
-                          <TableHead className="hidden lg:table-cell">Fecha Alta</TableHead>
-                          <TableHead className="text-right w-[80px]"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredTrabajadores.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={5} className="h-40 text-center text-muted-foreground">
-                              No se encontraron empleados en esta vista.
-                            </TableCell>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader className="bg-muted/30">
+                          <TableRow className="hover:bg-transparent">
+                            <TableHead className="w-[300px]">Empleado</TableHead>
+                            <TableHead>Cargo</TableHead>
+                            <TableHead className="hidden md:table-cell">Contacto</TableHead>
+                            <TableHead className="hidden lg:table-cell">Fecha Alta</TableHead>
+                            <TableHead className="text-right w-[80px]"></TableHead>
                           </TableRow>
-                        ) : (
-                          filteredTrabajadores.map(worker => <WorkerRow key={worker.id} worker={worker} />)
-                        )}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredTrabajadores.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={5} className="h-40 text-center text-muted-foreground">
+                                No se encontraron empleados en esta vista.
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            filteredTrabajadores.map(worker => <WorkerRow key={worker.id} worker={worker} />)
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                 )}
               </div>
@@ -226,7 +228,7 @@ export default function TrabajadoresPage() {
 
       {/* Add Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
           <Card className="w-full max-w-sm shadow-2xl border-muted">
             <CardHeader>
               <CardTitle>Alta Rápida</CardTitle>

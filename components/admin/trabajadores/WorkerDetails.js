@@ -6,15 +6,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
 import { Switch } from "@/components/ui/switch"
-import { Save, X, Upload, FileText, Trash2, Calculator, Calendar, Briefcase } from "lucide-react"
+import { Save, X, Upload, FileText, Trash2, Calculator, Calendar, Briefcase, ArrowLeft } from "lucide-react"
 import { formatDate, formatCurrency } from "@/lib/utils"
 
 export function WorkerDetails({ trabajador, onClose, onUpdate }) {
-    const [activeTab, setActiveTab] = useState("privado")
+    const [activeTab, setActiveTab] = useState("general")
     const [saving, setSaving] = useState(false)
 
     // Form Data
@@ -77,9 +77,6 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
             return
         }
 
-        console.log("Updating worker with ID:", trabajador.id)
-        console.log("Form data:", formData)
-
         try {
             const response = await fetch(`/api/trabajadores/${trabajador.id}`, {
                 method: "PUT",
@@ -93,7 +90,6 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                 alert("Datos actualizados correctamente")
             } else {
                 const errorData = await response.json()
-                console.error("Error response:", errorData)
                 alert(`Error al actualizar: ${errorData.error || 'Error desconocido'}`)
             }
         } catch (error) {
@@ -205,12 +201,53 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
     }
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <Card className="w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden shadow-2xl border-none ring-1 ring-white/10">
+        <div className="fixed inset-0 bg-background sm:bg-black/60 sm:backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+            <Card className="w-full h-full sm:max-w-5xl sm:h-[85vh] flex flex-col overflow-hidden shadow-2xl border-none ring-0 sm:ring-1 sm:ring-white/10 rounded-none sm:rounded-xl">
                 <div className="h-full flex flex-col md:flex-row">
 
-                    {/* Sidebar Tabs */}
-                    <div className="w-full md:w-64 bg-muted/10 border-r dark:bg-muted/5 p-4 flex flex-col gap-2 overflow-y-auto">
+                    {/* Mobile Header (Sticky Top) */}
+                    <div className="md:hidden flex flex-col bg-background border-b z-20">
+                        {/* Top Bar: Back/Close + Title + Save Action */}
+                        <div className="flex items-center justify-between px-4 py-3 bg-muted/20">
+                            <Button variant="ghost" size="icon" onClick={onClose} className="-ml-2">
+                                <ArrowLeft className="h-5 w-5" />
+                            </Button>
+                            <div className="flex flex-col items-center">
+                                <span className="font-semibold text-sm">{trabajador.nombre}</span>
+                                <Badge variant={formData.activo ? "outline" : "destructive"} className="text-[10px] h-4 px-1.5 font-normal">
+                                    {formData.activo ? "Activo" : "Inactivo"}
+                                </Badge>
+                            </div>
+                            <Button variant="ghost" size="sm" onClick={handleSave} disabled={saving} className="text-primary font-medium hover:bg-primary/10 -mr-2">
+                                {saving ? "..." : "Guardar"}
+                            </Button>
+                        </div>
+
+                        {/* Mobile Navigation Tabs (Scrollable) */}
+                        <div className="flex overflow-x-auto px-1 py-1 gap-1 border-b noscroll-bar shadow-sm">
+                            {[
+                                { id: "general", label: "General", icon: <Briefcase className="w-3 h-3" /> },
+                                { id: "privado", label: "RRHH", icon: <Save className="w-3 h-3" /> },
+                                { id: "documentos", label: "Docs", icon: <FileText className="w-3 h-3" /> },
+                                { id: "nominas", label: "Nóminas", icon: <Calculator className="w-3 h-3" /> }
+                            ].map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-md text-[10px] font-medium transition-colors ${activeTab === tab.id
+                                        ? "bg-primary/10 text-primary border-b-2 border-primary rounded-b-none"
+                                        : "text-muted-foreground hover:bg-muted"
+                                        }`}
+                                >
+                                    {tab.icon}
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Desktop Sidebar (Left) */}
+                    <div className="hidden md:flex w-64 bg-muted/10 border-r dark:bg-muted/5 p-4 flex-col gap-2 overflow-y-auto">
                         <div className="mb-6 px-2">
                             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary mb-3">
                                 {trabajador.nombre.charAt(0)}
@@ -252,9 +289,10 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                         </div>
                     </div>
 
-                    {/* Content Area */}
-                    <div className="flex-1 flex flex-col min-w-0 bg-background">
-                        <div className="flex items-center justify-between px-6 py-4 border-b">
+                    {/* Main Content Area */}
+                    <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+                        {/* Desktop Header */}
+                        <div className="hidden md:flex items-center justify-between px-6 py-4 border-b">
                             <div>
                                 <h1 className="text-xl font-semibold tracking-tight">
                                     {activeTab === "general" && "Información General"}
@@ -264,9 +302,9 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                                 </h1>
                                 <p className="text-sm text-muted-foreground">
                                     {activeTab === "general" && "Datos públicos y estado de la cuenta."}
-                                    {activeTab === "privado" && "Información sensible visible solo para administradores."}
-                                    {activeTab === "documentos" && "Repositorio de contratos, bajas y otros archivos."}
-                                    {activeTab === "nominas" && "Herramienta de estimación salarial."}
+                                    {activeTab === "privado" && "Información sensible."}
+                                    {activeTab === "documentos" && "Repositorio de archivos."}
+                                    {activeTab === "nominas" && "Herramienta de estimación."}
                                 </p>
                             </div>
                             {(activeTab === "general" || activeTab === "privado") && (
@@ -277,8 +315,9 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                             )}
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <div className="max-w-4xl mx-auto space-y-8">
+                        {/* Scrollable Content */}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
+                            <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
 
                                 {activeTab === "general" && (
                                     <div className="grid gap-6">
@@ -293,17 +332,17 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                                             </div>
                                         </div>
 
-                                        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                                        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 md:p-6">
                                             <h3 className="font-semibold mb-4 flex items-center text-sm uppercase tracking-wide text-muted-foreground">
                                                 Estado del Contrato
                                             </h3>
                                             <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg border border-dashed">
                                                 <div className="space-y-0.5">
                                                     <Label className="text-base">Cuenta Activa</Label>
-                                                    <p className="text-sm text-muted-foreground">
+                                                    <p className="text-sm text-muted-foreground hidden sm:block">
                                                         {formData.activo
                                                             ? "El empleado tiene acceso al sistema."
-                                                            : "Acceso revocado. El empleado está de baja."}
+                                                            : "Acceso revocado."}
                                                     </p>
                                                 </div>
                                                 <Switch checked={formData.activo} onCheckedChange={val => setFormData({ ...formData, activo: val })} />
@@ -312,7 +351,7 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                                             {!formData.activo && formData.fechaBaja && (
                                                 <div className="mt-4 p-3 bg-red-50 text-red-900 rounded-md border border-red-100 flex items-center gap-2 text-sm">
                                                     <Calendar className="h-4 w-4" />
-                                                    Fecha de baja registrada: <span className="font-medium">{formatDate(formData.fechaBaja)}</span>
+                                                    Fecha de baja: <span className="font-medium">{formatDate(formData.fechaBaja)}</span>
                                                 </div>
                                             )}
 
@@ -344,17 +383,17 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                                 )}
 
                                 {activeTab === "privado" && (
-                                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                    <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                         <section>
                                             <h3 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider border-b pb-2">Información de Contacto</h3>
-                                            <div className="grid md:grid-cols-2 gap-6">
+                                            <div className="grid md:grid-cols-2 gap-4 md:gap-6">
                                                 <div className="space-y-2">
                                                     <Label>Email Personal</Label>
-                                                    <Input value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="email@ejemplo.com" />
+                                                    <Input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="email@ejemplo.com" />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label>Teléfono Móvil</Label>
-                                                    <Input value={formData.telefono} onChange={e => setFormData({ ...formData, telefono: e.target.value })} placeholder="+34 600..." />
+                                                    <Input type="tel" value={formData.telefono} onChange={e => setFormData({ ...formData, telefono: e.target.value })} placeholder="+34 600..." />
                                                 </div>
                                                 <div className="space-y-2 md:col-span-2">
                                                     <Label>Dirección Completa</Label>
@@ -364,18 +403,18 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                                         </section>
 
                                         <section>
-                                            <h3 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider border-b pb-2">Datos Fiscales y Bancarios</h3>
-                                            <div className="grid md:grid-cols-3 gap-6">
+                                            <h3 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider border-b pb-2">Datos Fiscales</h3>
+                                            <div className="grid md:grid-cols-3 gap-4 md:gap-6">
                                                 <div className="space-y-2">
                                                     <Label>DNI / NIE</Label>
                                                     <Input value={formData.dni} onChange={e => setFormData({ ...formData, dni: e.target.value })} />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Nº Seguridad Social</Label>
+                                                    <Label>Nº SS</Label>
                                                     <Input value={formData.nss} onChange={e => setFormData({ ...formData, nss: e.target.value })} />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Precio Hora (€/h)</Label>
+                                                    <Label>Precio Hora (€)</Label>
                                                     <Input type="number" step="0.5" value={formData.salarioHora} onChange={e => setFormData({ ...formData, salarioHora: e.target.value })} />
                                                 </div>
                                                 <div className="space-y-2 md:col-span-3">
@@ -390,8 +429,8 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                                             <Textarea
                                                 value={formData.notasAdmin}
                                                 onChange={e => setFormData({ ...formData, notasAdmin: e.target.value })}
-                                                placeholder="Anotaciones privadas sobre desempeño, incidencias, etc..."
-                                                className="min-h-[120px]"
+                                                placeholder="Anotaciones privadas..."
+                                                className="min-h-[100px]"
                                             />
                                         </section>
                                     </div>
@@ -400,13 +439,13 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                                 {activeTab === "documentos" && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                         <Card className="border-dashed border-2 bg-muted/10 shadow-none">
-                                            <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-                                                <div className="p-4 rounded-full bg-background shadow-sm mb-4">
-                                                    <Upload className="h-8 w-8 text-muted-foreground" />
+                                            <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                                                <div className="p-3 rounded-full bg-background shadow-sm mb-3">
+                                                    <Upload className="h-6 w-6 text-muted-foreground" />
                                                 </div>
-                                                <h3 className="text-lg font-medium">Subir nuevo documento</h3>
-                                                <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-6">
-                                                    Arrastra archivos aquí o haz clic para seleccionar. Soportado: PDF, Imágenes.
+                                                <h3 className="text-base font-medium">Subir nuevo documento</h3>
+                                                <p className="text-xs text-muted-foreground max-w-xs mt-1 mb-4">
+                                                    PDF o Imágenes.
                                                 </p>
                                                 <div className="relative">
                                                     <input
@@ -416,7 +455,7 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                                                         onChange={handleUploadDoc}
                                                         disabled={uploadingDoc}
                                                     />
-                                                    <Label htmlFor="doc-upload" className={`cursor-pointer inline-flex items-center justify-center rounded-md font-medium px-8 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-lg shadow-primary/20 ${uploadingDoc ? 'opacity-50' : ''}`}>
+                                                    <Label htmlFor="doc-upload" className={`cursor-pointer inline-flex items-center justify-center rounded-md font-medium px-6 py-2 bg-primary text-primary-foreground text-sm hover:bg-primary/90 transition shadow-lg shadow-primary/20 ${uploadingDoc ? 'opacity-50' : ''}`}>
                                                         {uploadingDoc ? "Subiendo..." : "Seleccionar Archivo"}
                                                     </Label>
                                                 </div>
@@ -424,33 +463,33 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                                         </Card>
 
                                         <div className="space-y-4">
-                                            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">Archivos Recientes</h3>
+                                            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">Archivos</h3>
                                             {loadingDocs ? (
-                                                <div className="grid gap-4 md:grid-cols-3">
-                                                    {[1, 2, 3].map(i => <div key={i} className="h-32 bg-muted/20 animate-pulse rounded-lg" />)}
+                                                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                                                    {[1, 2, 3].map(i => <div key={i} className="h-20 bg-muted/20 animate-pulse rounded-lg" />)}
                                                 </div>
                                             ) : documentos.length === 0 ? (
-                                                <p className="text-muted-foreground text-sm italic">No hay documentos almacenados.</p>
+                                                <p className="text-muted-foreground text-sm italic">No hay documentos.</p>
                                             ) : (
-                                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                                                     {documentos.map(doc => (
                                                         <Card key={doc.id} className="group relative overflow-hidden transition-all hover:shadow-md hover:border-primary/20">
-                                                            <CardContent className="p-4 flex items-start gap-3">
-                                                                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
-                                                                    <FileText className="h-5 w-5" />
+                                                            <CardContent className="p-3 flex items-start gap-3">
+                                                                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
+                                                                    <FileText className="h-4 w-4" />
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <h4 className="font-medium text-sm truncate" title={doc.nombre}>{doc.nombre}</h4>
-                                                                    <p className="text-xs text-muted-foreground mt-0.5">{formatDate(doc.fechaSubida)}</p>
-                                                                    <a href={doc.url} target="_blank" className="text-xs text-blue-600 hover:underline mt-2 inline-block font-medium">
-                                                                        Ver Documento →
+                                                                    <p className="text-[10px] text-muted-foreground mt-0.5">{formatDate(doc.fechaSubida)}</p>
+                                                                    <a href={doc.url} target="_blank" className="text-xs text-blue-600 hover:underline mt-1 inline-block font-medium">
+                                                                        Ver
                                                                     </a>
                                                                 </div>
                                                                 <button
                                                                     onClick={() => handleDeleteDoc(doc.id)}
-                                                                    className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                                                                    className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-100 md:opacity-0 group-hover:opacity-100"
                                                                 >
-                                                                    <Trash2 className="h-4 w-4" />
+                                                                    <Trash2 className="h-3 w-3" />
                                                                 </button>
                                                             </CardContent>
                                                         </Card>
@@ -463,26 +502,22 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
 
                                 {activeTab === "nominas" && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                        <div className="flex items-center justify-between bg-muted/20 p-4 rounded-lg border">
+                                        <div className="flex items-center justify-between bg-muted/20 p-3 rounded-lg border">
                                             <div>
-                                                <Label className="text-muted-foreground text-xs uppercase font-bold">Periodo de Cálculo</Label>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <Calendar className="h-4 w-4 text-primary" />
-                                                    <Input
-                                                        type="month"
-                                                        value={selectedMonth}
-                                                        onChange={e => setSelectedMonth(e.target.value)}
-                                                        className="w-40 border-none bg-transparent p-0 h-auto font-semibold text-lg focus:ring-0 shadow-none"
-                                                    />
-                                                </div>
+                                                <Label className="text-muted-foreground text-[10px] uppercase font-bold">Mes</Label>
+                                                <Input
+                                                    type="month"
+                                                    value={selectedMonth}
+                                                    onChange={e => setSelectedMonth(e.target.value)}
+                                                    className="w-32 border-none bg-transparent p-0 h-auto font-semibold text-base focus:ring-0 shadow-none"
+                                                />
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-sm text-muted-foreground">Última actualización</p>
-                                                <p className="font-medium text-sm">{new Date().toLocaleDateString()}</p>
+                                                <p className="font-medium text-xs">{new Date().toLocaleDateString()}</p>
                                             </div>
                                         </div>
 
-                                        <div className="grid gap-6 md:grid-cols-2">
+                                        <div className="grid gap-4 md:grid-cols-2">
                                             <Card className="bg-gradient-to-br from-primary/5 to-transparent border-primary/20">
                                                 <CardHeader className="pb-2">
                                                     <CardTitle className="text-sm font-medium text-muted-foreground">Total Estimado</CardTitle>
@@ -490,54 +525,34 @@ export function WorkerDetails({ trabajador, onClose, onUpdate }) {
                                                 <CardContent>
                                                     <div className="text-2xl font-bold text-primary">{formatCurrency(payrollData.totalPagar)}</div>
                                                     <p className="text-xs text-muted-foreground mt-1">
-                                                        Basado en {payrollData.horasTeoricas?.toFixed(1) || 0}h planificadas
+                                                        {payrollData.horasTeoricas?.toFixed(1) || 0}h planificadas
                                                     </p>
                                                 </CardContent>
                                             </Card>
 
                                             <Card>
                                                 <CardHeader className="pb-2">
-                                                    <CardTitle className="text-sm font-medium text-muted-foreground">Horas Planificadas</CardTitle>
+                                                    <CardTitle className="text-sm font-medium text-muted-foreground">Ajuste Manual (€)</CardTitle>
                                                 </CardHeader>
                                                 <CardContent>
-                                                    <div className="text-2xl font-bold">
-                                                        {payrollData.horasTeoricas?.toFixed(1) || 0}h
-                                                    </div>
-                                                    <p className="text-xs text-muted-foreground mt-1">
-                                                        Según Planning del Mes
-                                                    </p>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="0.00"
+                                                        className="font-mono text-lg font-bold border-muted-foreground/20"
+                                                        value={payrollData.ajusteDinero}
+                                                        onChange={e => setPayrollData({ ...payrollData, ajusteDinero: e.target.value })}
+                                                    />
                                                 </CardContent>
                                             </Card>
                                         </div>
 
-                                        <Card className="border-dashed">
-                                            <CardHeader className="pb-2">
-                                                <CardTitle className="text-sm font-medium text-muted-foreground">Ajustes / Extras (€)</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <Input
-                                                    type="number"
-                                                    placeholder="0.00"
-                                                    className="font-mono text-lg font-bold border-muted-foreground/20 max-w-[200px]"
-                                                    value={payrollData.ajusteDinero}
-                                                    onChange={e => setPayrollData({ ...payrollData, ajusteDinero: e.target.value })}
-                                                />
-                                            </CardContent>
-                                        </Card>
-
-                                        <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg border">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-primary/10 rounded-full text-primary">
-                                                    <Calculator className="h-4 w-4" />
-                                                </div>
-                                                <div className="text-sm">
-                                                    <p className="font-medium text-foreground">Cálculo Provisional</p>
-                                                    <p className="text-muted-foreground">Basado en horas teóricas y precio/hora actual.</p>
-                                                </div>
+                                        <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg border">
+                                            <div className="flex items-center gap-2">
+                                                <Calculator className="h-4 w-4 text-primary" />
+                                                <span className="text-xs font-medium">Cálculo Provisional</span>
                                             </div>
-                                            <Button variant="outline" size="sm" onClick={() => alert("Función de exportar pendiente de implementación")}>
-                                                <FileText className="mr-2 h-3.5 w-3.5" />
-                                                Exportar PDF
+                                            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => alert("Pendiente")}>
+                                                Exportar
                                             </Button>
                                         </div>
                                     </div>

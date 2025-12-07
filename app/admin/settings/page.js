@@ -8,7 +8,10 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Save, RefreshCw, CheckCircle, Loader2 } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Save, RefreshCw, CheckCircle, Loader2, Lock } from "lucide-react"
 
 import { GeneralSettings } from "@/components/admin/settings/GeneralSettings"
 import { ClosuresSettings } from "@/components/admin/settings/ClosuresSettings"
@@ -21,6 +24,12 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  // Security state
+  const [isUnlocked, setIsUnlocked] = useState(false)
+  const [passwordInput, setPasswordInput] = useState("")
+  const [verifying, setVerifying] = useState(false)
+  const [shake, setShake] = useState(false)
 
   const methods = useForm({
     resolver: zodResolver(settingsSchema),
@@ -75,6 +84,34 @@ export default function SettingsPage() {
     }
   }
 
+  const handleUnlock = async () => {
+    if (!passwordInput.trim()) return
+
+    try {
+      setVerifying(true)
+      const res = await fetch('/api/admin/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput.trim() })
+      })
+
+      const data = await res.json()
+
+      if (data.valid) {
+        setIsUnlocked(true)
+      } else {
+        setShake(true)
+        setTimeout(() => setShake(false), 500)
+        setPasswordInput("") // Clear input on error
+        // Optional: Toast or alert here
+      }
+    } catch (error) {
+      console.error('Error verifying password:', error)
+    } finally {
+      setVerifying(false)
+    }
+  }
+
   const onSubmit = async (data) => {
     setSaving(true)
     try {
@@ -100,13 +137,85 @@ export default function SettingsPage() {
 
   const resetToDefaults = () => {
     if (confirm('¿Estás seguro de que quieres restaurar la configuración por defecto?')) {
-      // Logic to reset to initial defaults could go here, or simple reload
-      methods.reset() // This resets to defaultValues passed to useForm IF we hadn't updated them. 
-      // Better: reload from server? Or hardcode defaults again.
-      // For now, simple console log as per original, or implement real reset if we had a "defaults" endpoint.
+      methods.reset()
       console.log('Resetting...')
-      loadSettings() // Reloads from server
+      loadSettings()
     }
+  }
+
+  if (!isUnlocked) {
+    return (
+      <AdminLayout>
+        <SidebarProvider
+          style={{
+            "--sidebar-width": "19rem",
+            "--header-height": "4rem",
+          }}
+        >
+          <AppSidebar variant="inset" />
+          <SidebarInset>
+            <SiteHeader />
+            <div className="flex flex-1 flex-col overflow-hidden relative">
+              {/* Blurred Skeleton Background */}
+              <div className="absolute inset-0 z-0 p-8 space-y-8 filter blur-sm opacity-50 pointer-events-none overflow-hidden">
+                <div className="space-y-4">
+                  <Skeleton className="h-8 w-1/3" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+                <div className="grid gap-6">
+                  <Skeleton className="h-64 w-full" />
+                  <Skeleton className="h-64 w-full" />
+                  <Skeleton className="h-64 w-full" />
+                </div>
+              </div>
+
+              {/* Lock Overlay */}
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm">
+                <div className={`w-full max-w-sm p-8 bg-card border rounded-xl shadow-lg space-y-6 ${shake ? 'animate-shake' : ''}`}>
+                  <div className="flex flex-col items-center space-y-2 text-center">
+                    <div className="p-3 bg-primary/10 rounded-full">
+                      <Lock className="w-8 h-8 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold">Área Protegida</h2>
+                    <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                      Esta sección contiene <strong>funciones avanzadas de desarrollador</strong> y configuraciones sensibles. Introduce tu contraseña de administrador para continuar.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="unlock-password">Contraseña</Label>
+                      <Input
+                        id="unlock-password"
+                        type="password"
+                        placeholder="Contraseña de admin..."
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
+                      />
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={handleUnlock}
+                      disabled={verifying}
+                    >
+                      {verifying ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Verificando...
+                        </>
+                      ) : (
+                        'Desbloquear'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
+      </AdminLayout>
+    )
   }
 
   return (
@@ -162,8 +271,6 @@ export default function SettingsPage() {
                       </div>
                     ) : (
                       <div className="space-y-6">
-
-
                         <GeneralSettings />
                         <ScheduleSettings />
                         <ClosuresSettings />

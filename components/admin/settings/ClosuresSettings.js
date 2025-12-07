@@ -1,14 +1,71 @@
 
+import { useState, useEffect } from "react"
 import { useFormContext, Controller } from "react-hook-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { Clock } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Clock, Save } from "lucide-react"
 
 export function ClosuresSettings() {
     const { register, control, formState: { errors } } = useFormContext()
+
+    // Estados locales para los editores JSON
+    const [tasksManana, setTasksManana] = useState('')
+    const [tasksTarde, setTasksTarde] = useState('')
+    const [loadingTasks, setLoadingTasks] = useState(false)
+    const [savingTasks, setSavingTasks] = useState(false)
+
+    useEffect(() => {
+        loadTasksConfig()
+    }, [])
+
+    const loadTasksConfig = async () => {
+        try {
+            setLoadingTasks(true)
+            const res = await fetch('/api/admin/settings/tasks')
+            if (res.ok) {
+                const data = await res.json()
+                setTasksManana(JSON.stringify(data.mañana || [], null, 2))
+                setTasksTarde(JSON.stringify(data.tarde || [], null, 2))
+            }
+        } catch (error) {
+            console.error("Error loading tasks:", error)
+        } finally {
+            setLoadingTasks(false)
+        }
+    }
+
+    const saveTasksConfig = async (turno, jsonString) => {
+        try {
+            // Validate JSON
+            const parsed = JSON.parse(jsonString)
+
+            setSavingTasks(true)
+            const res = await fetch('/api/admin/settings/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    turno,
+                    tasks: parsed
+                })
+            })
+
+            if (res.ok) {
+                alert(`Tareas de ${turno} guardadas correctamente`)
+            } else {
+                alert('Error al guardar')
+            }
+        } catch (e) {
+            alert('JSON Inválido: ' + e.message)
+        } finally {
+            setSavingTasks(false)
+        }
+    }
 
     return (
         <Card>
@@ -110,6 +167,57 @@ export function ClosuresSettings() {
                             </div>
                         )}
                     />
+                </div>
+
+                <Separator />
+
+
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Editor de Tareas (Avanzado)</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Edita la estructura JSON de las tareas para cada turno. Ten cuidado con la sintaxis.
+                    </p>
+
+                    <Tabs defaultValue="manana" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="manana">Mañana</TabsTrigger>
+                            <TabsTrigger value="tarde">Tarde</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="manana">
+                            <div className="space-y-2 mt-4">
+                                <Textarea
+                                    value={tasksManana}
+                                    onChange={(e) => setTasksManana(e.target.value)}
+                                    className="font-mono text-xs h-[300px]"
+                                    placeholder="Cargando configuración..."
+                                />
+                                <Button
+                                    size="sm"
+                                    onClick={() => saveTasksConfig('mañana', tasksManana)}
+                                    disabled={savingTasks || loadingTasks}
+                                >
+                                    <Save className="w-4 h-4 mr-2" /> Guardar Tareas Mañana
+                                </Button>
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="tarde">
+                            <div className="space-y-2 mt-4">
+                                <Textarea
+                                    value={tasksTarde}
+                                    onChange={(e) => setTasksTarde(e.target.value)}
+                                    className="font-mono text-xs h-[400px]"
+                                    placeholder="Cargando configuración..."
+                                />
+                                <Button
+                                    size="sm"
+                                    onClick={() => saveTasksConfig('tarde', tasksTarde)}
+                                    disabled={savingTasks || loadingTasks}
+                                >
+                                    <Save className="w-4 h-4 mr-2" /> Guardar Tareas Tarde
+                                </Button>
+                            </div>
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </CardContent>
         </Card>

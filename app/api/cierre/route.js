@@ -29,8 +29,8 @@ export async function POST(request) {
       )
     }
 
-    // Definir tareas según el turno
-    const tareasPorTurno = {
+    // Definir tareas por defecto (hardcoded como fallback inicial)
+    const tareasPorTurnoDefaults = {
       mañana: [
         {
           nombre: '¿La pica está limpia?',
@@ -168,13 +168,37 @@ export async function POST(request) {
       ]
     }
 
+    // Intentar obtener configuración de la base de datos
+    const configKey = `cierre_tasks_${turno}`
+    let tareasConfig = await prisma.configuracion.findUnique({
+      where: { clave: configKey }
+    })
+
+    let tareasParaUsar = []
+
+    if (tareasConfig && tareasConfig.valor) {
+      // Usar configuración de la BD
+      tareasParaUsar = tareasConfig.valor
+    } else {
+      // Usar defaults y guardarlos en la BD para futuras ediciones
+      tareasParaUsar = tareasPorTurnoDefaults[turno]
+
+      // Guardar en segundo plano para no bloquear
+      await prisma.configuracion.create({
+        data: {
+          clave: configKey,
+          valor: tareasParaUsar
+        }
+      }).catch(err => console.error('Error guardando config default:', err))
+    }
+
     // Crear el cierre con las tareas específicas del turno
     const cierre = await prisma.cierre.create({
       data: {
         trabajador: trabajador.trim(),
         turno: turno,
         tareas: {
-          create: tareasPorTurno[turno],
+          create: tareasParaUsar,
         },
       },
       include: {
