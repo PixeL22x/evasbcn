@@ -1,0 +1,114 @@
+[33md842e87[m Fix: Corregir problema de autenticación del admin
+[1mdiff --git a/app/admin/inventario/page.js b/app/admin/inventario/page.js[m
+[1mindex 40a16dc..2c14de0 100644[m
+[1m--- a/app/admin/inventario/page.js[m
+[1m+++ b/app/admin/inventario/page.js[m
+[36m@@ -313,3 +313,4 @@[m [mexport default function InventarioPage() {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/admin/page.js b/app/admin/page.js[m
+[1mindex 3bf1b09..0e8bada 100644[m
+[1m--- a/app/admin/page.js[m
+[1m+++ b/app/admin/page.js[m
+[36m@@ -31,3 +31,4 @@[m [mexport default function AdminRedirect() {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/admin/pedidos-helados/page.js b/app/admin/pedidos-helados/page.js[m
+[1mindex 8c5fe3e..20fc20e 100644[m
+[1m--- a/app/admin/pedidos-helados/page.js[m
+[1m+++ b/app/admin/pedidos-helados/page.js[m
+[36m@@ -455,3 +455,4 @@[m [mexport default function PedidosHeladosPage() {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/api/horarios/excepciones/[id]/route.js b/app/api/horarios/excepciones/[id]/route.js[m
+[1mindex fd7acc4..d8c6815 100644[m
+[1m--- a/app/api/horarios/excepciones/[id]/route.js[m
+[1m+++ b/app/api/horarios/excepciones/[id]/route.js[m
+[36m@@ -22,3 +22,4 @@[m [mexport async function DELETE(_request, { params }) {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/api/horarios/excepciones/route.js b/app/api/horarios/excepciones/route.js[m
+[1mindex a79575b..de27ffc 100644[m
+[1m--- a/app/api/horarios/excepciones/route.js[m
+[1m+++ b/app/api/horarios/excepciones/route.js[m
+[36m@@ -37,3 +37,4 @@[m [mexport async function POST(request) {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/api/horarios/reglas/route.js b/app/api/horarios/reglas/route.js[m
+[1mindex 5556828..087b3af 100644[m
+[1m--- a/app/api/horarios/reglas/route.js[m
+[1m+++ b/app/api/horarios/reglas/route.js[m
+[36m@@ -39,3 +39,4 @@[m [mexport async function POST(request) {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/api/horarios/route.js b/app/api/horarios/route.js[m
+[1mindex 1ae20cf..ca09e74 100644[m
+[1m--- a/app/api/horarios/route.js[m
+[1m+++ b/app/api/horarios/route.js[m
+[36m@@ -82,3 +82,4 @@[m [mexport async function GET(request) {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/api/pedidos-helados/route.js b/app/api/pedidos-helados/route.js[m
+[1mindex 43bf3e5..ce1573c 100644[m
+[1m--- a/app/api/pedidos-helados/route.js[m
+[1m+++ b/app/api/pedidos-helados/route.js[m
+[36m@@ -98,3 +98,4 @@[m [mexport async function POST(request) {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/api/solicitudes-cambio/count/route.js b/app/api/solicitudes-cambio/count/route.js[m
+[1mindex 56acd35..28a01f4 100644[m
+[1m--- a/app/api/solicitudes-cambio/count/route.js[m
+[1m+++ b/app/api/solicitudes-cambio/count/route.js[m
+[36m@@ -28,3 +28,4 @@[m [mexport async function GET() {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/api/stock/[id]/route.js b/app/api/stock/[id]/route.js[m
+[1mindex aa2b3be..f2bb23a 100644[m
+[1m--- a/app/api/stock/[id]/route.js[m
+[1m+++ b/app/api/stock/[id]/route.js[m
+[36m@@ -76,3 +76,4 @@[m [mexport async function DELETE(request, { params }) {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/api/stock/movimientos/route.js b/app/api/stock/movimientos/route.js[m
+[1mindex eb880b4..f1dac99 100644[m
+[1m--- a/app/api/stock/movimientos/route.js[m
+[1m+++ b/app/api/stock/movimientos/route.js[m
+[36m@@ -93,3 +93,4 @@[m [mexport async function POST(request) {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/api/stock/route.js b/app/api/stock/route.js[m
+[1mindex fe35fe2..2c53774 100644[m
+[1m--- a/app/api/stock/route.js[m
+[1m+++ b/app/api/stock/route.js[m
+[36m@@ -56,3 +56,4 @@[m [mexport async function POST(request) {[m
+ [m
+ [m
+ [m
+[41m+[m
+[1mdiff --git a/app/api/temperatura/[id]/route.js b/app/api/temperatura/[id]/route.js[m
+[1mindex 5b18365..4c0e23f 100644[m
+[1m--- a/app/api/temperatura/[id]/route.js[m
+[1m+++ b/app/api/temperatura/[id]/route.js[m
+[36m@@ -108,3 +108,4 @@[m [mexport async function DELETE(request, { params 
