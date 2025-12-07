@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Turbopack configuration (empty to silence warning)
+  turbopack: {},
   // Optimizaciones para producción
   images: {
     remotePatterns: [
