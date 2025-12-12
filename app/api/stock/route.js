@@ -2,10 +2,15 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 // GET - Obtener todos los productos con stock
-export async function GET() {
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const includeInactive = searchParams.get('includeInactive') === 'true'
+
+    const where = includeInactive ? {} : { activo: true }
+
     const productos = await prisma.producto.findMany({
-      where: { activo: true },
+      where,
       orderBy: { nombre: 'asc' },
       include: {
         movimientos: {

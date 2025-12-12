@@ -6,25 +6,39 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
     const productoId = searchParams.get('productoId')
-    const limit = parseInt(searchParams.get('limit')) || 50
+    const page = parseInt(searchParams.get('page')) || 1
+    const limit = parseInt(searchParams.get('limit')) || 20
+    const skip = (page - 1) * limit
 
     const where = productoId ? { productoId } : {}
 
-    const movimientos = await prisma.movimientoStock.findMany({
-      where,
-      orderBy: { fecha: 'desc' },
-      take: limit,
-      include: {
-        producto: {
-          select: { nombre: true, categoria: true }
-        },
-        trabajador: {
-          select: { nombre: true }
+    const [total, movimientos] = await prisma.$transaction([
+      prisma.movimientoStock.count({ where }),
+      prisma.movimientoStock.findMany({
+        where,
+        orderBy: { fecha: 'desc' },
+        skip,
+        take: limit,
+        include: {
+          producto: {
+            select: { nombre: true, categoria: true }
+          },
+          trabajador: {
+            select: { nombre: true }
+          }
         }
+      })
+    ])
+
+    return NextResponse.json({
+      data: movimientos,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        page,
+        limit
       }
     })
-
-    return NextResponse.json(movimientos)
   } catch (error) {
     console.error('Error fetching movimientos:', error)
     return NextResponse.json({ error: 'Error al obtener movimientos' }, { status: 500 })

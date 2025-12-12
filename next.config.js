@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+// Force restart timestamp: 2025-12-12
 const nextConfig = {
   // Turbopack configuration (empty to silence warning)
   turbopack: {},
