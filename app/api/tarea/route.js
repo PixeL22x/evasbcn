@@ -79,13 +79,12 @@ export async function PUT(request) {
                   chat_id: TELEGRAM_CHAT_ID,
                   text: mensaje,
                   parse_mode: 'Markdown',
-                  disable_web_page_preview: true,
                   reply_markup: {
                     inline_keyboard: [
                       [
                         {
                           text: '📊 Ver Detalles',
-                          url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/admin/cierres`
+                          url: `${process.env.NEXTAUTH_URL}/admin/cierres`
                         }
                       ]
                     ]
