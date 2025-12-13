@@ -91,24 +91,34 @@ export async function GET() {
         fechaFin: true,
         totalVentas: true,
         turno: true,
-        trabajador: {
-          select: { nombre: true }
-        }
+        trabajador: true  // trabajador is a String field, not a relation
       }
     })
+
+    // Transform to match expected format (trabajador.nombre)
+    const recentSalesFormatted = recentSales.map(sale => ({
+      ...sale,
+      trabajador: { nombre: sale.trabajador }
+    }))
 
     return NextResponse.json({
       ventasTurnoManana: ventasTurnoMananaResult._sum.totalVentas || 0,
       totalTrabajadores,
       ventasHoy: ventasHoyResult._sum.totalVentas || 0,
       trabajadorActual,
-      recentSales
+      recentSales: recentSalesFormatted
     })
 
   } catch (error) {
-    console.error('Error fetching admin stats:', error)
+    console.error('❌ Error fetching admin stats:', error)
+    console.error('Error name:', error.name)
+    console.error('Error message:', error.message)
+    console.error('Error stack:', error.stack)
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      {
+        error: 'Error interno del servidor',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }
