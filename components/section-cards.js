@@ -40,7 +40,7 @@ export function SectionCards() {
 
   const cards = [
     {
-      title: "Trabajadores Activos", 
+      title: "Trabajadores Activos",
       value: stats.totalTrabajadores,
       icon: Users,
       description: "Empleados registrados",
@@ -64,7 +64,7 @@ export function SectionCards() {
       title: "Trabajador Actual",
       value: stats.trabajadorActual ? stats.trabajadorActual.nombre : "Sin turno",
       icon: User,
-      description: stats.trabajadorActual 
+      description: stats.trabajadorActual
         ? `${stats.trabajadorActual.turno} (${stats.trabajadorActual.horaInicio}-${stats.trabajadorActual.horaFin})`
         : "Fuera de horario",
       color: stats.trabajadorActual ? "bg-purple-500" : "bg-gray-500",

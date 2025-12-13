@@ -10,18 +10,18 @@ export async function GET() {
     // Usar la misma lógica que getTrabajadorTurnoActual para obtener fecha de Barcelona
     const timeInfo = getBarcelonaTimeInfo()
     const { today } = timeInfo
-    
+
     // Crear fecha de inicio del día usando la fecha de Barcelona
     // Usar una fecha específica para evitar problemas de zona horaria
     const startOfDay = new Date(today + 'T00:00:00.000Z')
-    
+
     // Debug: mostrar información
     console.log('Stats Debug:', {
       today: today,
       startOfDay: startOfDay.toISOString(),
       currentTime: new Date().toISOString()
     })
-    
+
     // Debug: verificar cierres del día 17
     const cierresHoy = await prisma.cierre.findMany({
       where: {
@@ -78,11 +78,31 @@ export async function GET() {
     // Trabajador de turno actual
     const trabajadorActual = await getTrabajadorTurnoActual()
 
+    // Obtener últimas 5 ventas (cierres completados)
+    const recentSales = await prisma.cierre.findMany({
+      where: {
+        completado: true,
+        totalVentas: { gt: 0 }
+      },
+      orderBy: { fechaFin: 'desc' },
+      take: 5,
+      select: {
+        id: true,
+        fechaFin: true,
+        totalVentas: true,
+        turno: true,
+        trabajador: {
+          select: { nombre: true }
+        }
+      }
+    })
+
     return NextResponse.json({
       ventasTurnoManana: ventasTurnoMananaResult._sum.totalVentas || 0,
       totalTrabajadores,
       ventasHoy: ventasHoyResult._sum.totalVentas || 0,
-      trabajadorActual
+      trabajadorActual,
+      recentSales
     })
 
   } catch (error) {
@@ -103,7 +123,7 @@ async function getTrabajadorTurnoActual() {
 
     // Determinar turno actual basado en la hora
     let turnoActual = 'L' // Libre por defecto
-    
+
     // Turno Mañana: 12:30 - 17:00 (753 - 1020 minutos)
     // Turno Mañana (fines de semana): 11:30 - 17:00 (690 - 1020 minutos)
     // Turno Tarde: 17:00 - 23:00 (1020 - 1380 minutos)
@@ -128,14 +148,7 @@ async function getTrabajadorTurnoActual() {
       where: { activo: true },
       include: {
         reglasHorario: true,
-        excepcionesHorario: {
-          where: {
-            fecha: {
-              gte: new Date(today + 'T00:00:00.000+02:00'), // Barcelona timezone
-              lt: new Date(today + 'T23:59:59.999+02:00')   // Barcelona timezone
-            }
-          }
-        }
+        excepcionesHorario: true
       }
     })
 
@@ -144,10 +157,10 @@ async function getTrabajadorTurnoActual() {
       let turnoAsignado = null
 
       // Verificar excepciones primero (tienen prioridad)
-      const excepcionHoy = trabajador.excepcionesHorario.find(exc => 
+      const excepcionHoy = trabajador.excepcionesHorario.find(exc =>
         exc.fecha.toISOString().split('T')[0] === today
       )
-      
+
       if (excepcionHoy) {
         turnoAsignado = excepcionHoy.turno
       } else {
@@ -165,8 +178,8 @@ async function getTrabajadorTurnoActual() {
           turno: turnoActual === 'M' ? 'Mañana' : 'Tarde',
           horaInicio: turnoActual === 'M' ? (isWeekend ? '11:30' : '12:30') : '17:00',
           horaFin: turnoActual === 'M' ? '17:00' : '23:00',
-          minutosRestantes: turnoActual === 'M' 
-            ? morningEnd - currentTime 
+          minutosRestantes: turnoActual === 'M'
+            ? morningEnd - currentTime
             : eveningEnd - currentTime
         }
       }
@@ -178,8 +191,8 @@ async function getTrabajadorTurnoActual() {
       turno: turnoActual === 'M' ? 'Mañana' : 'Tarde',
       horaInicio: turnoActual === 'M' ? (isWeekend ? '11:30' : '12:30') : '17:00',
       horaFin: turnoActual === 'M' ? '17:00' : '23:00',
-      minutosRestantes: turnoActual === 'M' 
-        ? morningEnd - currentTime 
+      minutosRestantes: turnoActual === 'M'
+        ? morningEnd - currentTime
         : eveningEnd - currentTime
     }
 

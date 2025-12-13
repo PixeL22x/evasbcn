@@ -12,15 +12,14 @@ import {
 import AdminLayout from '../../../components/AdminLayout'
 
 export default function AdminDashboard() {
+
   return (
     <AdminLayout>
       <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "19rem",
-            "--header-height": "4rem",
-          }
-        }
+        style={{
+          "--sidebar-width": "19rem",
+          "--header-height": "4rem",
+        }}
       >
         <AppSidebar variant="inset" />
         <SidebarInset>
