@@ -28,7 +28,7 @@ export async function PUT(request) {
 
       if (cierre) {
         const todasCompletadas = cierre.tareas.every(t => t.completada)
-        
+
         if (todasCompletadas) {
           // Marcar el cierre como completado y establecer fecha de fin
           const cierreActualizado = await prisma.cierre.update({
@@ -51,9 +51,9 @@ export async function PUT(request) {
               minute: '2-digit',
               second: '2-digit'
             })
-            
+
             const [fecha, hora] = fechaBarcelona.split(', ')
-            
+
             const mensaje = `
 🎉 *CIERRE COMPLETADO*
 
@@ -69,7 +69,7 @@ export async function PUT(request) {
 
             if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
               const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`
-              
+
               const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -78,7 +78,18 @@ export async function PUT(request) {
                 body: JSON.stringify({
                   chat_id: TELEGRAM_CHAT_ID,
                   text: mensaje,
-                  parse_mode: 'Markdown'
+                  parse_mode: 'Markdown',
+                  disable_web_page_preview: true,
+                  reply_markup: {
+                    inline_keyboard: [
+                      [
+                        {
+                          text: '📊 Ver Detalles',
+                          url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/admin/cierres`
+                        }
+                      ]
+                    ]
+                  }
                 }),
               })
 
