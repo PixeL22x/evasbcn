@@ -17,9 +17,41 @@ export default function AdminLayout({ children }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-3 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-sm text-muted-foreground">Verificando...</p>
+        <div className="text-center space-y-4 animate-in fade-in duration-500">
+          {/* Animated Icon */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse"></div>
+            <svg
+              className="relative w-12 h-12 mx-auto text-primary animate-spin"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </div>
+
+          {/* Text with subtle animation */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">Verificando acceso</p>
+            <div className="flex items-center justify-center gap-1">
+              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+          </div>
         </div>
       </div>
     )
