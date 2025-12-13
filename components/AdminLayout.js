@@ -2,11 +2,21 @@
 
 import { useAuth } from '../contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function AdminLayout({ children }) {
   const { user, isAuthenticated, loading } = useAuth()
   const router = useRouter()
+  const [minLoadingTime, setMinLoadingTime] = useState(true)
+
+  useEffect(() => {
+    // Ensure loading animation shows for at least 800ms for better UX
+    const timer = setTimeout(() => {
+      setMinLoadingTime(false)
+    }, 800)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     if (!loading && !isAuthenticated()) {
@@ -14,7 +24,9 @@ export default function AdminLayout({ children }) {
     }
   }, [isAuthenticated, loading, router])
 
-  if (loading) {
+  const showLoading = loading || minLoadingTime
+
+  if (showLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4 animate-in fade-in duration-500">
