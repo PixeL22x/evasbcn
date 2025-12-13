@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { formatDate } from "@/lib/utils"
 import { Users, Plus, Search, MoreVertical, FileText, Briefcase, Mail, Phone, Calendar as CalendarIcon, Filter } from "lucide-react"
 import { WorkerDetails } from "@/components/admin/trabajadores/WorkerDetails"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function TrabajadoresPage() {
   const [trabajadores, setTrabajadores] = useState([])
@@ -188,9 +189,50 @@ export default function TrabajadoresPage() {
 
                 {/* Content */}
                 {loading ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground animate-pulse">
-                    <Users className="h-10 w-10 mb-4 opacity-20" />
-                    <p>Cargando datos del personal...</p>
+                  <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader className="bg-muted/30">
+                          <TableRow className="hover:bg-transparent">
+                            <TableHead className="w-[300px]">Empleado</TableHead>
+                            <TableHead>Cargo</TableHead>
+                            <TableHead className="hidden md:table-cell">Contacto</TableHead>
+                            <TableHead className="hidden lg:table-cell">Fecha Alta</TableHead>
+                            <TableHead className="text-right w-[80px]"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {[...Array(5)].map((_, i) => (
+                            <TableRow key={i}>
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <Skeleton className="h-10 w-10 rounded-full" />
+                                  <div className="space-y-2">
+                                    <Skeleton className="h-4 w-[180px]" />
+                                    <Skeleton className="h-3 w-[100px]" />
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Skeleton className="h-6 w-[90px] rounded-full" />
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell">
+                                <div className="space-y-2">
+                                  <Skeleton className="h-3 w-[160px]" />
+                                  <Skeleton className="h-3 w-[120px]" />
+                                </div>
+                              </TableCell>
+                              <TableCell className="hidden lg:table-cell">
+                                <Skeleton className="h-3 w-[100px]" />
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Skeleton className="h-8 w-8 rounded ml-auto" />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                 ) : (
                   <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">

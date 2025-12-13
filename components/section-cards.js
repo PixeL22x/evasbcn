@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { formatCurrency } from "@/lib/utils"
 import { Sun, Users, TrendingUp, User } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function SectionCards() {
   const [stats, setStats] = useState({
@@ -11,6 +12,7 @@ export function SectionCards() {
     ventasHoy: 0,
     trabajadorActual: null
   })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchStats()
@@ -25,7 +27,29 @@ export function SectionCards() {
       }
     } catch (error) {
       console.error('Error fetching stats:', error)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  // Show skeleton while loading
+  if (loading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div className="p-4 sm:p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+              <Skeleton className="h-4 w-[120px]" />
+              <Skeleton className="h-10 w-10 rounded-full" />
+            </div>
+            <div className="p-4 sm:p-6 pt-0">
+              <Skeleton className="h-8 w-[100px] mb-2" />
+              <Skeleton className="h-3 w-[140px]" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
   }
 
   const formatTimeRemaining = (minutos) => {

@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Calendar, ChevronLeft, ChevronRight, Sun, Moon, Coffee, Save, CalendarCheck, BarChart3, Clock, Settings } from "lucide-react"
 import { ScheduleSettings } from "@/components/admin/settings/ScheduleSettings"
+import { Skeleton } from "@/components/ui/skeleton"
 
 function getMonthLabel(year, month) {
   const date = new Date(Date.UTC(year, month - 1, 1))
@@ -506,10 +507,27 @@ export default function HorariosPage() {
 
                   {loading ? (
                     <Card>
-                      <CardContent className="py-12">
-                        <div className="text-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                          <p className="mt-2 text-muted-foreground">Cargando horarios...</p>
+                      <CardHeader>
+                        <Skeleton className="h-6 w-[250px]" />
+                        <Skeleton className="h-4 w-[350px] mt-2" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {/* Worker selector skeleton */}
+                          <div>
+                            <Skeleton className="h-4 w-[150px] mb-2" />
+                            <div className="flex gap-2">
+                              {[...Array(3)].map((_, i) => (
+                                <Skeleton key={i} className="h-12 w-24 rounded-lg" />
+                              ))}
+                            </div>
+                          </div>
+                          {/* Calendar grid skeleton */}
+                          <div className="grid grid-cols-7 gap-2">
+                            {[...Array(35)].map((_, i) => (
+                              <Skeleton key={i} className="h-16 w-full" />
+                            ))}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
