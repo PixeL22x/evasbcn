@@ -124,7 +124,7 @@ export function MoreMenuSheet({ isOpen, onClose }) {
 
                     {/* Menu Grid */}
                     <div className="flex-1 overflow-y-auto px-4 py-6">
-                        <div className="grid grid-cols-2 gap-3 pb-safe">
+                        <div className="grid grid-cols-2 gap-3 pb-6">
                             {menuItems.map((item) => {
                                 const Icon = item.icon
                                 return (
