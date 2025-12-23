@@ -16,6 +16,14 @@ export const metadata = {
     shortcut: '/favicon.png',
     apple: '/favicon.png',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Evas Admin',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 }
 
 export default function RootLayout({ children }) {
