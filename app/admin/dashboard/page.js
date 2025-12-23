@@ -21,7 +21,11 @@ export default function AdminDashboard() {
           "--header-height": "4rem",
         }}
       >
-        <AppSidebar variant="inset" />
+        {/* Hide sidebar on mobile, show on desktop */}
+        <div className="hidden md:block">
+          <AppSidebar variant="inset" />
+        </div>
+
         <SidebarInset>
           <SiteHeader />
           <div className="flex flex-1 flex-col overflow-hidden">
@@ -40,3 +44,4 @@ export default function AdminDashboard() {
     </AdminLayout>
   )
 }
+

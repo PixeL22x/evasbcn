@@ -3,6 +3,7 @@
 import { useAuth } from '../contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { MobileBottomNav } from './MobileBottomNav'
 
 export default function AdminLayout({ children }) {
   const { user, isAuthenticated, loading } = useAuth()
@@ -105,6 +106,18 @@ export default function AdminLayout({ children }) {
     )
   }
 
-  return children
+  return (
+    <>
+      {/* Main content with bottom padding on mobile for the nav bar */}
+      <div className="pb-16 md:pb-0">
+        {children}
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
+    </>
+  )
 }
+
+
 
