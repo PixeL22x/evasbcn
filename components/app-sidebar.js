@@ -20,7 +20,6 @@ import {
   Star,
   ChevronRight,
 } from "lucide-react"
-import { useSolicitudesCount } from "@/hooks/use-solicitudes-count"
 
 import {
   Sidebar,
@@ -65,6 +64,21 @@ const data = {
         {
           title: "Estadísticas",
           url: "/admin/cierres/estadisticas",
+        },
+      ],
+    },
+    {
+      title: "Tickets del Día",
+      url: "/admin/tickets",
+      icon: FileText,
+      items: [
+        {
+          title: "Ver Tickets",
+          url: "/admin/tickets",
+        },
+        {
+          title: "Analytics",
+          url: "/admin/tickets/analytics",
         },
       ],
     },
@@ -142,8 +156,6 @@ const data = {
 }
 
 export function AppSidebar({ variant = "sidebar", ...props }) {
-  const { count: solicitudesCount } = useSolicitudesCount()
-
   return (
     <Sidebar variant={variant} {...props}>
       <SidebarHeader>
@@ -169,11 +181,6 @@ export function AppSidebar({ variant = "sidebar", ...props }) {
                       <item.icon />
                       <span>
                         {item.title}
-                        {item.title === "Cambios de Turno" && solicitudesCount > 0 && (
-                          <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                            {solicitudesCount}
-                          </span>
-                        )}
                       </span>
                     </a>
                   </SidebarMenuButton>

@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import CircularTimer from './CircularTimer'
 import PhotoTask from './PhotoTask'
 import VentasTask from './VentasTask'
+import TicketScannerTask from './TicketScannerTask'
 
-export default function SequentialTask({ 
-  task, 
-  currentStep, 
-  totalSteps, 
-  onComplete, 
-  onNext, 
+export default function SequentialTask({
+  task,
+  currentStep,
+  totalSteps,
+  onComplete,
+  onNext,
   showTimer = true,
   cierreId,
   trabajador
@@ -23,7 +24,7 @@ export default function SequentialTask({
   useEffect(() => {
     const isTaskCompleted = task.completed || task.completada
     setIsCompleted(isTaskCompleted)
-    
+
     // Solo resetear el temporizador si la tarea no está completada
     if (!isTaskCompleted) {
       setTimeLeft((task.duration || task.duracion) * 60)
@@ -36,7 +37,7 @@ export default function SequentialTask({
 
   useEffect(() => {
     let interval = null
-    
+
     if (isRunning && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(timeLeft => timeLeft - 1)
@@ -44,14 +45,14 @@ export default function SequentialTask({
     } else if (timeLeft === 0 && isRunning) {
       handleComplete()
     }
-    
+
     return () => clearInterval(interval)
   }, [isRunning, timeLeft])
 
   const handleComplete = async () => {
     setIsCompleted(true)
     setIsRunning(false)
-    
+
     try {
       // Actualizar la tarea en la base de datos
       const response = await fetch('/api/tarea', {
@@ -68,7 +69,7 @@ export default function SequentialTask({
 
       if (response.ok) {
         onComplete(task.id)
-        
+
         // Solo auto-avanzar si la tarea NO requiere fotos ni input
         if (!task.requiereFotos && !task.requiereInput) {
           setTimeout(() => {
@@ -134,7 +135,7 @@ export default function SequentialTask({
     return icons[taskName] || '✅'
   }
 
-  
+
   // Verificar si esta tarea requiere fotos específicas
   const requiresPhotos = task.requiereFotos === true
   const requiresInput = task.requiereInput === true
@@ -154,7 +155,28 @@ export default function SequentialTask({
     )
   }
 
-  // Si la tarea requiere input de ventas, mostrar el componente VentasTask
+  // Si la tarea requiere escaneo de ticket con IA (Bloque 5.2 mejorado)
+  // Detectar por campo requiereEscaneo O por nombre de tarea (para cierres antiguos)
+  const shouldUseScanner = requiresInput && task.inputType === 'ventas' && (
+    task.requiereEscaneo === true ||
+    (task.nombre && task.nombre.includes('Escanea el ticket'))
+  )
+
+  if (shouldUseScanner) {
+    return (
+      <TicketScannerTask
+        task={task}
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        onComplete={onComplete}
+        onNext={onNext}
+        cierreId={cierreId}
+        trabajador={trabajador}
+      />
+    )
+  }
+
+  // Si la tarea requiere input de ventas MANUAL (fallback o configuración antigua)
   if (requiresInput && task.inputType === 'ventas') {
     return (
       <VentasTask
@@ -187,7 +209,7 @@ export default function SequentialTask({
             Paso {currentStep} de {totalSteps}
           </p>
         </div>
-        
+
         {/* Lista de Subtareas si existen */}
         {subtareas && subtareas.length > 0 && (
           <div className="bg-white/10 backdrop-blur-lg rounded-lg sm:rounded-xl lg:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 border border-white/20">
@@ -212,7 +234,7 @@ export default function SequentialTask({
             <span>{Math.round(((currentStep - 1) / totalSteps) * 100)}%</span>
           </div>
           <div className="w-full bg-white/20 rounded-full h-2 sm:h-3 overflow-hidden">
-            <div 
+            <div
               className="h-full bg-gradient-to-r from-blue-400 to-purple-500 rounded-full transition-all duration-1000 ease-out"
               style={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
             />
@@ -255,7 +277,7 @@ export default function SequentialTask({
                 >
                   ✅ OK
                 </button>
-                
+
               </div>
             ) : (
               <div className="text-center w-full">
@@ -273,13 +295,12 @@ export default function SequentialTask({
             {Array.from({ length: totalSteps }, (_, index) => (
               <div
                 key={index}
-                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
-                  index < currentStep - 1 
-                    ? 'bg-green-400' 
-                    : index === currentStep - 1
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${index < currentStep - 1
+                  ? 'bg-green-400'
+                  : index === currentStep - 1
                     ? 'bg-blue-400 animate-pulse'
                     : 'bg-white/30'
-                }`}
+                  }`}
               />
             ))}
           </div>

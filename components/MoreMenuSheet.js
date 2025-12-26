@@ -21,10 +21,8 @@ import {
     SheetTitle,
     SheetDescription,
 } from '@/components/ui/sheet'
-import { useSolicitudesCount } from '@/hooks/use-solicitudes-count'
 
 export function MoreMenuSheet({ isOpen, onClose }) {
-    const { count: solicitudesCount } = useSolicitudesCount()
 
     const menuItems = [
         {
@@ -39,8 +37,21 @@ export function MoreMenuSheet({ isOpen, onClose }) {
             description: 'Solicitudes pendientes',
             icon: RefreshCw,
             href: '/admin/cambios-turno',
-            gradient: 'from-purple-500 to-purple-600',
-            badge: solicitudesCount > 0 ? solicitudesCount : null
+            gradient: 'from-purple-500 to-purple-600'
+        },
+        {
+            title: 'Tickets del Día',
+            description: 'Tickets escaneados',
+            icon: FileText,
+            href: '/admin/tickets',
+            gradient: 'from-blue-500 to-indigo-600'
+        },
+        {
+            title: 'Analytics Tickets',
+            description: 'Estadísticas de ventas',
+            icon: TrendingUp,
+            href: '/admin/tickets/analytics',
+            gradient: 'from-cyan-500 to-blue-600'
         },
         {
             title: 'Horarios',

@@ -19,14 +19,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { RefreshCw, CheckCircle, XCircle, AlertCircle, Calendar, User, MessageSquare, Trash2 } from "lucide-react"
-import { useSolicitudesCount } from "@/hooks/use-solicitudes-count"
 
 export default function CambiosTurnoPage() {
   const [solicitudes, setSolicitudes] = useState([])
   const [loading, setLoading] = useState(true)
   const [processingId, setProcessingId] = useState(null)
   const [observaciones, setObservaciones] = useState({})
-  const { refetch: refetchCount } = useSolicitudesCount()
 
   useEffect(() => {
     fetchSolicitudes()
@@ -48,7 +46,7 @@ export default function CambiosTurnoPage() {
 
   const handleUpdateSolicitud = async (id, estado) => {
     setProcessingId(id)
-    
+
     try {
       const response = await fetch(`/api/solicitudes-cambio/${id}`, {
         method: 'PUT',
@@ -63,7 +61,6 @@ export default function CambiosTurnoPage() {
 
       if (response.ok) {
         fetchSolicitudes()
-        refetchCount() // Actualizar el contador en el sidebar
         setObservaciones(prev => ({ ...prev, [id]: '' }))
         alert(`Solicitud ${estado} correctamente`)
       } else {
@@ -84,7 +81,7 @@ export default function CambiosTurnoPage() {
     }
 
     setProcessingId(id)
-    
+
     try {
       const response = await fetch(`/api/solicitudes-cambio/${id}`, {
         method: 'DELETE'
@@ -92,7 +89,6 @@ export default function CambiosTurnoPage() {
 
       if (response.ok) {
         fetchSolicitudes()
-        refetchCount() // Actualizar el contador en el sidebar
         alert('Solicitud eliminada correctamente')
       } else {
         const error = await response.json()
@@ -157,7 +153,7 @@ export default function CambiosTurnoPage() {
     const pendientes = solicitudes.filter(s => s.estado === 'pendiente').length
     const aprobadas = solicitudes.filter(s => s.estado === 'aprobada').length
     const rechazadas = solicitudes.filter(s => s.estado === 'rechazada').length
-    
+
     return { pendientes, aprobadas, rechazadas, total: solicitudes.length }
   }
 
@@ -274,7 +270,7 @@ export default function CambiosTurnoPage() {
                                       </span>
                                       {getEstadoBadge(solicitud.estado)}
                                     </div>
-                                    
+
                                     <div className="flex items-center gap-2 text-sm">
                                       <Calendar className="h-4 w-4 text-red-500" />
                                       <span><strong>NO trabaja:</strong> {formatDateOnly(solicitud.fechaCambio)}</span>
@@ -286,7 +282,7 @@ export default function CambiosTurnoPage() {
                                         <span><strong>Trabaja en su lugar:</strong> {formatDateOnly(solicitud.fechaReemplazo)}</span>
                                       </div>
                                     )}
-                                    
+
                                     <div className="text-sm text-muted-foreground">
                                       Solicitado: {formatDate(solicitud.fechaSolicitud)}
                                     </div>
@@ -300,7 +296,7 @@ export default function CambiosTurnoPage() {
 
                                     {solicitud.observacionesAdmin && (
                                       <div className="text-sm bg-gray-50 dark:bg-gray-800 p-2 rounded border dark:border-gray-700">
-                                        <strong className="text-gray-900 dark:text-gray-100">Observaciones admin:</strong> 
+                                        <strong className="text-gray-900 dark:text-gray-100">Observaciones admin:</strong>
                                         <span className="text-gray-700 dark:text-gray-300"> {solicitud.observacionesAdmin}</span>
                                       </div>
                                     )}
@@ -311,7 +307,7 @@ export default function CambiosTurnoPage() {
                                       </div>
                                     )}
                                   </div>
-                                  
+
                                   {/* Botón eliminar para solicitudes procesadas */}
                                   {solicitud.estado !== 'pendiente' && (
                                     <div className="mt-4 pt-4 border-t">
@@ -346,7 +342,7 @@ export default function CambiosTurnoPage() {
                                         rows={2}
                                       />
                                     </div>
-                                    
+
                                     <div className="flex gap-2">
                                       <Button
                                         onClick={() => handleUpdateSolicitud(solicitud.id, 'aprobada')}
@@ -356,7 +352,7 @@ export default function CambiosTurnoPage() {
                                         <CheckCircle className="h-4 w-4 mr-2" />
                                         {processingId === solicitud.id ? 'Procesando...' : 'Aprobar'}
                                       </Button>
-                                      
+
                                       <Button
                                         onClick={() => handleUpdateSolicitud(solicitud.id, 'rechazada')}
                                         disabled={processingId === solicitud.id}
@@ -365,7 +361,7 @@ export default function CambiosTurnoPage() {
                                         <XCircle className="h-4 w-4 mr-2" />
                                         {processingId === solicitud.id ? 'Procesando...' : 'Rechazar'}
                                       </Button>
-                                      
+
                                       <Button
                                         onClick={() => handleDeleteSolicitud(solicitud.id, solicitud.trabajadorSolicitante)}
                                         disabled={processingId === solicitud.id}

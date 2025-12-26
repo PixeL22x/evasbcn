@@ -5,12 +5,10 @@ import Link from 'next/link'
 import { Home, Clock, Package, Thermometer, MoreHorizontal } from 'lucide-react'
 import { useState } from 'react'
 import { MoreMenuSheet } from './MoreMenuSheet'
-import { useSolicitudesCount } from '@/hooks/use-solicitudes-count'
 
 export function MobileBottomNav() {
     const pathname = usePathname()
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
-    const { count: solicitudesCount } = useSolicitudesCount()
 
     const navItems = [
         {
@@ -76,13 +74,6 @@ export function MobileBottomNav() {
                     >
                         <MoreHorizontal className="h-5 w-5 stroke-2" />
                         <span className="text-[10px] font-medium leading-none">Más</span>
-
-                        {/* Badge for pending solicitudes */}
-                        {solicitudesCount > 0 && (
-                            <span className="absolute top-1 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white">
-                                {solicitudesCount}
-                            </span>
-                        )}
                     </button>
                 </div>
             </nav>

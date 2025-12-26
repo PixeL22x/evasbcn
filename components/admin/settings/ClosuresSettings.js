@@ -9,7 +9,13 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Clock, Save } from "lucide-react"
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { Clock, Save, ChevronDown } from "lucide-react"
+import { TaskToggleEditor } from "./TaskToggleEditor"
 
 export function ClosuresSettings() {
     const { register, control, formState: { errors } } = useFormContext()
@@ -17,8 +23,11 @@ export function ClosuresSettings() {
     // Estados locales para los editores JSON
     const [tasksManana, setTasksManana] = useState('')
     const [tasksTarde, setTasksTarde] = useState('')
+    const [parsedTasksManana, setParsedTasksManana] = useState([])
+    const [parsedTasksTarde, setParsedTasksTarde] = useState([])
     const [loadingTasks, setLoadingTasks] = useState(false)
     const [savingTasks, setSavingTasks] = useState(false)
+    const [showJsonEditor, setShowJsonEditor] = useState(false)
 
     useEffect(() => {
         loadTasksConfig()
@@ -30,6 +39,10 @@ export function ClosuresSettings() {
             const res = await fetch('/api/admin/settings/tasks')
             if (res.ok) {
                 const data = await res.json()
+
+                // Guardar tanto JSON string como parsed
+                setParsedTasksManana(data.mañana || [])
+                setParsedTasksTarde(data.tarde || [])
                 setTasksManana(JSON.stringify(data.mañana || [], null, 2))
                 setTasksTarde(JSON.stringify(data.tarde || [], null, 2))
             }
@@ -57,11 +70,34 @@ export function ClosuresSettings() {
 
             if (res.ok) {
                 alert(`Tareas de ${turno} guardadas correctamente`)
+                loadTasksConfig() // Reload
             } else {
                 alert('Error al guardar')
             }
         } catch (e) {
             alert('JSON Inválido: ' + e.message)
+        } finally {
+            setSavingTasks(false)
+        }
+    }
+
+    const saveTasksFromToggles = async (turno, tasks) => {
+        try {
+            setSavingTasks(true)
+            const res = await fetch('/api/admin/settings/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ turno, tasks })
+            })
+
+            if (res.ok) {
+                alert(`Tareas de ${turno} guardadas correctamente`)
+                loadTasksConfig() // Reload
+            } else {
+                alert('Error al guardar')
+            }
+        } catch (e) {
+            alert('Error: ' + e.message)
         } finally {
             setSavingTasks(false)
         }
@@ -171,53 +207,125 @@ export function ClosuresSettings() {
 
                 <Separator />
 
-
                 <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Editor de Tareas (Avanzado)</h3>
-                    <p className="text-sm text-muted-foreground">
-                        Edita la estructura JSON de las tareas para cada turno. Ten cuidado con la sintaxis.
-                    </p>
+                    <div>
+                        <h3 className="text-lg font-medium">Gestión de Tareas</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Activa o desactiva tareas individuales para cada turno
+                        </p>
+                    </div>
 
                     <Tabs defaultValue="manana" className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="manana">Mañana</TabsTrigger>
                             <TabsTrigger value="tarde">Tarde</TabsTrigger>
                         </TabsList>
+
                         <TabsContent value="manana">
-                            <div className="space-y-2 mt-4">
-                                <Textarea
-                                    value={tasksManana}
-                                    onChange={(e) => setTasksManana(e.target.value)}
-                                    className="font-mono text-xs h-[300px]"
-                                    placeholder="Cargando configuración..."
-                                />
-                                <Button
-                                    size="sm"
-                                    onClick={() => saveTasksConfig('mañana', tasksManana)}
-                                    disabled={savingTasks || loadingTasks}
-                                >
-                                    <Save className="w-4 h-4 mr-2" /> Guardar Tareas Mañana
-                                </Button>
+                            <div className="space-y-4 mt-4">
+                                {loadingTasks ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        Cargando tareas...
+                                    </div>
+                                ) : (
+                                    <>
+                                        <TaskToggleEditor
+                                            tasks={parsedTasksManana}
+                                            onTasksChange={setParsedTasksManana}
+                                        />
+                                        <Button
+                                            onClick={() => saveTasksFromToggles('mañana', parsedTasksManana)}
+                                            disabled={savingTasks || loadingTasks}
+                                        >
+                                            <Save className="w-4 h-4 mr-2" />
+                                            {savingTasks ? 'Guardando...' : 'Guardar Cambios'}
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </TabsContent>
+
                         <TabsContent value="tarde">
-                            <div className="space-y-2 mt-4">
-                                <Textarea
-                                    value={tasksTarde}
-                                    onChange={(e) => setTasksTarde(e.target.value)}
-                                    className="font-mono text-xs h-[400px]"
-                                    placeholder="Cargando configuración..."
-                                />
-                                <Button
-                                    size="sm"
-                                    onClick={() => saveTasksConfig('tarde', tasksTarde)}
-                                    disabled={savingTasks || loadingTasks}
-                                >
-                                    <Save className="w-4 h-4 mr-2" /> Guardar Tareas Tarde
-                                </Button>
+                            <div className="space-y-4 mt-4">
+                                {loadingTasks ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        Cargando tareas...
+                                    </div>
+                                ) : (
+                                    <>
+                                        <TaskToggleEditor
+                                            tasks={parsedTasksTarde}
+                                            onTasksChange={setParsedTasksTarde}
+                                        />
+                                        <Button
+                                            onClick={() => saveTasksFromToggles('tarde', parsedTasksTarde)}
+                                            disabled={savingTasks || loadingTasks}
+                                        >
+                                            <Save className="w-4 h-4 mr-2" />
+                                            {savingTasks ? 'Guardando...' : 'Guardar Cambios'}
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </TabsContent>
                     </Tabs>
+
+                    {/* Editor JSON Avanzado (Colapsable) */}
+                    <Collapsible open={showJsonEditor} onOpenChange={setShowJsonEditor}>
+                        <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="w-full justify-between">
+                                <span className="text-sm font-medium">⚙️ Modo Avanzado (Editor JSON)</span>
+                                <ChevronDown className={`w-4 h-4 transition-transform ${showJsonEditor ? 'rotate-180' : ''}`} />
+                            </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    ⚠️ Editor avanzado: Edita la estructura JSON directamente. Ten cuidado con la sintaxis.
+                                </p>
+                                <Tabs defaultValue="manana" className="w-full">
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="manana">Mañana</TabsTrigger>
+                                        <TabsTrigger value="tarde">Tarde</TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="manana">
+                                        <div className="space-y-2 mt-4">
+                                            <Textarea
+                                                value={tasksManana}
+                                                onChange={(e) => setTasksManana(e.target.value)}
+                                                className="font-mono text-xs h-[300px]"
+                                                placeholder="Cargando configuración..."
+                                            />
+                                            <Button
+                                                size="sm"
+                                                onClick={() => saveTasksConfig('mañana', tasksManana)}
+                                                disabled={savingTasks || loadingTasks}
+                                            >
+                                                <Save className="w-4 h-4 mr-2" /> Guardar JSON Mañana
+                                            </Button>
+                                        </div>
+                                    </TabsContent>
+                                    <TabsContent value="tarde">
+                                        <div className="space-y-2 mt-4">
+                                            <Textarea
+                                                value={tasksTarde}
+                                                onChange={(e) => setTasksTarde(e.target.value)}
+                                                className="font-mono text-xs h-[400px]"
+                                                placeholder="Cargando configuración..."
+                                            />
+                                            <Button
+                                                size="sm"
+                                                onClick={() => saveTasksConfig('tarde', tasksTarde)}
+                                                disabled={savingTasks || loadingTasks}
+                                            >
+                                                <Save className="w-4 h-4 mr-2" /> Guardar JSON Tarde
+                                            </Button>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+                            </div>
+                        </CollapsibleContent>
+                    </Collapsible>
                 </div>
             </CardContent>
         </Card>

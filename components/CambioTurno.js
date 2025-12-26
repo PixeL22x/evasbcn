@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Clock, User, AlertCircle, CheckCircle, XCircle } from "lucide-react"
-import { useSolicitudesCount } from "@/hooks/use-solicitudes-count"
 
 export default function CambioTurno({ trabajadorActual }) {
   const [solicitudes, setSolicitudes] = useState([])
@@ -19,7 +18,6 @@ export default function CambioTurno({ trabajadorActual }) {
     fechaReemplazo: '',
     motivo: ''
   })
-  const { refetch: refetchCount } = useSolicitudesCount()
 
   useEffect(() => {
     fetchSolicitudes()
@@ -62,9 +60,8 @@ export default function CambioTurno({ trabajadorActual }) {
           motivo: ''
         })
         fetchSolicitudes()
-        refetchCount() // Actualizar el contador en el sidebar
         alert('Solicitud enviada correctamente')
-        
+
         // Mostrar mensaje de redirección
         setTimeout(() => {
           alert('Redirigiendo a la página principal...')
@@ -130,7 +127,7 @@ export default function CambioTurno({ trabajadorActual }) {
                 type="text"
                 id="trabajadorDestino"
                 value={formData.trabajadorDestino}
-                onChange={(e) => setFormData({...formData, trabajadorDestino: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, trabajadorDestino: e.target.value })}
                 placeholder="Nombre del trabajador"
                 required
               />
@@ -145,7 +142,7 @@ export default function CambioTurno({ trabajadorActual }) {
                 type="date"
                 id="fechaCambio"
                 value={formData.fechaCambio}
-                onChange={(e) => setFormData({...formData, fechaCambio: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, fechaCambio: e.target.value })}
                 min={minDateString}
                 placeholder="dd/mm/aaaa"
                 required
@@ -161,7 +158,7 @@ export default function CambioTurno({ trabajadorActual }) {
                 type="date"
                 id="fechaReemplazo"
                 value={formData.fechaReemplazo}
-                onChange={(e) => setFormData({...formData, fechaReemplazo: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, fechaReemplazo: e.target.value })}
                 min={minDateString}
                 placeholder="dd/mm/aaaa"
                 required
@@ -176,7 +173,7 @@ export default function CambioTurno({ trabajadorActual }) {
               <Textarea
                 id="motivo"
                 value={formData.motivo}
-                onChange={(e) => setFormData({...formData, motivo: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
                 placeholder="Explica el motivo del cambio..."
                 rows={3}
                 required
@@ -225,7 +222,7 @@ export default function CambioTurno({ trabajadorActual }) {
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-gray-500" />
                       <span className="font-medium">
-                        {solicitud.trabajadorSolicitante === trabajadorActual 
+                        {solicitud.trabajadorSolicitante === trabajadorActual
                           ? `Cambio con ${solicitud.trabajadorDestino}`
                           : `${solicitud.trabajadorSolicitante} quiere cambiar contigo`
                         }
@@ -233,7 +230,7 @@ export default function CambioTurno({ trabajadorActual }) {
                     </div>
                     {getEstadoBadge(solicitud.estado)}
                   </div>
-                  
+
                   <div className="text-sm text-gray-600 space-y-1">
                     <p><strong>NO trabaja:</strong> {formatDate(solicitud.fechaCambio)}</p>
                     {solicitud.fechaReemplazo && (

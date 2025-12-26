@@ -9,6 +9,7 @@ import CambioTurno from '../components/CambioTurno'
 import StockWorker from '../components/StockWorker'
 import TemperaturaVitrina from '../components/TemperaturaVitrina'
 import ResenaWorker from '../components/ResenaWorker'
+import TicketCapture from '../components/ticket-dia/TicketCapture'
 
 
 export default function Home() {
@@ -24,6 +25,7 @@ export default function Home() {
   const [showStockWorker, setShowStockWorker] = useState(false)
   const [showTemperaturaVitrina, setShowTemperaturaVitrina] = useState(false)
   const [showResenaWorker, setShowResenaWorker] = useState(false)
+  const [showTicketCapture, setShowTicketCapture] = useState(false)
   const [cierreId, setCierreId] = useState(null)
   const [workerName, setWorkerName] = useState('')
   const [loadingTasks, setLoadingTasks] = useState(false)
@@ -362,6 +364,16 @@ export default function Home() {
                   <div className="text-lg sm:text-xl font-bold mb-1">Registrar Reseña</div>
                   <div className="text-xs sm:text-sm text-white/80">Registrar reseñas de Google</div>
                 </button>
+
+                {/* Ticket del Día (IA) */}
+                <button
+                  onClick={() => setShowTicketCapture(true)}
+                  className="bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group sm:col-span-2 lg:col-span-1"
+                >
+                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🧾</div>
+                  <div className="text-lg sm:text-xl font-bold mb-1">Ticket del Día</div>
+                  <div className="text-xs sm:text-sm text-white/80">Escanear ticket de ventas final</div>
+                </button>
               </div>
             )}
 
@@ -446,6 +458,11 @@ export default function Home() {
         {/* Modal de Reseñas */}
         {showResenaWorker && (
           <ResenaWorker onClose={() => setShowResenaWorker(false)} />
+        )}
+
+        {/* Modal de Ticket del Día */}
+        {showTicketCapture && (
+          <TicketCapture onClose={() => setShowTicketCapture(false)} />
         )}
       </div>
     )

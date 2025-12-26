@@ -103,16 +103,16 @@ export async function GET(request) {
                     fotosRequeridas: JSON.stringify([
                         { tipo: 'cuaderno_apuntes', descripcion: 'Cuaderno de apuntes' },
                         { tipo: 'ticket_bbva', descripcion: 'Ticket BBVA' },
-                        { tipo: 'ticket_caixa', descripcion: 'Ticket Caixa' },
-                        { tipo: 'ticket_ventas', descripcion: 'Ticket total' }
+                        { tipo: 'ticket_caixa', descripcion: 'Ticket Caixa' }
                     ])
                 },
-                // 💰 Bloque 5.2 - Ingresar Ventas
+                // 💰 Bloque 5.2 - Escanear Ticket de Ventas (con IA)
                 {
-                    nombre: '💰 Bloque 5.2 - Ingresa el total de ventas del día',
-                    duracion: 2,
+                    nombre: '💰 Bloque 5.2 - Escanea el ticket de ventas del día',
+                    duracion: 3,
                     requiereInput: true,
-                    inputType: 'ventas'
+                    inputType: 'ventas',
+                    requiereEscaneo: true
                 },
                 // 📸 Bloque 5.3 - Fotos Máquinas Apagadas
                 {
@@ -152,9 +152,40 @@ export async function GET(request) {
             ]
         }
 
+        // Normalizar fotos para asegurar que todas tengan el campo 'activa'
+        const normalizarFotos = (fotosString) => {
+            if (!fotosString) return fotosString
+
+            try {
+                const fotos = JSON.parse(fotosString)
+                if (!Array.isArray(fotos)) return fotosString
+
+                const fotosNormalizadas = fotos.map(f => ({
+                    ...f,
+                    activa: f.activa !== undefined ? f.activa : true
+                }))
+
+                return JSON.stringify(fotosNormalizadas)
+            } catch (e) {
+                return fotosString
+            }
+        }
+
+        // Normalizar tareas para asegurar que todas tengan el campo 'activa'
+        const normalizarTareas = (tasks) => {
+            if (!Array.isArray(tasks)) return []
+            return tasks.map(t => ({
+                ...t,
+                activa: t.activa !== undefined ? t.activa : true, // Default: true
+                fotosRequeridas: t.requiereFotos
+                    ? normalizarFotos(t.fotosRequeridas)
+                    : t.fotosRequeridas
+            }))
+        }
+
         return NextResponse.json({
-            mañana: mananaConfig?.valor || defaultTasks.mañana,
-            tarde: tardeConfig?.valor || defaultTasks.tarde
+            mañana: normalizarTareas(mananaConfig?.valor || defaultTasks.mañana),
+            tarde: normalizarTareas(tardeConfig?.valor || defaultTasks.tarde)
         })
     } catch (error) {
         console.error('Error fetching tasks config:', error)

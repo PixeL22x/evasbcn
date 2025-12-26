@@ -119,16 +119,16 @@ export async function POST(request) {
           fotosRequeridas: JSON.stringify([
             { tipo: 'cuaderno_apuntes', descripcion: 'Cuaderno de apuntes' },
             { tipo: 'ticket_bbva', descripcion: 'Ticket BBVA' },
-            { tipo: 'ticket_caixa', descripcion: 'Ticket Caixa' },
-            { tipo: 'ticket_ventas', descripcion: 'Ticket total' }
+            { tipo: 'ticket_caixa', descripcion: 'Ticket Caixa' }
           ])
         },
-        // 💰 Bloque 5.2 - Ingresar Ventas
+        // 💰 Bloque 5.2 - Escanear Ticket de Ventas (con IA)
         {
-          nombre: '💰 Bloque 5.2 - Ingresa el total de ventas del día',
-          duracion: 2,
+          nombre: '💰 Bloque 5.2 - Escanea el ticket de ventas del día',
+          duracion: 3,
           requiereInput: true,
-          inputType: 'ventas'
+          inputType: 'ventas',
+          requiereEscaneo: true
         },
         // 📸 Bloque 5.3 - Fotos Máquinas Apagadas
         {
@@ -177,8 +177,11 @@ export async function POST(request) {
     let tareasParaUsar = []
 
     if (tareasConfig && tareasConfig.valor) {
-      // Usar configuración de la BD
-      tareasParaUsar = tareasConfig.valor
+      // Usar configuración de la BD y filtrar solo tareas activas
+      const todasLasTareas = tareasConfig.valor
+      tareasParaUsar = Array.isArray(todasLasTareas)
+        ? todasLasTareas.filter(t => t.activa !== false)
+        : []
     } else {
       // Usar defaults y guardarlos en la BD para futuras ediciones
       tareasParaUsar = tareasPorTurnoDefaults[turno]
@@ -192,13 +195,34 @@ export async function POST(request) {
       }).catch(err => console.error('Error guardando config default:', err))
     }
 
+    // Limpiar campos de configuración que no existen en el modelo Tarea
+    // (estos campos solo se usan para lógica de routing, no en la BD)
+    const tareasLimpias = tareasParaUsar.map(({ activa, requiereEscaneo, ...tarea }) => {
+      // Si la tarea requiere fotos, filtrar solo las activas
+      if (tarea.requiereFotos && tarea.fotosRequeridas) {
+        try {
+          const fotos = JSON.parse(tarea.fotosRequeridas)
+          const fotosActivas = fotos.filter(f => f.activa !== false)
+          // Limpiar campo 'activa' de las fotos también
+          const fotosLimpias = fotosActivas.map(({ activa, ...foto }) => foto)
+          return {
+            ...tarea,
+            fotosRequeridas: JSON.stringify(fotosLimpias)
+          }
+        } catch (e) {
+          return tarea
+        }
+      }
+      return tarea
+    })
+
     // Crear el cierre con las tareas específicas del turno
     const cierre = await prisma.cierre.create({
       data: {
         trabajador: trabajador.trim(),
         turno: turno,
         tareas: {
-          create: tareasParaUsar,
+          create: tareasLimpias,
         },
       },
       include: {

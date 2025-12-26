@@ -18,6 +18,7 @@ model Cierre {
   fechaFin    DateTime?
   completado  Boolean  @default(false)
   totalVentas Float?   // Total de ventas del día
+  ticketData  Json?    // Datos del ticket escaneado con IA (items, imageUrl, etc.)
   tareas      Tarea[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -211,4 +212,16 @@ model Configuracion {
   clave     String   @unique // e.g., "horarios_active_profile"
   valor     Json
   updatedAt DateTime @updatedAt
+}
+
+model TicketDiario {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl    String
+  fecha       DateTime @default(now())
+  total       Float?
+  items       Json?    // Array of { name, quantity, price }
+  rawResponse String?  // For debugging purposes
+  status      String   @default("procesando") // procesando, completado, error, validado
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const { id } = await params
-    const { totalVentas, fechaFin } = await request.json()
+    const { totalVentas, fechaFin, ticketData } = await request.json()
 
     if (!id) {
       return NextResponse.json(
@@ -61,6 +61,11 @@ export async function PUT(request, { params }) {
     if (fechaFin !== undefined && fechaFin !== null) {
       // Si viene como string, convertir a Date
       updateData.fechaFin = fechaFin instanceof Date ? fechaFin : new Date(fechaFin)
+    }
+
+    if (ticketData !== undefined && ticketData !== null) {
+      // Guardar datos del ticket (items, imageUrl, etc.)
+      updateData.ticketData = ticketData
     }
 
     // Si no hay datos para actualizar, retornar error
