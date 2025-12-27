@@ -36,7 +36,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Clock, CheckCircle, XCircle, Eye, Trash2, Calendar, Search, X, Edit, Save, Sun, Moon, ChevronLeft, ChevronRight, RotateCw, ZoomIn, ZoomOut, User, Euro, ListTodo, Maximize2, ImageIcon, MoreVertical } from "lucide-react"
+import { Clock, CheckCircle, XCircle, Eye, Trash2, Calendar, Search, X, Edit, Save, Sun, Moon, ChevronLeft, ChevronRight, RotateCw, ZoomIn, ZoomOut, User, Euro, ListTodo, Maximize2, ImageIcon, MoreVertical, TrendingUp } from "lucide-react"
 import { Label } from "@/components/ui/label"
 
 export default function CierresPage() {
@@ -272,6 +272,37 @@ export default function CierresPage() {
     const completadas = tareas.filter(t => t.completada).length
     return Math.round((completadas / tareas.length) * 100)
   }
+
+  const getTopSellingProduct = (ticketData) => {
+    if (!ticketData?.items || !Array.isArray(ticketData.items) || ticketData.items.length === 0) {
+      return null
+    }
+
+    // Agrupar por nombre y sumar cantidades
+    const productMap = {}
+    ticketData.items.forEach(item => {
+      const nombre = item.nombre || item.name
+      const cantidad = item.cantidad || item.quantity || 1
+
+      if (nombre) {
+        productMap[nombre] = (productMap[nombre] || 0) + cantidad
+      }
+    })
+
+    // Encontrar el producto con mayor cantidad
+    let topProduct = null
+    let maxQuantity = 0
+
+    Object.entries(productMap).forEach(([nombre, cantidad]) => {
+      if (cantidad > maxQuantity) {
+        maxQuantity = cantidad
+        topProduct = { nombre, cantidad }
+      }
+    })
+
+    return topProduct
+  }
+
 
   const getFotosFromTareas = (tareas) => {
     if (!tareas) return []
@@ -683,28 +714,68 @@ export default function CierresPage() {
                             </div>
                           </div>
 
-                          {/* Progress Section */}
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-semibold flex items-center gap-2">
-                                <ListTodo className="h-4 w-4 text-primary" />
-                                Progreso de Tareas
-                              </h4>
-                              <span className="text-sm font-medium bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
-                                {selectedCierre.tareas?.filter(t => t.completada).length || 0}/{selectedCierre.tareas?.length || 0}
-                              </span>
-                            </div>
+                          {/* Progress Section / Top Product (Tarde only) */}
+                          {selectedCierre.turno === 'tarde' ? (
+                            // Mostrar producto más vendido para turno tarde
+                            (() => {
+                              const topProduct = getTopSellingProduct(selectedCierre.ticketData)
 
-                            <div className="relative w-full bg-secondary rounded-full h-3 overflow-hidden">
-                              <div
-                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500 ease-out"
-                                style={{ width: `${getProgressPercentage(selectedCierre.tareas)}%` }}
-                              />
+                              return topProduct ? (
+                                <div className="space-y-4">
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="font-semibold flex items-center gap-2">
+                                      <TrendingUp className="h-4 w-4 text-primary" />
+                                      Producto Más Vendido
+                                    </h4>
+                                  </div>
+                                  <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-3">
+                                        <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                          <span className="text-2xl">🏆</span>
+                                        </div>
+                                        <div>
+                                          <p className="font-semibold text-foreground">{topProduct.nombre}</p>
+                                          <p className="text-sm text-muted-foreground">
+                                            {topProduct.cantidad} {topProduct.cantidad === 1 ? 'unidad' : 'unidades'} vendidas
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="bg-muted/30 rounded-xl p-4 text-center">
+                                  <p className="text-sm text-muted-foreground">
+                                    No hay datos de productos disponibles
+                                  </p>
+                                </div>
+                              )
+                            })()
+                          ) : (
+                            // Mantener progreso de tareas para turno mañana
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-semibold flex items-center gap-2">
+                                  <ListTodo className="h-4 w-4 text-primary" />
+                                  Progreso de Tareas
+                                </h4>
+                                <span className="text-sm font-medium bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                                  {selectedCierre.tareas?.filter(t => t.completada).length || 0}/{selectedCierre.tareas?.length || 0}
+                                </span>
+                              </div>
+
+                              <div className="relative w-full bg-secondary rounded-full h-3 overflow-hidden">
+                                <div
+                                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500 ease-out"
+                                  style={{ width: `${getProgressPercentage(selectedCierre.tareas)}%` }}
+                                />
+                              </div>
+                              <p className="text-xs text-muted-foreground text-right">
+                                {getProgressPercentage(selectedCierre.tareas)}% completado
+                              </p>
                             </div>
-                            <p className="text-xs text-muted-foreground text-right">
-                              {getProgressPercentage(selectedCierre.tareas)}% completado
-                            </p>
-                          </div>
+                          )}
 
                           {/* Photos Section */}
                           {(() => {
