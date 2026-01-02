@@ -11,7 +11,8 @@ import {
     TrendingUp,
     Database,
     Bot,
-    Settings
+    Settings,
+    Package
 } from 'lucide-react'
 import Link from 'next/link'
 import {
@@ -65,6 +66,13 @@ export function MoreMenuSheet({ isOpen, onClose }) {
             description: 'Gestión de pedidos',
             icon: IceCream,
             href: '/admin/pedidos-helados',
+            gradient: 'from-green-500 to-green-600'
+        },
+        {
+            title: 'Stocks',
+            description: 'Gestión de existencias',
+            icon: Package,
+            href: '/admin/stock',
             gradient: 'from-green-500 to-green-600'
         },
         {

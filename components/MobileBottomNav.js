@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { Home, Clock, Package, Thermometer, MoreHorizontal } from 'lucide-react'
+import { Home, Clock, Package, Thermometer, MoreHorizontal, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { MoreMenuSheet } from './MoreMenuSheet'
 
@@ -18,10 +18,10 @@ export function MobileBottomNav() {
             isActive: pathname?.startsWith('/admin/cierres')
         },
         {
-            title: 'Temperatura',
-            icon: Thermometer,
-            href: '/admin/temperatura',
-            isActive: pathname?.startsWith('/admin/temperatura')
+            title: 'Analytics',
+            icon: TrendingUp,
+            href: '/admin/tickets/analytics',
+            isActive: pathname?.startsWith('/admin/tickets/analytics')
         },
         {
             title: 'Dashboard',
@@ -30,10 +30,10 @@ export function MobileBottomNav() {
             isActive: pathname === '/admin/dashboard' || pathname === '/admin'
         },
         {
-            title: 'Stocks',
-            icon: Package,
-            href: '/admin/stock',
-            isActive: pathname?.startsWith('/admin/stock')
+            title: 'Temperatura',
+            icon: Thermometer,
+            href: '/admin/temperatura',
+            isActive: pathname?.startsWith('/admin/temperatura')
         }
     ]
 

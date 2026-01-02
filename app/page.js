@@ -9,7 +9,9 @@ import CambioTurno from '../components/CambioTurno'
 import StockWorker from '../components/StockWorker'
 import TemperaturaVitrina from '../components/TemperaturaVitrina'
 import ResenaWorker from '../components/ResenaWorker'
-import TicketCapture from '../components/ticket-dia/TicketCapture'
+import BottomNav from '../components/worker/BottomNav'
+import { ActionCard } from '../components/worker/ActionCard'
+import MoreMenuSheet from '../components/worker/MoreMenuSheet'
 
 
 export default function Home() {
@@ -25,7 +27,8 @@ export default function Home() {
   const [showStockWorker, setShowStockWorker] = useState(false)
   const [showTemperaturaVitrina, setShowTemperaturaVitrina] = useState(false)
   const [showResenaWorker, setShowResenaWorker] = useState(false)
-  const [showTicketCapture, setShowTicketCapture] = useState(false)
+  const [currentView, setCurrentView] = useState('home')
+  const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [cierreId, setCierreId] = useState(null)
   const [workerName, setWorkerName] = useState('')
   const [loadingTasks, setLoadingTasks] = useState(false)
@@ -181,6 +184,38 @@ export default function Home() {
     setWorkerName('')
     setStartTime(null)
     setElapsedTime(0)
+    setCurrentView('home')
+  }
+
+  const handleNavigate = (view) => {
+    setCurrentView(view)
+
+    switch (view) {
+      case 'home':
+        // Ya estamos en home, no hacer nada
+        break
+      case 'cierre':
+        handleStartGame()
+        break
+      case 'pedido':
+        setShowPedidoHelados(true)
+        break
+      case 'stock':
+        setShowStockWorker(true)
+        break
+      case 'more':
+        setShowMoreMenu(true)
+        break
+      case 'cambio-turno':
+        setShowCambioTurno(true)
+        break
+      case 'temperatura':
+        setShowTemperaturaVitrina(true)
+        break
+      case 'resenas':
+        setShowResenaWorker(true)
+        break
+    }
   }
 
   const getTotalTime = () => {
@@ -301,79 +336,65 @@ export default function Home() {
           </div>
 
           {/* Controles */}
-          <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+          <div className="space-y-3 sm:space-y-4 lg:space-y-6 pb-safe">
             {/* Panel de control para trabajadores */}
             {user?.role === 'worker' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-5xl mx-auto">
-                {/* Cierre de Tienda */}
-                <button
-                  onClick={handleStartGame}
-                  className="bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
-                >
-                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🚀</div>
-                  <div className="text-lg sm:text-xl font-bold mb-1">Cierre de Tienda</div>
-                  <div className="text-xs sm:text-sm text-white/80">Proceso completo de cierre</div>
-                </button>
+              <div className="space-y-4 px-4 md:px-0">
+                {/* Quick Action - Destacado */}
+                <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 rounded-3xl p-6 border border-purple-500/20">
+                  <h2 className="text-white/80 text-sm font-medium mb-4 flex items-center gap-2">
+                    <span className="text-lg">⚡</span>
+                    Acción Rápida
+                  </h2>
 
-                {/* Pedido de Helados */}
-                <button
-                  onClick={() => setShowPedidoHelados(true)}
-                  className="bg-gradient-to-br from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
-                >
-                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🍦</div>
-                  <div className="text-lg sm:text-xl font-bold mb-1">Pedido Helados</div>
-                  <div className="text-xs sm:text-sm text-white/80">Realizar pedido de productos</div>
-                </button>
+                  <button
+                    onClick={handleStartGame}
+                    className="w-full bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold p-6 rounded-2xl transition-all duration-300 active:scale-95 shadow-2xl"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="text-4xl">🚀</div>
+                        <div className="text-left">
+                          <div className="text-xl font-bold">Iniciar Cierre</div>
+                          <div className="text-sm text-white/80">Proceso completo</div>
+                        </div>
+                      </div>
+                      <div className="text-white/60 text-2xl">→</div>
+                    </div>
+                  </button>
+                </div>
 
-                {/* Cambio de Turno */}
-                <button
-                  onClick={() => setShowCambioTurno(true)}
-                  className="bg-gradient-to-br from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
-                >
-                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🔄</div>
-                  <div className="text-lg sm:text-xl font-bold mb-1">Cambio de Turno</div>
-                  <div className="text-xs sm:text-sm text-white/80">Solicitar cambio o cubrir turno</div>
-                </button>
-
-                {/* Control de Stocks */}
-                <button
-                  onClick={() => setShowStockWorker(true)}
-                  className="bg-gradient-to-br from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
-                >
-                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">📦</div>
-                  <div className="text-lg sm:text-xl font-bold mb-1">Control de Stocks</div>
-                  <div className="text-xs sm:text-sm text-white/80">Gestionar inventario</div>
-                </button>
-
-                {/* Temperatura Vitrina */}
-                <button
-                  onClick={() => setShowTemperaturaVitrina(true)}
-                  className="bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
-                >
-                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🌡️</div>
-                  <div className="text-lg sm:text-xl font-bold mb-1">Temperatura Vitrina</div>
-                  <div className="text-xs sm:text-sm text-white/80">Registrar temperatura de vitrinas</div>
-                </button>
-
-                {/* Registrar Reseña */}
-                <button
-                  onClick={() => setShowResenaWorker(true)}
-                  className="bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group"
-                >
-                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">⭐</div>
-                  <div className="text-lg sm:text-xl font-bold mb-1">Registrar Reseña</div>
-                  <div className="text-xs sm:text-sm text-white/80">Registrar reseñas de Google</div>
-                </button>
-
-                {/* Ticket del Día (IA) */}
-                <button
-                  onClick={() => setShowTicketCapture(true)}
-                  className="bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold p-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl group sm:col-span-2 lg:col-span-1"
-                >
-                  <div className="text-4xl sm:text-5xl mb-3 group-hover:scale-110 transition-transform">🧾</div>
-                  <div className="text-lg sm:text-xl font-bold mb-1">Ticket del Día</div>
-                  <div className="text-xs sm:text-sm text-white/80">Escanear ticket de ventas final</div>
-                </button>
+                {/* Grid de acciones secundarias */}
+                <div className="grid grid-cols-2 gap-4">
+                  <ActionCard
+                    icon="🍦"
+                    title="Pedido"
+                    subtitle="Helados"
+                    onClick={() => setShowPedidoHelados(true)}
+                    gradient="from-pink-500/20 to-orange-500/20"
+                  />
+                  <ActionCard
+                    icon="📦"
+                    title="Stock"
+                    subtitle="Inventario"
+                    onClick={() => setShowStockWorker(true)}
+                    gradient="from-purple-500/20 to-indigo-500/20"
+                  />
+                  <ActionCard
+                    icon="🌡️"
+                    title="Temperatura"
+                    subtitle="Vitrina"
+                    onClick={() => setShowTemperaturaVitrina(true)}
+                    gradient="from-cyan-500/20 to-blue-500/20"
+                  />
+                  <ActionCard
+                    icon="⭐"
+                    title="Reseñas"
+                    subtitle="Google"
+                    onClick={() => setShowResenaWorker(true)}
+                    gradient="from-yellow-500/20 to-orange-500/20"
+                  />
+                </div>
               </div>
             )}
 
@@ -399,21 +420,6 @@ export default function Home() {
                     👷 Trabajadores
                   </a>
                 </div>
-              </div>
-            )}
-
-            {/* Solo mostrar controles de temporizador para trabajadores */}
-            {user?.role === 'worker' && (
-              <div className="flex justify-center">
-                <button
-                  onClick={() => setShowTimer(!showTimer)}
-                  className={`px-3 sm:px-4 lg:px-6 py-2 rounded-lg font-medium transition-all duration-300 text-xs sm:text-sm lg:text-base ${showTimer
-                    ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                    : 'bg-orange-500 hover:bg-orange-600 text-white'
-                    }`}
-                >
-                  {showTimer ? '⏰ Desactivar Temporizador' : '⏰ Activar Temporizador'}
-                </button>
               </div>
             )}
           </div>
@@ -460,9 +466,17 @@ export default function Home() {
           <ResenaWorker onClose={() => setShowResenaWorker(false)} />
         )}
 
-        {/* Modal de Ticket del Día */}
-        {showTicketCapture && (
-          <TicketCapture onClose={() => setShowTicketCapture(false)} />
+        {/* Bottom Navigation - Solo móvil */}
+        {user?.role === 'worker' && (
+          <BottomNav onNavigate={handleNavigate} currentView={currentView} />
+        )}
+
+        {/* More Menu Sheet */}
+        {showMoreMenu && (
+          <MoreMenuSheet
+            onClose={() => setShowMoreMenu(false)}
+            onNavigate={handleNavigate}
+          />
         )}
       </div>
     )

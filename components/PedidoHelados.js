@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { Minus, Plus, X } from 'lucide-react'
 
 const SABORES_DISPONIBLES = [
   // Sabores más populares primero
@@ -67,7 +68,7 @@ export default function PedidoHelados({ onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (getTotalSabores() === 0) {
       alert('Debes seleccionar al menos un sabor de helado')
       return
@@ -114,68 +115,82 @@ export default function PedidoHelados({ onClose }) {
 
   if (showSuccess) {
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl p-8 text-center max-w-md w-full">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-green-600 mb-2">¡Pedido Enviado!</h2>
-          <p className="text-gray-600">Tu pedido de helados ha sido enviado correctamente</p>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 text-center max-w-md w-full border border-white/10 shadow-2xl">
+          <div className="text-6xl mb-4 animate-bounce">🎉</div>
+          <h2 className="text-2xl font-bold text-white mb-2">¡Pedido Enviado!</h2>
+          <p className="text-white/70">Tu pedido de helados ha sido enviado correctamente</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">🍦 Pedido de Helados</h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden border border-white/10 shadow-2xl">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-pink-600/20 to-orange-600/20 border-b border-white/10 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-4xl">🍦</div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Pedido de Helados</h2>
+                <p className="text-white/60 text-sm">Hola {user?.name}! Selecciona los sabores</p>
+              </div>
+            </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-2xl"
+              className="p-2 hover:bg-white/10 rounded-full transition-colors"
             >
-              ×
+              <X className="w-6 h-6 text-white/60" />
             </button>
           </div>
+        </div>
 
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[calc(95vh-200px)]">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-blue-800 text-sm">
-                <strong>Hola {user?.name}!</strong> Selecciona la cantidad de cada sabor de helado que necesitas.
-              </p>
-            </div>
-
+            {/* Sabores Grid */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Sabores Disponibles</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <span>🍨</span>
+                Sabores Disponibles
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {SABORES_DISPONIBLES.map(sabor => (
-                  <div key={sabor.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                  <div
+                    key={sabor.id}
+                    className={`
+                      flex items-center justify-between p-3 rounded-xl
+                      border transition-all duration-300
+                      ${sabores[sabor.id] > 0
+                        ? 'bg-gradient-to-br from-pink-600/20 to-orange-600/20 border-pink-500/30'
+                        : 'bg-white/5 border-white/10 hover:bg-white/10'
+                      }
+                    `}
+                  >
                     <div className="flex items-center space-x-2 flex-1 min-w-0">
-                      <span className="text-lg flex-shrink-0">{sabor.emoji}</span>
-                      <span className="font-medium text-gray-700 text-sm truncate">{sabor.nombre}</span>
+                      <span className="text-2xl flex-shrink-0">{sabor.emoji}</span>
+                      <span className="font-medium text-white text-sm truncate">{sabor.nombre}</span>
                     </div>
-                    <div className="flex items-center space-x-1 flex-shrink-0">
+                    <div className="flex items-center space-x-2 flex-shrink-0">
                       <button
                         type="button"
                         onClick={() => handleCantidadChange(sabor.id, (sabores[sabor.id] || 0) - 1)}
-                        className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 text-sm"
+                        className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors disabled:opacity-30"
                         disabled={(sabores[sabor.id] || 0) <= 0}
                       >
-                        −
+                        <Minus className="w-4 h-4" />
                       </button>
-                      <input
-                        type="number"
-                        min="0"
-                        value={sabores[sabor.id] || 0}
-                        readOnly
-                        className="w-12 text-center border border-gray-300 rounded px-1 py-1 text-gray-900 font-semibold bg-gray-50 text-sm cursor-default"
-                      />
+                      <div className="w-12 text-center">
+                        <span className="text-white font-bold text-lg">{sabores[sabor.id] || 0}</span>
+                      </div>
                       <button
                         type="button"
                         onClick={() => handleCantidadChange(sabor.id, (sabores[sabor.id] || 0) + 1)}
-                        className="w-6 h-6 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center text-sm"
+                        className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-600 to-orange-600 hover:from-pink-700 hover:to-orange-700 text-white flex items-center justify-center transition-colors"
                       >
-                        +
+                        <Plus className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -183,45 +198,53 @@ export default function PedidoHelados({ onClose }) {
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-700 mb-2">Resumen del Pedido</h4>
-              <div className="space-y-1">
+            {/* Resumen */}
+            <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
+              <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+                <span>📋</span>
+                Resumen del Pedido
+              </h4>
+              <div className="space-y-2">
                 {getSaboresSeleccionados().map(sabor => (
                   <div key={sabor.id} className="flex justify-between text-sm">
-                    <span className="text-gray-800">{sabor.nombre}</span>
-                    <span className="font-medium text-gray-900">{sabores[sabor.id]} unidades</span>
+                    <span className="text-white/80">{sabor.emoji} {sabor.nombre}</span>
+                    <span className="font-medium text-white">{sabores[sabor.id]} unidades</span>
                   </div>
                 ))}
                 {getTotalSabores() === 0 && (
-                  <p className="text-gray-500 text-sm">No hay sabores seleccionados</p>
+                  <p className="text-white/50 text-sm text-center py-2">No hay sabores seleccionados</p>
                 )}
               </div>
-              <div className="border-t pt-2 mt-2">
-                <div className="flex justify-between font-semibold">
-                  <span className="text-gray-800">Total:</span>
-                  <span className="text-gray-900">{getTotalSabores()} unidades</span>
+              {getTotalSabores() > 0 && (
+                <div className="border-t border-white/10 pt-3 mt-3">
+                  <div className="flex justify-between font-semibold">
+                    <span className="text-white">Total:</span>
+                    <span className="text-white">{getTotalSabores()} unidades</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
+            {/* Observaciones */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Observaciones (opcional)
               </label>
               <textarea
                 value={observaciones}
                 onChange={(e) => setObservaciones(e.target.value)}
                 placeholder="Indicar si hace falta conos o no, preferencia de horario de entrega, etc."
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 font-medium bg-white"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
                 rows={3}
               />
             </div>
 
+            {/* Botones */}
             <div className="flex space-x-3 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all duration-300 font-medium border border-white/10"
                 disabled={isSubmitting}
               >
                 Cancelar
@@ -229,7 +252,7 @@ export default function PedidoHelados({ onClose }) {
               <button
                 type="submit"
                 disabled={getTotalSabores() === 0 || isSubmitting}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 px-6 py-3 bg-gradient-to-br from-pink-600 to-orange-600 hover:from-pink-700 hover:to-orange-700 text-white rounded-xl transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 {isSubmitting ? 'Enviando...' : 'Enviar Pedido'}
               </button>

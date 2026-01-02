@@ -116,6 +116,21 @@
   .animate-bounce-gentle {
     animation: bounceGentle 2s infinite;
   }
+  
+  /* Mobile-specific utilities */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 80px);
+  }
+  
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  /* Touch optimization */
+  .touch-target {
+    min-width: 48px;
+    min-height: 48px;
+  }
 }
 
 @keyframes fadeIn {
