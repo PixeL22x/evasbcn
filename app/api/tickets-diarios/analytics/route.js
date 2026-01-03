@@ -100,9 +100,17 @@ export async function GET(request) {
         tickets.forEach(ticket => {
             if (ticket.items && Array.isArray(ticket.items)) {
                 ticket.items.forEach(item => {
-                    const key = item.nombre;
+                    // Normalize key to lowercase + trim to merge duplicates like "1 bola" and "1 Bola"
+                    const key = (item.nombre || '').toLowerCase().trim();
+
+                    if (!key) return; // Skip empty names
+
                     if (!productMap.has(key)) {
-                        productMap.set(key, { nombre: key, cantidad: 0, ingresos: 0 });
+                        productMap.set(key, {
+                            nombre: item.nombre, // Keep original capitalization from first occurrence
+                            cantidad: 0,
+                            ingresos: 0
+                        });
                     }
                     const product = productMap.get(key);
                     product.cantidad += item.cantidad || 0;
