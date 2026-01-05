@@ -70,6 +70,7 @@ model Trabajador {
   movimientosStock MovimientoStock[]
   registrosTemperatura RegistroTemperatura[]
   resenas   Resena[]
+  loteTartas LoteTarta[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -224,4 +225,25 @@ model TicketDiario {
   status      String   @default("procesando") // procesando, completado, error, validado
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model SaborTarta {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LoteTarta {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  sabor             String   // Sabor de la tarta
+  fechaEntrada      DateTime // Fecha y hora de entrada en nevera
+  fechaLimite       DateTime // Fecha límite (fechaEntrada + 4 días)
+  estado            String   @default("activo") // "activo", "finalizado", "merma"
+  trabajadorId      String   @db.ObjectId
+  trabajador        Trabajador @relation(fields: [trabajadorId], references: [id])
+  motivoFinalizacion String? // "finalizado" (plato vacío) o "merma" (día 4)
+  fechaFinalizacion DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

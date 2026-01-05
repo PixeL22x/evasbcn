@@ -14,25 +14,46 @@ export default function MoreMenuSheet({ onClose, onNavigate }) {
 
     const moreItems = [
         {
-            id: 'cambio-turno',
-            icon: RefreshCw,
-            label: 'Cambio de Turno',
-            description: 'Solicitar cambio o cubrir turno',
-            color: 'from-green-500 to-teal-500'
+            id: 'pedido',
+            icon: '🍦',
+            label: 'Pedido Helados',
+            description: 'Realizar pedido de helados',
+            color: 'from-pink-500 to-orange-500'
+        },
+        {
+            id: 'stock',
+            icon: '📦',
+            label: 'Stock',
+            description: 'Gestionar inventario',
+            color: 'from-purple-500 to-indigo-500'
         },
         {
             id: 'temperatura',
-            icon: Thermometer,
-            label: 'Temperatura Vitrina',
-            description: 'Registrar temperatura',
+            icon: '🌡️',
+            label: 'Temperatura',
+            description: 'Registrar temperatura vitrina',
             color: 'from-cyan-500 to-blue-500'
         },
         {
+            id: 'tartas',
+            icon: '🍰',
+            label: 'Control Tartas',
+            description: 'Gestionar lotes de tartas',
+            color: 'from-rose-500 to-pink-500'
+        },
+        {
             id: 'resenas',
-            icon: Star,
-            label: 'Registrar Reseña',
-            description: 'Reseñas de Google',
+            icon: '⭐',
+            label: 'Reseñas',
+            description: 'Registrar reseñas Google',
             color: 'from-yellow-500 to-orange-500'
+        },
+        {
+            id: 'cambio-turno',
+            icon: '🔄',
+            label: 'Cambio de Turno',
+            description: 'Solicitar cambio o cubrir turno',
+            color: 'from-green-500 to-teal-500'
         }
     ]
 
@@ -84,7 +105,11 @@ export default function MoreMenuSheet({ onClose, onNavigate }) {
                 `}
                             >
                                 <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                                    <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+                                    {typeof item.icon === 'string' ? (
+                                        <span className="text-2xl">{item.icon}</span>
+                                    ) : (
+                                        <item.icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+                                    )}
                                 </div>
                                 <div className="flex-1 text-left">
                                     <div className="text-lg font-semibold text-white">

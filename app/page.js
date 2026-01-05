@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import SequentialTask from '../components/SequentialTask'
 import WorkerForm from '../components/WorkerForm'
@@ -9,9 +10,10 @@ import CambioTurno from '../components/CambioTurno'
 import StockWorker from '../components/StockWorker'
 import TemperaturaVitrina from '../components/TemperaturaVitrina'
 import ResenaWorker from '../components/ResenaWorker'
+import ControlTartas from '../components/ControlTartas'
 import BottomNav from '../components/worker/BottomNav'
-import { ActionCard } from '../components/worker/ActionCard'
 import MoreMenuSheet from '../components/worker/MoreMenuSheet'
+import WorkerDashboardWidgetsLight from '../components/worker/DashboardWidgetsLight'
 
 
 export default function Home() {
@@ -27,6 +29,7 @@ export default function Home() {
   const [showStockWorker, setShowStockWorker] = useState(false)
   const [showTemperaturaVitrina, setShowTemperaturaVitrina] = useState(false)
   const [showResenaWorker, setShowResenaWorker] = useState(false)
+  const [showControlTartas, setShowControlTartas] = useState(false)
   const [currentView, setCurrentView] = useState('home')
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [cierreId, setCierreId] = useState(null)
@@ -215,6 +218,9 @@ export default function Home() {
       case 'resenas':
         setShowResenaWorker(true)
         break
+      case 'tartas':
+        setShowControlTartas(true)
+        break
     }
   }
 
@@ -295,135 +301,150 @@ export default function Home() {
   // Pantalla de inicio
   if (!gameStarted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col p-3 sm:p-6 lg:p-8">
-        {/* Header con usuario y logout */}
-        {isAuthenticated() && (
-          <div className="w-full flex justify-end mb-4 sm:mb-0 sm:absolute sm:top-4 sm:right-4 z-10">
-            <div className="bg-white/10 backdrop-blur-lg rounded-lg p-2 sm:p-3 border border-white/20">
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className="text-right">
-                  <p className="text-white text-xs sm:text-sm font-medium">{user?.name}</p>
-                  <p className="text-white/60 text-[10px] sm:text-xs capitalize">{user?.role}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex flex-col">
+        {/* Header Moderno */}
+        <header className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">🍦</div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-800">Evas Barcelona</h1>
+                <p className="text-xs text-gray-500">Sistema de Gestión</p>
+              </div>
+            </div>
+
+            {isAuthenticated() && (
+              <div className="flex items-center gap-2">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-medium text-gray-800">{user?.name}</p>
+                  <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
                 </div>
                 <button
                   onClick={async () => {
                     await logout()
                   }}
-                  className="bg-red-500/20 hover:bg-red-500/30 text-red-200 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm transition-colors"
+                  className="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-200"
                 >
                   Salir
                 </button>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </header>
 
-        <div className="text-center w-full max-w-4xl mx-auto flex-1 flex flex-col justify-center">
-          {/* Logo y Header */}
-          <div className="mb-6 sm:mb-8 lg:mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-white/10 backdrop-blur-sm rounded-full mb-4 sm:mb-6 lg:mb-8">
-              <span className="text-3xl sm:text-4xl lg:text-6xl">🍦</span>
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto pb-24 md:pb-8">
+          <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+
+            {/* Hero Greeting */}
+            <div className="bg-gradient-to-br from-pink-400 via-rose-400 to-orange-400 rounded-3xl p-6 shadow-lg">
+              <div className="flex items-center gap-4">
+                <div className="text-5xl">🍦</div>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-white mb-1">
+                    ¡Hola {user?.name}!
+                  </h2>
+                  <p className="text-white/90 text-sm">
+                    {new Date().toLocaleDateString('es-ES', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long'
+                    })} • {new Date().toLocaleTimeString('es-ES', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-2 sm:mb-3 lg:mb-4">
-              Evas Barcelona
-            </h1>
-            <h2 className="text-base sm:text-lg lg:text-xl xl:text-2xl text-white/80 mb-1 sm:mb-2">
-              Sistema de Gestión de Tienda
-            </h2>
-            <p className="text-white/60 text-xs sm:text-sm lg:text-base xl:text-lg max-w-2xl mx-auto px-2 sm:px-4">
-              Gestiona cierres, pedidos, stocks y más desde un solo lugar
-            </p>
-          </div>
 
-          {/* Controles */}
-          <div className="space-y-3 sm:space-y-4 lg:space-y-6 pb-safe">
             {/* Panel de control para trabajadores */}
             {user?.role === 'worker' && (
-              <div className="space-y-4 px-4 md:px-0">
-                {/* Quick Action - Destacado */}
-                <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 rounded-3xl p-6 border border-purple-500/20">
-                  <h2 className="text-white/80 text-sm font-medium mb-4 flex items-center gap-2">
-                    <span className="text-lg">⚡</span>
-                    Acción Rápida
-                  </h2>
+              <div className="space-y-6">
+                {/* Dashboard Widgets */}
+                <WorkerDashboardWidgetsLight userId={user?.id} />
 
+                {/* Acción Principal */}
+                <div>
+                  <h3 className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-3 px-1">
+                    🚀 Acción del Día
+                  </h3>
                   <button
                     onClick={handleStartGame}
-                    className="w-full bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold p-6 rounded-2xl transition-all duration-300 active:scale-95 shadow-2xl"
+                    className="w-full bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 text-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[0.98]"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="text-4xl">🚀</div>
+                        <div className="text-4xl animate-pulse">🚀</div>
                         <div className="text-left">
                           <div className="text-xl font-bold">Iniciar Cierre</div>
-                          <div className="text-sm text-white/80">Proceso completo</div>
+                          <div className="text-sm text-white/80">Proceso completo de turno</div>
                         </div>
                       </div>
-                      <div className="text-white/60 text-2xl">→</div>
+                      <div className="text-white/60 text-3xl">→</div>
                     </div>
                   </button>
                 </div>
 
-                {/* Grid de acciones secundarias */}
-                <div className="grid grid-cols-2 gap-4">
-                  <ActionCard
-                    icon="🍦"
-                    title="Pedido"
-                    subtitle="Helados"
-                    onClick={() => setShowPedidoHelados(true)}
-                    gradient="from-pink-500/20 to-orange-500/20"
-                  />
-                  <ActionCard
-                    icon="📦"
-                    title="Stock"
-                    subtitle="Inventario"
-                    onClick={() => setShowStockWorker(true)}
-                    gradient="from-purple-500/20 to-indigo-500/20"
-                  />
-                  <ActionCard
-                    icon="🌡️"
-                    title="Temperatura"
-                    subtitle="Vitrina"
-                    onClick={() => setShowTemperaturaVitrina(true)}
-                    gradient="from-cyan-500/20 to-blue-500/20"
-                  />
-                  <ActionCard
-                    icon="⭐"
-                    title="Reseñas"
-                    subtitle="Google"
-                    onClick={() => setShowResenaWorker(true)}
-                    gradient="from-yellow-500/20 to-orange-500/20"
-                  />
+                {/* Accesos Rápidos */}
+                <div>
+                  <h3 className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-3 px-1">
+                    🎯 Accesos Rápidos
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setShowTemperaturaVitrina(true)}
+                      className="bg-gradient-to-br from-cyan-100 to-blue-100 hover:from-cyan-200 hover:to-blue-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all active:scale-95 border border-cyan-200"
+                    >
+                      <div className="text-center">
+                        <div className="text-4xl mb-2">🌡️</div>
+                        <div className="text-sm font-semibold text-gray-800">Temperatura</div>
+                        <div className="text-xs text-gray-600">Vitrina</div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setShowStockWorker(true)}
+                      className="bg-gradient-to-br from-purple-100 to-indigo-100 hover:from-purple-200 hover:to-indigo-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all active:scale-95 border border-purple-200"
+                    >
+                      <div className="text-center">
+                        <div className="text-4xl mb-2">📦</div>
+                        <div className="text-sm font-semibold text-gray-800">Stock</div>
+                        <div className="text-xs text-gray-600">Inventario</div>
+                      </div>
+                    </button>
+                  </div>
                 </div>
+
+                {/* Link a más opciones */}
+                <button
+                  onClick={() => setShowMoreMenu(true)}
+                  className="w-full text-center py-3 text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
+                >
+                  Ver todas las opciones →
+                </button>
               </div>
             )}
 
-            {/* Botones de navegación */}
-            {user?.role === 'worker' ? (
-              // Los trabajadores solo tienen el botón de empezar cierre
-              null
-            ) : (
-              // Botones para admin
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                  <a
-                    href="/admin/dashboard"
-                    className="bg-white/10 hover:bg-white/20 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 border border-white/20 text-xs sm:text-sm lg:text-base"
-                  >
-                    📊 Panel Admin
-                  </a>
-
-                  <a
-                    href="/trabajadores"
-                    className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg text-xs sm:text-sm lg:text-base"
-                  >
-                    👷 Trabajadores
-                  </a>
-                </div>
+            {/* Botones para admin */}
+            {user?.role !== 'worker' && (
+              <div className="space-y-3">
+                <a
+                  href="/admin/dashboard"
+                  className="block w-full bg-white hover:bg-gray-50 text-gray-800 font-medium py-3 px-6 rounded-2xl transition-all border border-gray-200 text-center shadow-sm"
+                >
+                  📊 Panel Admin
+                </a>
+                <a
+                  href="/trabajadores"
+                  className="block w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-2xl transition-all shadow-lg text-center"
+                >
+                  👷 Trabajadores
+                </a>
               </div>
             )}
           </div>
-        </div>
+        </main>
 
         {/* Modal de Pedido de Helados */}
         {showPedidoHelados && (
@@ -464,6 +485,11 @@ export default function Home() {
         {/* Modal de Reseñas */}
         {showResenaWorker && (
           <ResenaWorker onClose={() => setShowResenaWorker(false)} />
+        )}
+
+        {/* Modal de Control de Tartas */}
+        {showControlTartas && (
+          <ControlTartas onClose={() => setShowControlTartas(false)} />
         )}
 
         {/* Bottom Navigation - Solo móvil */}

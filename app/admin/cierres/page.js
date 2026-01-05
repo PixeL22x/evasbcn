@@ -515,108 +515,111 @@ export default function CierresPage() {
                             )}
                           </div>
                         ) : (
-                          cierres.map((cierre) => (
-                            <Card
-                              key={cierre.id}
-                              className={`group hover:shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden border bg-card border-border hover:border-foreground/20`}
-                              onClick={() => handleViewDetails(cierre)}
-                            >
-                              {/* Actions Menu - Absolute positioned to not trigger card click */}
-                              <div className="absolute top-3 right-3 z-10" onClick={(e) => e.stopPropagation()}>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted rounded-full">
-                                      <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                    <DropdownMenuItem onClick={() => handleViewDetails(cierre)}>
-                                      <Eye className="mr-2 h-4 w-4" /> Ver Detalles
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleEditCierre(cierre)}>
-                                      <Edit className="mr-2 h-4 w-4" /> Editar
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      onClick={() => handleDeleteCierre(cierre.id)}
-                                      className="text-destructive focus:text-destructive"
-                                    >
-                                      <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-
-                              <CardHeader className="pb-2 pr-10"> {/* Padding right for menu */}
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    {getTurnoIcon(cierre.turno)}
-                                    <CardTitle className="text-base font-semibold truncate leading-tight">{cierre.trabajador}</CardTitle>
-                                  </div>
+                          cierres.map((cierre) => {
+                            const isTarde = cierre.turno === 'tarde'
+                            return (
+                              <Card
+                                key={cierre.id}
+                                className="group hover:shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden border bg-card border-border hover:border-foreground/20"
+                                onClick={() => handleViewDetails(cierre)}
+                              >
+                                {/* Actions Menu - Absolute positioned to not trigger card click */}
+                                <div className="absolute top-3 right-3 z-10" onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted rounded-full">
+                                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                      <DropdownMenuItem onClick={() => handleViewDetails(cierre)}>
+                                        <Eye className="mr-2 h-4 w-4" /> Ver Detalles
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleEditCierre(cierre)}>
+                                        <Edit className="mr-2 h-4 w-4" /> Editar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        onClick={() => handleDeleteCierre(cierre.id)}
+                                        className="text-destructive focus:text-destructive"
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
-                                <CardDescription className="flex items-center justify-between text-xs mt-1">
-                                  <span>{formatDate(cierre.fechaInicio)}</span>
-                                  {getStatusBadge(cierre)}
-                                </CardDescription>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="space-y-2">
 
-                                  {/* Stats Row */}
-                                  <div className="flex items-center justify-between text-sm bg-muted/30 p-2 rounded-lg">
-                                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                                      <Euro className="h-4 w-4" />
-                                      <span className="font-medium text-foreground">
-                                        {cierre.totalVentas ? formatCurrency(cierre.totalVentas) : '-'}
-                                      </span>
-                                    </div>
-                                    <div className="h-4 w-px bg-border" />
-                                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                                      <Clock className="h-4 w-4" />
-                                      <span>
-                                        {cierre.fechaFin ?
-                                          formatDate(cierre.fechaFin).split(' ')[1] :
-                                          'En curso'}
-                                      </span>
+                                <CardHeader className="pb-2 pr-10"> {/* Padding right for menu */}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      {getTurnoIcon(cierre.turno)}
+                                      <CardTitle className="text-base font-semibold truncate leading-tight">{cierre.trabajador}</CardTitle>
                                     </div>
                                   </div>
+                                  <CardDescription className="flex items-center justify-between text-xs mt-1">
+                                    <span>{formatDate(cierre.fechaInicio)}</span>
+                                    {getStatusBadge(cierre)}
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="space-y-2">
 
-
-                                  {cierre.tareas && cierre.tareas.length > 0 && (
-                                    <div className="space-y-1.5 pt-2">
-                                      <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground mb-1">
-                                        <span>TAREAS</span>
-                                        <span>{getProgressPercentage(cierre.tareas)}%</span>
+                                    {/* Stats Row */}
+                                    <div className="flex items-center justify-between text-sm bg-muted/30 p-2 rounded-lg">
+                                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                                        <Euro className="h-4 w-4" />
+                                        <span className="font-medium text-foreground">
+                                          {cierre.totalVentas ? formatCurrency(cierre.totalVentas) : '-'}
+                                        </span>
                                       </div>
-                                      <div className="w-full bg-muted/50 rounded-full h-1.5 overflow-hidden">
-                                        <div
-                                          className={`h-1.5 rounded-full transition-all duration-1000 ease-out ${cierre.completado ? 'bg-foreground' : 'bg-evas-pink'
-                                            }`}
-                                          style={{ width: `${getProgressPercentage(cierre.tareas)}%` }}
-                                        />
+                                      <div className="h-4 w-px bg-border" />
+                                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                                        <Clock className="h-4 w-4" />
+                                        <span>
+                                          {cierre.fechaFin ?
+                                            formatDate(cierre.fechaFin).split(' ')[1] :
+                                            'En curso'}
+                                        </span>
                                       </div>
                                     </div>
-                                  )}
 
-                                  {/* Explicit CTA 'Ver más' - Compact */}
-                                  <div className="pt-2 flex justify-center">
-                                    <div className={`
+
+                                    {cierre.tareas && cierre.tareas.length > 0 && (
+                                      <div className="space-y-1.5 pt-2">
+                                        <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground mb-1">
+                                          <span>TAREAS</span>
+                                          <span>{getProgressPercentage(cierre.tareas)}%</span>
+                                        </div>
+                                        <div className="w-full bg-muted/50 rounded-full h-1.5 overflow-hidden">
+                                          <div
+                                            className={`h-1.5 rounded-full transition-all duration-1000 ease-out ${cierre.completado ? 'bg-foreground' : 'bg-evas-pink'
+                                              }`}
+                                            style={{ width: `${getProgressPercentage(cierre.tareas)}%` }}
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Explicit CTA 'Ver más' - Compact */}
+                                    <div className="pt-2 flex justify-center">
+                                      <div className={`
                                       flex items-center gap-1.5 text-[10px] font-medium px-3 py-1 rounded-full transition-colors duration-200
                                       ${cierre.completado
-                                        ? 'bg-muted/50 text-foreground hover:bg-muted'
-                                        : 'bg-evas-pink/10 text-evas-pink hover:bg-evas-pink/20'
-                                      }
+                                          ? 'bg-muted/50 text-foreground hover:bg-muted'
+                                          : 'bg-evas-pink/10 text-evas-pink hover:bg-evas-pink/20'
+                                        }
                                     `}>
-                                      <Eye className="h-3 w-3" />
-                                      <span>Ver más</span>
+                                        <Eye className="h-3 w-3" />
+                                        <span>Ver más</span>
+                                      </div>
                                     </div>
-                                  </div>
 
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            )
+                          })
                         )}
                       </div>
 
