@@ -92,39 +92,41 @@ export function ChartAreaInteractive() {
   const filteredData = processedData
 
   return (
-    <Card>
-      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
-        <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Ventas</CardTitle>
-          <CardDescription>
-            Mostrando datos de ventas totales con indicadores de tendencia
-          </CardDescription>
+    <div className="rounded-2xl bg-card overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' }}>
+      <div className="px-4 py-3 bg-gradient-to-b from-background to-muted/20 border-b border-border/50">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1">
+            <h3 className="font-semibold text-base tracking-tight">Ventas</h3>
+            <p className="text-xs text-muted-foreground font-medium mt-0.5">
+              Mostrando datos de ventas totales con indicadores de tendencia
+            </p>
+          </div>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger
+              className="w-[120px] sm:w-[140px] rounded-full border-border/50 bg-background/50 font-medium text-sm"
+              aria-label="Select a value"
+            >
+              <SelectValue placeholder="Últimos 7 días" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
+              <SelectItem value="7d" className="rounded-lg">
+                Últimos 7 días
+              </SelectItem>
+              <SelectItem value="30d" className="rounded-lg">
+                Últimos 30 días
+              </SelectItem>
+              <SelectItem value="90d" className="rounded-lg">
+                Últimos 3 meses
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger
-            className="w-[160px] rounded-lg sm:ml-auto"
-            aria-label="Select a value"
-          >
-            <SelectValue placeholder="Últimos 7 días" />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            <SelectItem value="7d" className="rounded-lg">
-              Últimos 7 días
-            </SelectItem>
-            <SelectItem value="30d" className="rounded-lg">
-              Últimos 30 días
-            </SelectItem>
-            <SelectItem value="90d" className="rounded-lg">
-              Últimos 3 meses
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+      </div>
+      <div className="px-4 py-4">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
+          className="aspect-auto h-[200px] sm:h-[250px] w-full">
+
           <LineChart data={filteredData}>
             <defs>
               <linearGradient id="fillVentas" x1="0" y1="0" x2="0" y2="1">
@@ -224,8 +226,8 @@ export function ChartAreaInteractive() {
           </LineChart>
         </ChartContainer>
 
-        {/* Leyenda de colores */}
-        <div className="flex justify-center gap-4 mt-4 text-sm">
+        {/* Leyenda de colores - oculta en mobile */}
+        <div className="hidden sm:flex justify-center gap-4 mt-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-500"></div>
             <span className="text-muted-foreground">Subida (+5%)</span>
@@ -239,7 +241,7 @@ export function ChartAreaInteractive() {
             <span className="text-muted-foreground">Bajada (-5%)</span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

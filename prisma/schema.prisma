@@ -247,3 +247,17 @@ model LoteTarta {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
+
+model NotaAdmin {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  titulo                String   // Título breve de la nota
+  contenido             String   // Contenido detallado
+  categoria             String   // "cambio_turno", "horario", "incidencia", "general", "financiero"
+  prioridad             String   @default("normal") // "baja", "normal", "alta"
+  fecha                 DateTime @default(now()) // Fecha del evento/nota
+  trabajadorRelacionado String?  // Nombre del trabajador si aplica
+  etiquetas             String?  // JSON array de etiquetas para búsqueda
+  archivada             Boolean  @default(false) // Para ocultar notas antiguas
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}

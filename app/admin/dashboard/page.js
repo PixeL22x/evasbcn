@@ -10,6 +10,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import AdminLayout from '../../../components/AdminLayout'
+import AdminNotesWidget from '../../../components/admin/AdminNotesWidget'
 
 export default function AdminDashboard() {
 
@@ -30,10 +31,11 @@ export default function AdminDashboard() {
           <SiteHeader />
           <div className="flex flex-1 flex-col overflow-hidden">
             <main className="flex-1 overflow-y-auto">
-              <div className="container mx-auto px-4 py-6 max-w-7xl">
-                <div className="space-y-6">
+              <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-7xl pb-safe">
+                <div className="space-y-3 sm:space-y-6">
                   <SectionCards />
                   <ChartAreaInteractive />
+                  <AdminNotesWidget />
                   <DataTable />
                 </div>
               </div>

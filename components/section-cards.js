@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { formatCurrency } from "@/lib/utils"
-import { Sun, Users, TrendingUp, User } from "lucide-react"
+import { Sun, TrendingUp, User } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function SectionCards() {
@@ -35,14 +35,14 @@ export function SectionCards() {
   // Show skeleton while loading
   if (loading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {[...Array(3)].map((_, i) => (
           <div key={i} className="rounded-lg border bg-card text-card-foreground shadow-sm">
-            <div className="p-4 sm:p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="p-3 sm:p-4 flex flex-row items-center justify-between space-y-0 pb-2">
               <Skeleton className="h-4 w-[120px]" />
-              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-12 w-12 sm:h-10 sm:w-10 rounded-full" />
             </div>
-            <div className="p-4 sm:p-6 pt-0">
+            <div className="p-3 sm:p-4 pt-0">
               <Skeleton className="h-8 w-[100px] mb-2" />
               <Skeleton className="h-3 w-[140px]" />
             </div>
@@ -63,13 +63,6 @@ export function SectionCards() {
   }
 
   const cards = [
-    {
-      title: "Trabajadores Activos",
-      value: stats.totalTrabajadores,
-      icon: Users,
-      description: "Empleados registrados",
-      color: "bg-green-500"
-    },
     {
       title: "Ventas turno mañana",
       value: formatCurrency(stats.ventasTurnoManana),
@@ -97,26 +90,32 @@ export function SectionCards() {
   ]
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {cards.map((card, index) => (
-        <div key={index} className="rounded-lg border bg-card text-card-foreground shadow-sm">
-          <div className="p-4 sm:p-6 flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="tracking-tight text-sm font-medium">
-              {card.title}
+        <div
+          key={index}
+          className="rounded-2xl bg-card overflow-hidden hover:scale-[1.02] active:scale-[0.98] transition-all touch-manipulation"
+          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' }}
+        >
+          <div className="p-4 bg-gradient-to-br from-background to-muted/20">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                {card.title}
+              </div>
+              <div className={`${card.color} rounded-xl p-2 text-white shadow-sm`}>
+                <card.icon className="h-5 w-5" />
+              </div>
             </div>
-            <div className={`${card.color} rounded-full p-2 text-white`}>
-              <card.icon className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="p-4 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{card.value}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl sm:text-3xl font-bold tracking-tight">{card.value}</div>
+            <p className="text-xs text-muted-foreground mt-1 font-medium">
               {card.description}
             </p>
             {card.extraInfo && (
-              <p className="text-xs text-muted-foreground mt-1">
-                ⏰ {card.extraInfo} restantes
-              </p>
+              <div className="mt-2 pt-2 border-t border-border/50">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
+                  ⏰ <span className="font-semibold text-foreground">{card.extraInfo}</span> restantes
+                </p>
+              </div>
             )}
           </div>
         </div>
