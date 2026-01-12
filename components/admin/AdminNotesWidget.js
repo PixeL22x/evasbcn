@@ -36,6 +36,8 @@ export default function AdminNotesWidget() {
     const [showModal, setShowModal] = useState(false)
     const [editingNota, setEditingNota] = useState(null)
     const [showAdvanced, setShowAdvanced] = useState(false)
+    const [showAllNotes, setShowAllNotes] = useState(false)
+    const [todasLasNotas, setTodasLasNotas] = useState([])
     const [formData, setFormData] = useState({
         titulo: '',
         contenido: '',
@@ -60,7 +62,8 @@ export default function AdminNotesWidget() {
             const response = await fetch(`/api/admin/notas?mes=${mesActual}&año=${añoActual}`)
             if (response.ok) {
                 const data = await response.json()
-                setNotas(data.slice(0, 2)) // Solo mostrar las 2 más recientes en el widget
+                setTodasLasNotas(data) // Guardar todas las notas
+                setNotas(data.slice(0, 1)) // Solo mostrar la más reciente en el widget
             }
         } catch (error) {
             console.error('Error al cargar notas:', error)
@@ -177,11 +180,11 @@ export default function AdminNotesWidget() {
 
         let y = 45
 
-        if (notas.length === 0) {
+        if (todasLasNotas.length === 0) {
             doc.setFontSize(11)
             doc.text('No hay notas para este mes', 20, y)
         } else {
-            notas.forEach((nota, index) => {
+            todasLasNotas.forEach((nota, index) => {
                 const categoria = CATEGORIAS[nota.categoria]
                 const prioridad = PRIORIDADES[nota.prioridad]
 
@@ -228,7 +231,7 @@ export default function AdminNotesWidget() {
                 y += contentLines.length * 5 + 10
 
                 // Separator line between notes
-                if (index < notas.length - 1) {
+                if (index < todasLasNotas.length - 1) {
                     doc.setDrawColor(200, 200, 200)
                     doc.setLineWidth(0.3)
                     doc.line(20, y, 190, y)
@@ -367,11 +370,32 @@ export default function AdminNotesWidget() {
                     </div>
                 )}
 
-                {/* Ver todas - iOS Style */}
-                {notas.length > 0 && (
-                    <button className="w-full mt-3 py-2.5 text-sm font-semibold text-blue-500 hover:text-blue-600 active:text-blue-700 flex items-center justify-center gap-1 transition-colors touch-manipulation rounded-lg hover:bg-blue-500/5 active:bg-blue-500/10">
-                        Ver todas las notas
-                        <ChevronRight className="w-4 h-4" />
+                {/* Ver todas - iOS Style Mobile-First */}
+                {todasLasNotas.length > 1 && (
+                    <button
+                        onClick={() => {
+                            if (showAllNotes) {
+                                setNotas(todasLasNotas.slice(0, 1))
+                                setShowAllNotes(false)
+                            } else {
+                                setNotas(todasLasNotas)
+                                setShowAllNotes(true)
+                            }
+                        }}
+                        className="w-full mt-3 py-3 text-sm font-semibold text-blue-500 hover:text-blue-600 active:text-blue-700 active:scale-[0.98] flex items-center justify-center gap-1.5 transition-all touch-manipulation rounded-xl hover:bg-blue-500/5 active:bg-blue-500/10"
+                    >
+                        {showAllNotes ? (
+                            <>
+                                <span>Ver menos</span>
+                                <ChevronRight className="w-4 h-4 transition-transform rotate-90" />
+                            </>
+                        ) : (
+                            <>
+                                <span className="hidden sm:inline">Ver todas las notas ({todasLasNotas.length})</span>
+                                <span className="sm:hidden">Ver todas ({todasLasNotas.length})</span>
+                                <ChevronRight className="w-4 h-4 transition-transform" />
+                            </>
+                        )}
                     </button>
                 )}
             </div>
