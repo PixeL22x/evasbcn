@@ -23,6 +23,7 @@ const CATEGORIAS = {
     helados: { label: 'Helados', color: 'text-purple-500', bg: 'bg-purple-500/10', emoji: '🍦' },
     ingredientes: { label: 'Ingredientes', color: 'text-green-500', bg: 'bg-green-500/10', emoji: '🥛' },
     packaging: { label: 'Packaging', color: 'text-blue-500', bg: 'bg-blue-500/10', emoji: '📦' },
+    supermercado: { label: 'Supermercado', color: 'text-amber-500', bg: 'bg-amber-500/10', emoji: '🛒' },
     servicios: { label: 'Servicios', color: 'text-orange-500', bg: 'bg-orange-500/10', emoji: '⚡' },
     mantenimiento: { label: 'Mantenimiento', color: 'text-red-500', bg: 'bg-red-500/10', emoji: '🔧' },
     otros: { label: 'Otros', color: 'text-gray-500', bg: 'bg-gray-500/10', emoji: '📌' }
@@ -35,6 +36,7 @@ export default function FacturaDetallePage({ params }) {
     const [showImage, setShowImage] = useState(false)
     const [showMenu, setShowMenu] = useState(false)
     const [processing, setProcessing] = useState(false)
+    const [showSuccess, setShowSuccess] = useState(false)
     const menuRef = useRef(null)
 
     useEffect(() => {
@@ -76,6 +78,12 @@ export default function FacturaDetallePage({ params }) {
     const marcarComoPagada = async () => {
         try {
             setProcessing(true)
+
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(50)
+            }
+
             const { id } = await params
             const response = await fetch(`/api/facturas/${id}`, {
                 method: 'PATCH',
@@ -87,6 +95,10 @@ export default function FacturaDetallePage({ params }) {
             })
 
             if (response.ok) {
+                // Mostrar animación de éxito
+                setShowSuccess(true)
+                setTimeout(() => setShowSuccess(false), 2000)
+
                 await cargarFactura()
             }
         } catch (error) {
@@ -216,25 +228,50 @@ export default function FacturaDetallePage({ params }) {
                     </div>
                 </div>
 
-                <div className="px-4 sm:px-6 py-4 sm:py-6 max-w-3xl mx-auto space-y-4 sm:space-y-5">
-                    {/* Proveedor Header */}
-                    <div>
-                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-3 ${categoria.color} ${categoria.bg}`}>
-                            <span className="text-base">{categoria.emoji}</span>
-                            <span>{categoria.label}</span>
-                        </div>
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">{factura.proveedorNombre}</h1>
-                        {factura.proveedorNIF && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Tag className="w-4 h-4" />
-                                <span className="font-medium">{factura.proveedorNIF}</span>
+                <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-3xl mx-auto space-y-6 sm:space-y-8 pb-32">
+                    {/* Hero Section - Total Destacado */}
+                    <div className="relative overflow-hidden rounded-3xl">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10"></div>
+                        <div className="relative p-6 sm:p-8">
+                            <div className="text-center">
+                                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold mb-4 ${categoria.color} ${categoria.bg}`}>
+                                    <span className="text-base">{categoria.emoji}</span>
+                                    <span>{categoria.label}</span>
+                                </div>
+                                <h1 className="text-xl sm:text-2xl font-bold mb-2">{factura.proveedorNombre}</h1>
+                                {factura.proveedorNIF && (
+                                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-6">
+                                        <Tag className="w-4 h-4" />
+                                        <span className="font-medium">{factura.proveedorNIF}</span>
+                                    </div>
+                                )}
+                                <p className="text-sm font-semibold text-muted-foreground mb-2">
+                                    Total de la Factura
+                                </p>
+                                <p className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                                    {formatCurrency(factura.total)}
+                                </p>
+                                <div className="flex items-center justify-center gap-2">
+                                    <div className={`px-4 py-2 rounded-full font-bold text-sm ${factura.pagada
+                                        ? 'bg-green-500/15 text-green-600 dark:text-green-400'
+                                        : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                                        }`}>
+                                        {factura.pagada ? '✓ Pagada' : '⏳ Pendiente'}
+                                    </div>
+                                </div>
+                                {factura.pagada && factura.fechaPago && (
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                        Pagada el {formatDate(factura.fechaPago)}
+                                    </p>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* Info Card */}
                     <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-b from-background to-muted/20 border border-border/50"
                         style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                        <h2 className="text-sm font-bold text-muted-foreground mb-4">Información</h2>
                         <div className="grid grid-cols-2 gap-4 sm:gap-5">
                             <div>
                                 <div className="flex items-center gap-2 text-muted-foreground mb-2">
@@ -264,7 +301,7 @@ export default function FacturaDetallePage({ params }) {
 
                     {/* Líneas de Factura */}
                     <div>
-                        <h2 className="text-lg font-bold tracking-tight mb-3 px-1">Líneas de Factura</h2>
+                        <h2 className="text-sm font-bold text-muted-foreground mb-3">Líneas de Factura ({factura.lineas.length})</h2>
                         <div className="space-y-2">
                             {factura.lineas.map((linea) => (
                                 <div
@@ -285,77 +322,65 @@ export default function FacturaDetallePage({ params }) {
                         </div>
                     </div>
 
-                    {/* Totales */}
-                    <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border border-blue-200/50 dark:border-blue-800/50"
-                        style={{ boxShadow: '0 1px 3px rgba(59,130,246,0.1)' }}>
+                    {/* Desglose de Importes */}
+                    <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-b from-background to-muted/20 border border-border/50"
+                        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                        <h2 className="text-sm font-bold text-muted-foreground mb-4">Desglose</h2>
                         <div className="space-y-3">
                             <div className="flex justify-between text-sm">
-                                <span className="text-blue-600/70 dark:text-blue-400/70 font-medium">Subtotal</span>
-                                <span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(factura.subtotal)}</span>
+                                <span className="text-muted-foreground font-medium">Subtotal</span>
+                                <span className="font-bold">{formatCurrency(factura.subtotal)}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-blue-600/70 dark:text-blue-400/70 font-medium">IVA</span>
-                                <span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(factura.iva)}</span>
-                            </div>
-                            <div className="h-px bg-blue-200/50 dark:bg-blue-800/50"></div>
-                            <div className="flex justify-between items-center">
-                                <span className="font-bold text-blue-600 dark:text-blue-400">TOTAL</span>
-                                <span className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">
-                                    {formatCurrency(factura.total)}
-                                </span>
+                                <span className="text-muted-foreground font-medium">IVA</span>
+                                <span className="font-bold">{formatCurrency(factura.iva)}</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Estado de Pago */}
-                    <div className={`p-5 sm:p-6 rounded-3xl border-2 ${factura.pagada
-                        ? 'bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 border-green-200/50 dark:border-green-800/50'
-                        : 'bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-200/50 dark:border-red-800/50'
-                        }`}>
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div className="flex items-start gap-3">
-                                {factura.pagada ? (
-                                    <div className="w-11 h-11 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0">
-                                        <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
-                                    </div>
-                                ) : (
-                                    <div className="w-11 h-11 rounded-full bg-red-500/15 flex items-center justify-center flex-shrink-0">
-                                        <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
-                                    </div>
-                                )}
-                                <div>
-                                    <p className={`font-bold text-base ${factura.pagada ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                        {factura.pagada ? 'Factura Pagada' : 'Pendiente de Pago'}
-                                    </p>
-                                    {factura.pagada && factura.fechaPago && (
-                                        <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1 font-medium">
-                                            Pagada el {formatDate(factura.fechaPago)}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
+                </div>
+
+                {/* Quick Actions - Sticky Bottom */}
+                <div className="fixed bottom-0 left-0 right-0 z-30 pb-safe">
+                    <div className="bg-background/95 backdrop-blur-xl border-t border-border/50 px-4 py-3"
+                        style={{ boxShadow: '0 -1px 3px rgba(0,0,0,0.1)' }}>
+                        <div className="max-w-3xl mx-auto flex gap-2">
+                            {/* Botón principal - Marcar Pagada (solo si está pendiente) */}
                             {!factura.pagada && (
                                 <button
                                     onClick={marcarComoPagada}
                                     disabled={processing}
-                                    className="w-full sm:w-auto px-6 py-3 bg-green-500 text-white rounded-full hover:bg-green-600 active:scale-95 transition-all font-bold text-sm shadow-lg disabled:opacity-50 touch-manipulation"
+                                    className="flex-1 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full font-bold active:scale-95 transition-transform disabled:opacity-50 shadow-lg"
                                     style={{ boxShadow: '0 2px 8px rgba(34,197,94,0.25)' }}
                                 >
-                                    {processing ? 'Procesando...' : 'Marcar Pagada'}
+                                    {processing ? 'Procesando...' : '✓ Marcar Pagada'}
                                 </button>
                             )}
+
+                            {/* Botón de Imagen - Más prominente cuando factura está pagada */}
+                            <button
+                                onClick={() => setShowImage(true)}
+                                className={`${factura.pagada ? 'flex-1' : 'px-4'} py-3 bg-muted/50 hover:bg-muted rounded-full active:scale-95 transition-all flex items-center justify-center gap-2`}
+                                title="Ver imagen original"
+                            >
+                                <ImageIcon className="w-5 h-5" />
+                                {factura.pagada && <span className="font-semibold text-sm">Ver Imagen</span>}
+                            </button>
                         </div>
                     </div>
-
-                    {/* Ver Imagen Original */}
-                    <button
-                        onClick={() => setShowImage(true)}
-                        className="w-full p-4 rounded-2xl border-2 border-dashed border-border/50 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all flex items-center justify-center gap-2 text-sm font-bold text-muted-foreground hover:text-blue-500 active:scale-[0.98] touch-manipulation"
-                    >
-                        <ImageIcon className="w-5 h-5" />
-                        <span>Ver Imagen Original</span>
-                    </button>
                 </div>
+
+                {/* Success Animation */}
+                {showSuccess && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none animate-in fade-in duration-200">
+                        <div className="bg-green-500 text-white px-8 py-4 rounded-full shadow-2xl animate-in zoom-in-95 duration-300">
+                            <div className="flex items-center gap-3">
+                                <CheckCircle2 className="w-6 h-6" />
+                                <span className="font-bold">¡Factura marcada como pagada!</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Modal Imagen - Mobile-First */}
                 {showImage && (

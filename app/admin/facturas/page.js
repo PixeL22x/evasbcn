@@ -25,6 +25,7 @@ const CATEGORIAS = {
     helados: { label: 'Helados', color: 'text-purple-500', emoji: '🍦' },
     ingredientes: { label: 'Ingredientes', color: 'text-green-500', emoji: '🥛' },
     packaging: { label: 'Packaging', color: 'text-blue-500', emoji: '📦' },
+    supermercado: { label: 'Supermercado', color: 'text-amber-500', emoji: '🛒' },
     servicios: { label: 'Servicios', color: 'text-orange-500', emoji: '⚡' },
     mantenimiento: { label: 'Mantenimiento', color: 'text-red-500', emoji: '🔧' },
     otros: { label: 'Otros', color: 'text-gray-500', emoji: '📌' }
@@ -158,7 +159,19 @@ export default function FacturasPage() {
                 }, 500)
             } else {
                 const error = await response.json()
-                alert(`❌ Error: ${error.error}`)
+
+                // Mostrar error específico según el tipo
+                let errorMessage = '❌ Error al procesar la factura'
+
+                if (error.type === 'AI_ANALYSIS_ERROR') {
+                    errorMessage = '🤖 Error al analizar la factura con IA. Por favor, intenta con una imagen más clara.'
+                } else if (error.type === 'DATABASE_ERROR') {
+                    errorMessage = '💾 Error al guardar en base de datos. Por favor, intenta de nuevo.'
+                } else if (error.details) {
+                    errorMessage = `❌ Error: ${error.details}`
+                }
+
+                alert(errorMessage)
                 setUploading(false)
                 setUploadProgress(0)
             }
@@ -376,6 +389,22 @@ export default function FacturasPage() {
                             </div>
                         )}
                     </div>
+
+                    {/* Indicador de Cantidad - Sutil */}
+                    {!loading && facturasFiltradas.length > 0 && (
+                        <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+                            <span>
+                                {facturasFiltradas.length === facturas.length
+                                    ? `${facturasFiltradas.length} facturas`
+                                    : `${facturasFiltradas.length} de ${facturas.length} facturas`}
+                            </span>
+                            {busqueda && (
+                                <span className="text-blue-500">
+                                    Filtrando por "{busqueda}"
+                                </span>
+                            )}
+                        </div>
+                    )}
 
                     {/* Lista de Facturas */}
                     {loading ? (
