@@ -19,6 +19,7 @@ import {
   Bot,
   Star,
   ChevronRight,
+  Receipt,
 } from "lucide-react"
 
 import {
@@ -81,6 +82,11 @@ const data = {
           url: "/admin/tickets/analytics",
         },
       ],
+    },
+    {
+      title: "Facturas",
+      url: "/admin/facturas",
+      icon: Receipt,
     },
     {
       title: "Pedidos Helados",

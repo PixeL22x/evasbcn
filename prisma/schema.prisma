@@ -248,6 +248,7 @@ model LoteTarta {
   updatedAt         DateTime @updatedAt
 }
 
+
 model NotaAdmin {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   titulo                String   // Título breve de la nota
@@ -261,3 +262,87 @@ model NotaAdmin {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
+
+// ============================================
+// GESTIÓN DE FACTURAS
+// ============================================
+
+model Proveedor {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  nombre          String
+  nif             String?
+  telefono        String?
+  email           String?
+  direccion       String?
+  categoria       String    // "helados", "ingredientes", "packaging", "servicios", "mantenimiento", "otros"
+  
+  // Relaciones
+  facturas        Factura[]
+  
+  activo          Boolean   @default(true)
+  notas           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Factura {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  
+  // Identificación
+  numero          String
+  tipo            String   @default("compra") // "compra", "gasto"
+  
+  // Proveedor
+  proveedorId     String?  @db.ObjectId
+  proveedor       Proveedor? @relation(fields: [proveedorId], references: [id])
+  proveedorNombre String   // Por si no está en BD
+  proveedorNIF    String?
+  
+  // Categoría
+  categoria       String   // "helados", "ingredientes", "packaging", "servicios", "mantenimiento", "otros"
+  
+  // Importes
+  subtotal        Float
+  iva             Float
+  total           Float
+  
+  // Fechas
+  fecha           DateTime
+  fechaVencimiento DateTime?
+  
+  // Estado de pago
+  pagada          Boolean  @default(false)
+  fechaPago       DateTime?
+  metodoPago      String?  // "efectivo", "tarjeta", "transferencia"
+  
+  // Archivo
+  imagenUrl       String   // URL de Cloudinary
+  
+  // IA
+  escaneadaIA     Boolean  @default(false)
+  revisada        Boolean  @default(false)
+  
+  // Líneas de factura
+  lineas          LineaFactura[]
+  
+  // Metadata
+  notas           String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model LineaFactura {
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  facturaId       String  @db.ObjectId
+  factura         Factura @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  
+  concepto        String
+  descripcion     String?
+  cantidad        Float
+  precioUnitario  Float
+  total           Float
+  
+  createdAt       DateTime @default(now())
+}
+
