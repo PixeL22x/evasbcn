@@ -40,6 +40,7 @@ import { Clock, CheckCircle, XCircle, Eye, Trash2, Calendar, Search, X, Edit, Sa
 import { Label } from "@/components/ui/label"
 
 export default function CierresPage() {
+  const { toast } = useToast()  // ⭐ NUEVO: Hook para notificaciones
   const [cierres, setCierres] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedCierre, setSelectedCierre] = useState(null)
@@ -893,13 +894,13 @@ export default function CierresPage() {
                             <img
                               src={lightboxImage.url}
                               alt="Foto ampliada"
-                              className="max-w-full max-h-[85vh] sm:max-h-[90vh] object-contain rounded-md sm:rounded-lg shadow-2xl transition-all duration-300 select-none"
+                              className="max-w-full max-h-[75dvh] sm:max-h-[85dvh] object-contain rounded-md sm:rounded-lg shadow-2xl transition-all duration-300 select-none"
                               style={{ transform: `rotate(${rotation}deg) scale(${zoom})` }}
                               onClick={(e) => e.stopPropagation()}
                             />
 
                             {/* Floating Toolbar (Bottom Center) */}
-                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-50 animate-in slide-in-from-bottom-4 duration-300">
+                            <div className="absolute bottom-24 sm:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-[70] animate-in slide-in-from-bottom-4 duration-300">
                               <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md p-1.5 rounded-full border border-white/10 shadow-xl">
                                 <button
                                   onClick={handleRotate}
@@ -947,7 +948,7 @@ export default function CierresPage() {
                             </div>
 
                             {/* Caption - Repositioned above toolbar */}
-                            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex justify-center pointer-events-none z-50">
+                            <div className="absolute top-12 left-1/2 -translate-x-1/2 flex justify-center pointer-events-none z-50">
                               <div className="bg-black/40 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-sm font-medium text-center shadow-lg flex items-center gap-2 border border-white/5">
                                 <span className="opacity-90">{lightboxImage.tipo}</span>
                                 <span className="w-1 h-1 bg-white/50 rounded-full" />
@@ -962,7 +963,7 @@ export default function CierresPage() {
                                 setRotation(0)
                                 setZoom(1)
                               }}
-                              className="absolute top-4 right-4 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors backdrop-blur-md z-50 border border-white/10"
+                              className="absolute top-12 right-4 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors backdrop-blur-md z-50 border border-white/10"
                               aria-label="Cerrar"
                             >
                               <X className="h-5 w-5" />

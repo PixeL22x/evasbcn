@@ -1,13 +1,22 @@
 import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
     const botToken = process.env.TELEGRAM_BOT_TOKEN
     const chatId = process.env.TELEGRAM_CHAT_ID
 
+    // Obtener estado del bot desde la BD
+    const CONFIG_KEY = 'telegram_bot_enabled'
+    const config = await prisma.configuracion.findUnique({
+      where: { clave: CONFIG_KEY }
+    })
+    const enabled = config?.valor?.enabled !== false
+
     if (!botToken) {
       return NextResponse.json({
         configured: false,
+        enabled: false,
         message: 'Bot token no configurado',
         instructions: [
           '1. Crea un bot en Telegram hablando con @BotFather',
@@ -22,6 +31,7 @@ export async function GET() {
     if (!chatId) {
       return NextResponse.json({
         configured: false,
+        enabled: false,
         message: 'Chat ID no configurado',
         instructions: [
           '1. Envía /start a tu bot en Telegram',
@@ -43,6 +53,7 @@ export async function GET() {
 
       return NextResponse.json({
         configured: true,
+        enabled: enabled,
         botInfo: {
           username: botInfo.result.username,
           firstName: botInfo.result.first_name,
@@ -50,12 +61,14 @@ export async function GET() {
           canReadAllGroupMessages: botInfo.result.can_read_all_group_messages
         },
         chatId: chatId,
-        message: 'Bot configurado correctamente'
+        message: 'Bot configurado correctamente',
+        lastUpdated: config?.updatedAt || null
       })
 
     } catch (error) {
       return NextResponse.json({
         configured: false,
+        enabled: false,
         message: 'Error conectando con el bot',
         error: error.message
       }, { status: 500 })
@@ -65,6 +78,7 @@ export async function GET() {
     console.error('Error verificando configuración de Telegram:', error)
     return NextResponse.json({
       configured: false,
+      enabled: false,
       message: 'Error interno del servidor',
       error: error.message
     }, { status: 500 })
@@ -117,5 +131,47 @@ export async function POST(request) {
       message: 'Error enviando mensaje',
       error: error.message
     }, { status: 500 })
+  }
+}
+
+// PUT - Activar/Desactivar bot
+export async function PUT(request) {
+  try {
+    const { enabled } = await request.json()
+
+    if (typeof enabled !== 'boolean') {
+      return NextResponse.json(
+        { error: 'El campo "enabled" debe ser booleano' },
+        { status: 400 }
+      )
+    }
+
+    const CONFIG_KEY = 'telegram_bot_enabled'
+
+    // Upsert (crear o actualizar)
+    const config = await prisma.configuracion.upsert({
+      where: { clave: CONFIG_KEY },
+      update: {
+        valor: { enabled }
+      },
+      create: {
+        clave: CONFIG_KEY,
+        valor: { enabled }
+      }
+    })
+
+    console.log(`✅ Bot de Telegram ${enabled ? 'activado' : 'desactivado'}`)
+
+    return NextResponse.json({
+      enabled,
+      message: `Bot de Telegram ${enabled ? 'activado' : 'desactivado'} exitosamente`,
+      updatedAt: config.updatedAt
+    })
+  } catch (error) {
+    console.error('Error al actualizar configuración de Telegram:', error)
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    )
   }
 }

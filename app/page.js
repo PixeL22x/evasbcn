@@ -11,6 +11,7 @@ import StockWorker from '../components/StockWorker'
 import TemperaturaVitrina from '../components/TemperaturaVitrina'
 import ResenaWorker from '../components/ResenaWorker'
 import ControlTartas from '../components/ControlTartas'
+import PendingClosureModal from '../components/PendingClosureModal'  // ⭐ NUEVO
 import BottomNav from '../components/worker/BottomNav'
 import MoreMenuSheet from '../components/worker/MoreMenuSheet'
 import WorkerDashboardWidgetsLight from '../components/worker/DashboardWidgetsLight'
@@ -37,6 +38,9 @@ export default function Home() {
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [startTime, setStartTime] = useState(null)
   const [elapsedTime, setElapsedTime] = useState(0)
+  const [hasCheckedPending, setHasCheckedPending] = useState(false)  // ⭐ NUEVO: Flag para evitar múltiples checks
+  const [showPendingModal, setShowPendingModal] = useState(false)  // ⭐ NUEVO: Controlar modal
+  const [pendingCierreData, setPendingCierreData] = useState(null)  // ⭐ NUEVO: Datos del cierre pendiente
 
   const totalTasks = tasks.length
   const currentTask = tasks[currentStep - 1]
@@ -65,6 +69,100 @@ export default function Home() {
       window.location.href = '/admin/dashboard'
     }
   }, [loading, isAuthenticated, user?.role])
+
+  // ⭐ NUEVO: Verificar cierres pendientes al cargar (solo para workers)
+  useEffect(() => {
+    if (!loading && isAuthenticated() && user?.role === 'worker' && !hasCheckedPending) {
+      setHasCheckedPending(true)
+      checkForPendingCierre()
+    }
+  }, [loading, isAuthenticated, user?.role, hasCheckedPending])
+
+  // ⭐ NUEVO: Función para verificar cierres pendientes
+  async function checkForPendingCierre() {
+    try {
+      console.log('🔍 Verificando cierres pendientes...')
+      const response = await fetch(`/api/cierre/pendiente?trabajador=${encodeURIComponent(user.name)}`)
+
+      if (response.ok) {
+        const { cierre } = await response.json()
+
+        if (cierre) {
+          const tareasCompletadas = cierre.tareas.filter(t => t.completada).length
+          const totalTareas = cierre.tareas.length
+          const progreso = Math.round((tareasCompletadas / totalTareas) * 100)
+
+          const fechaInicio = new Date(cierre.fechaInicio)
+
+          // ⭐ NUEVO: Preparar datos para el modal
+          setPendingCierreData({
+            cierre: cierre,
+            turno: cierre.turno,
+            fechaInicio: cierre.fechaInicio,
+            tareasCompletadas,
+            totalTareas,
+            progreso
+          })
+
+          // ⭐ NUEVO: Mostrar modal en lugar de confirm
+          setShowPendingModal(true)
+
+          console.log(`✅ Cierre pendiente encontrado: ${cierre.id} (${tareasCompletadas}/${totalTareas} tareas)`)
+        } else {
+          console.log('ℹ️ No hay cierres pendientes')
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error al verificar cierres pendientes:', error)
+    }
+  }
+
+  // ⭐ NUEVO: Función para continuar cierre pendiente
+  function handleContinuePendingCierre() {
+    if (!pendingCierreData) return
+
+    const { cierre, totalTareas } = pendingCierreData
+
+    console.log('✅ Restaurando sesión desde BD...')
+    setCierreId(cierre.id)
+    setWorkerName(cierre.trabajador)
+    setTasks(cierre.tareas)
+
+    const firstPendingIndex = cierre.tareas.findIndex(t => !t.completada)
+    setCurrentStep(firstPendingIndex !== -1 ? firstPendingIndex + 1 : 1)
+
+    setGameStarted(true)
+    setStartTime(new Date(cierre.fechaInicio).getTime())
+
+    console.log(`✅ Sesión restaurada: Paso ${firstPendingIndex + 1}/${totalTareas}`)
+
+    setShowPendingModal(false)
+    setPendingCierreData(null)
+  }
+
+  function handleNewCierre() {
+    console.log('🆕 Usuario eligió iniciar nuevo cierre')
+
+    // Registrar que el usuario rechazó continuar el cierre pendiente
+    if (pendingCierreData?.cierre?.id) {
+      fetch(`/api/cierre/${pendingCierreData.cierre.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          observaciones: `Usuario eligió iniciar nuevo cierre en lugar de continuar (${new Date().toLocaleString('es-ES')})`
+        })
+      }).catch(err => console.error('Error al registrar rechazo:', err))
+    }
+
+    setShowPendingModal(false)
+    setPendingCierreData(null)
+  }
+
+  function handleCloseModal() {
+    console.log('❌ Usuario cerró el modal')
+    setShowPendingModal(false)
+    setPendingCierreData(null)
+  }
 
   useEffect(() => {
     if (isAllCompleted && gameStarted) {
@@ -125,13 +223,29 @@ export default function Home() {
   }
 
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < totalTasks) {
       // Pequeño delay para suavizar la transición
       setTimeout(() => {
         setCurrentStep(currentStep + 1)
       }, 100)
     } else {
+      // ⭐ MARCAR COMO COMPLETADO EN BD
+      try {
+        console.log('📝 Marcando cierre como completado...')
+        await fetch(`/api/cierre/${cierreId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            completado: true,
+            fechaFin: new Date()
+          })
+        })
+        console.log('✅ Cierre marcado como completado')
+      } catch (error) {
+        console.error('❌ Error al marcar cierre como completado:', error)
+      }
+
       setShowCelebration(true)
     }
   }
@@ -363,6 +477,26 @@ export default function Home() {
               <div className="space-y-6">
                 {/* Dashboard Widgets */}
                 <WorkerDashboardWidgetsLight userId={user?.id} />
+
+                {/* ⭐ NUEVO: Badge de cierre pendiente */}
+                {pendingCierreData && (
+                  <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 text-2xl">⚠️</div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-yellow-900 text-sm mb-1">
+                          Tienes un cierre pendiente
+                        </h4>
+                        <p className="text-yellow-800 text-xs mb-2">
+                          Cierre de <span className="font-semibold">{pendingCierreData.turno.toUpperCase()}</span> • {pendingCierreData.tareasCompletadas}/{pendingCierreData.totalTareas} tareas ({pendingCierreData.progreso}%)
+                        </p>
+                        <p className="text-yellow-700 text-xs italic">
+                          💡 Haz click en "Iniciar Cierre" para continuar
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Acción Principal */}
                 <div>
@@ -659,6 +793,15 @@ export default function Home() {
       {showTemperaturaVitrina && (
         <TemperaturaVitrina onClose={() => setShowTemperaturaVitrina(false)} />
       )}
+
+      {/* ⭐ NUEVO: Modal de recuperación de cierre pendiente */}
+      <PendingClosureModal
+        isOpen={showPendingModal}
+        onClose={handleCloseModal}
+        onContinue={handleContinuePendingCierre}
+        onNewClosure={handleNewCierre}
+        cierreData={pendingCierreData}
+      />
     </>
   )
 }

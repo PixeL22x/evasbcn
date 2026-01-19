@@ -62,6 +62,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { generateMonthlyPDF } from '@/lib/pdfReport'
+import { FileText, Sparkles } from 'lucide-react'
 
 export default function TicketAnalyticsPage() {
     const [analytics, setAnalytics] = useState(null)
@@ -132,45 +134,115 @@ export default function TicketAnalyticsPage() {
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                            <Button
+                                                onClick={async () => {
+                                                    try {
+                                                        const targetDate = date?.to || new Date();
+                                                        const month = targetDate.getMonth() + 1;
+                                                        const year = targetDate.getFullYear();
+
+                                                        // Show loading toast or state if possible, for now just simple loading
+                                                        const btn = document.getElementById('btn-generate-report');
+                                                        if (btn) {
+                                                            btn.disabled = true;
+                                                            btn.innerHTML = '<span class="animate-spin mr-2">⏳</span> Generando...';
+                                                        }
+
+                                                        const res = await fetch(`/api/admin/reports/monthly?month=${month}&year=${year}`);
+                                                        if (!res.ok) throw new Error('Error al generar datos');
+                                                        const data = await res.json();
+
+                                                        generateMonthlyPDF({ ...data, month, year });
+
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                        alert('Error al generar el informe. Inténtalo de nuevo.');
+                                                    } finally {
+                                                        const btn = document.getElementById('btn-generate-report');
+                                                        if (btn) {
+                                                            btn.disabled = false;
+                                                            btn.innerHTML = '<svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg> Informe Mensual IA';
+                                                        }
+                                                    }
+                                                }}
+                                                variant="default"
+                                                id="btn-generate-report"
+                                                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md border-0"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="w-4 h-4" />
+                                                    <span>Informe Mensual IA</span>
+                                                    <Sparkles className="w-3 h-3 text-yellow-300 animate-pulse" />
+                                                </div>
+                                            </Button>
                                             <Button variant="outline" asChild className="w-full sm:w-auto">
                                                 <Link href="/admin/tickets">
                                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                                    Volver a Tickets
+                                                    Volver
                                                 </Link>
                                             </Button>
                                         </div>
                                     </div>
 
-                                    {/* Date Controls (Segmented Style) */}
-                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mb-6">
-                                        {/* Presets */}
-                                        <div className="flex items-center justify-between p-1 bg-muted/50 rounded-lg border shadow-sm w-full sm:w-auto">
-                                            {[
-                                                { label: '7d', days: 7 },
-                                                { label: '30d', days: 30 },
-                                                { label: '90d', days: 90 },
-                                            ].map((preset) => (
-                                                <Button
-                                                    key={preset.days}
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => setDate({ from: subDays(new Date(), preset.days), to: new Date() })}
-                                                    className={`flex-1 sm:flex-none h-8 px-3 text-xs font-medium rounded-md transition-all ${daysDiff <= preset.days && daysDiff > (preset.days === 7 ? 1 : (preset.days === 30 ? 7 : 30))
-                                                        ? "bg-background text-foreground shadow-sm ring-1 ring-border"
-                                                        : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
-                                                        }`}
-                                                >
-                                                    {preset.label}
-                                                </Button>
-                                            ))}
+                                    {/* Date Controls (Mobile First) */}
+                                    <div className="flex flex-col gap-4 mb-6">
+                                        {/* Scrollable Pills Presets */}
+                                        <div className="-mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto pb-2 scrollbar-hide">
+                                            <div className="flex items-center gap-2 w-max">
+                                                {[
+                                                    { label: '7 días', days: 7, icon: "Week" },
+                                                    { label: '15 días', days: 15, icon: "HalfMonth" },
+                                                    { label: 'Este Mes', type: 'month', icon: "Calendar" },
+                                                    { label: '90 días', days: 90, icon: "Quarter" },
+                                                ].map((preset) => (
+                                                    <Button
+                                                        key={preset.label}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            const now = new Date()
+                                                            let from, to = now
+
+                                                            if (preset.type === 'yesterday') {
+                                                                from = subDays(now, 1)
+                                                                to = subDays(now, 1)
+                                                            } else if (preset.type === 'month') {
+                                                                from = new Date(now.getFullYear(), now.getMonth(), 1)
+                                                                to = now
+                                                            } else {
+                                                                from = subDays(now, preset.days)
+                                                                to = now
+                                                            }
+
+                                                            setDate({ from, to })
+                                                        }}
+                                                        className={`
+                                                            rounded-full px-4 h-9 text-xs font-medium border
+                                                            transition-all active:scale-95 whitespace-nowrap flex items-center gap-1.5
+                                                            ${(preset.type === 'month' && date?.from?.getDate() === 1 && date?.to?.getDate() === new Date().getDate()) ||
+                                                                (preset.type === 'yesterday' && date?.to?.getDate() === new Date().getDate() - 1) ||
+                                                                (!preset.type && daysDiff === preset.days)
+                                                                ? "bg-primary text-primary-foreground border-primary shadow-md ring-2 ring-primary/20"
+                                                                : "bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+                                                            }
+                                                        `}
+                                                    >
+                                                        {/* Icons logic inline for simplicity or use helper */}
+                                                        {preset.icon === "Today" && <TrendingUp className="w-3 h-3" />}
+                                                        {preset.icon === "Clock" && <TrendingDown className="w-3 h-3 rotate-180" />}
+                                                        {preset.icon === "Calendar" && <Receipt className="w-3 h-3" />}
+                                                        {preset.label}
+                                                    </Button>
+                                                ))}
+                                            </div>
                                         </div>
 
                                         {/* Picker */}
-                                        <div className="w-full sm:w-auto">
+                                        <div className="w-full">
                                             <DateRangePicker
                                                 date={date}
                                                 setDate={setDate}
-                                                className="w-full sm:w-[260px] h-10 sm:h-auto justify-center sm:justify-start bg-background border shadow-sm hover:bg-background/90"
+                                                className="w-full justify-center text-left font-normal bg-background border-input hover:bg-accent hover:text-accent-foreground"
                                             />
                                         </div>
                                     </div>
@@ -190,7 +262,7 @@ export default function TicketAnalyticsPage() {
                                     ) : analytics ? (
                                         <div className="space-y-6">
                                             {/* KPI Cards */}
-                                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+                                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                                 <Card className="relative overflow-hidden border-none bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 shadow-sm hover:shadow-md transition-all">
                                                     <div className="absolute right-0 top-0 h-full w-full opacity-[0.03] pointer-events-none">
                                                         <DollarSign className="h-full w-auto ml-auto" />
@@ -205,6 +277,24 @@ export default function TicketAnalyticsPage() {
                                                         <div className="text-3xl font-bold text-blue-950 dark:text-blue-50">{analytics.summary.totalSales.toFixed(2)}€</div>
                                                         <p className="text-xs text-blue-600/80 dark:text-blue-300/80 mt-1 font-medium">
                                                             Últimos {daysDiff} días
+                                                        </p>
+                                                    </CardContent>
+                                                </Card>
+
+                                                <Card className="relative overflow-hidden border-none bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 shadow-sm hover:shadow-md transition-all">
+                                                    <div className="absolute right-0 top-0 h-full w-full opacity-[0.03] pointer-events-none">
+                                                        <Receipt className="h-full w-auto ml-auto" />
+                                                    </div>
+                                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                                                        <CardTitle className="text-sm font-medium text-emerald-900 dark:text-emerald-100">Ticket Promedio</CardTitle>
+                                                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
+                                                            <Receipt className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                                        </div>
+                                                    </CardHeader>
+                                                    <CardContent className="relative z-10">
+                                                        <div className="text-3xl font-bold text-emerald-950 dark:text-emerald-50">{analytics.summary.avgTicket.toFixed(2)}€</div>
+                                                        <p className="text-xs text-emerald-600/80 dark:text-emerald-300/80 mt-1 font-medium">
+                                                            Promedio diario
                                                         </p>
                                                     </CardContent>
                                                 </Card>

@@ -67,7 +67,7 @@ export function ChartAreaInteractive() {
     const percentageChange = (difference / previousValue) * 100
 
     if (percentageChange > 5) {
-      return "hsl(217, 91%, 60%)" // Azul para subidas significativas (>5%)
+      return "hsl(142, 71%, 45%)" // Verde para subidas significativas (>5%)
     } else if (percentageChange < -5) {
       return "hsl(0, 84%, 60%)" // Rojo para bajadas significativas (<-5%)
     } else {
@@ -133,16 +133,16 @@ export function ChartAreaInteractive() {
                 <stop
                   offset="5%"
                   stopColor="hsl(217, 91%, 60%)"
-                  stopOpacity={0.3}
+                  stopOpacity={0.4}
                 />
                 <stop
                   offset="95%"
                   stopColor="hsl(217, 91%, 60%)"
-                  stopOpacity={0.05}
+                  stopOpacity={0.01}
                 />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} />
+            <CartesianGrid vertical={false} strokeDasharray="3 3" strokeOpacity={0.4} />
             <XAxis
               dataKey="date"
               tickLine={false}
@@ -167,8 +167,10 @@ export function ChartAreaInteractive() {
               cursor={false}
               content={
                 <ChartTooltipContent
+                  className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border border-border/50 shadow-xl rounded-xl dark:shadow-none"
                   labelFormatter={(value) => {
                     return new Date(value).toLocaleDateString("es-ES", {
+                      weekday: "short",
                       month: "short",
                       day: "numeric",
                     })
@@ -177,20 +179,26 @@ export function ChartAreaInteractive() {
                   formatter={(value, name, props) => {
                     const trend = props.payload.trend
                     const trendIcon = trend === 'up' ? '📈' : trend === 'down' ? '📉' : '➡️'
-                    return [`${value}€ ${trendIcon}`, name]
+                    return (
+                      <div className="flex items-center gap-2 font-bold text-base">
+                        <span>{value}€</span>
+                        <span className="text-sm font-normal text-muted-foreground">{trendIcon}</span>
+                      </div>
+                    )
                   }}
                 />
               }
             />
             <Area
               dataKey="ventas"
-              type="natural"
+              type="monotone"
               fill="url(#fillVentas)"
               stroke="none"
+              animationDuration={1500}
             />
             <Line
               dataKey="ventas"
-              type="natural"
+              type="monotone"
               stroke="hsl(217, 91%, 60%)"
               strokeWidth={3}
               dot={(props) => {

@@ -48,7 +48,7 @@ async function obtenerComparativaVentas(fechaFin, trabajador, turno) {
 
     let emoji = '📊'
     let mensaje = ''
-    
+
     if (porcentaje > 0) {
       emoji = '📈'
       mensaje = `${emoji} *+${porcentaje}%* vs ayer (€${ventasAnteriores})`
@@ -83,6 +83,22 @@ export async function POST(request) {
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
       console.log('⚠️ Variables de Telegram no configuradas')
       return NextResponse.json({ message: 'Telegram no configurado' }, { status: 200 })
+    }
+
+    // Verificar si el bot está habilitado
+    const CONFIG_KEY = 'telegram_bot_enabled'
+    const config = await prisma.configuracion.findUnique({
+      where: { clave: CONFIG_KEY }
+    })
+    const enabled = config?.valor?.enabled !== false
+
+    if (!enabled) {
+      console.log('ℹ️ Bot de Telegram desactivado, no se enviará notificación')
+      return NextResponse.json({
+        message: 'Bot de Telegram desactivado',
+        telegramSent: false,
+        disabled: true
+      }, { status: 200 })
     }
 
     // Obtener comparativa con el día anterior
@@ -127,16 +143,16 @@ ${comparativa.mensaje}
 
     console.log('✅ Notificación enviada a Telegram exitosamente')
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Notificación enviada a Telegram',
-      telegramSent: true 
+      telegramSent: true
     })
 
   } catch (error) {
     console.error('❌ Error en notificación de Telegram:', error)
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Error interno del servidor',
-      telegramSent: false 
+      telegramSent: false
     }, { status: 500 })
   }
 }
@@ -179,16 +195,16 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Error enviando a Telegram' }, { status: 500 })
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Notificación de foto enviada a Telegram',
-      telegramSent: true 
+      telegramSent: true
     })
 
   } catch (error) {
     console.error('❌ Error en notificación de foto:', error)
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Error interno del servidor',
-      telegramSent: false 
+      telegramSent: false
     }, { status: 500 })
   }
 }

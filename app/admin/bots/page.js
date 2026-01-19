@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import {
@@ -14,10 +15,57 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Bot, MessageSquare, CloudRain, Bell, CheckCircle, Clock, Send, Settings } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
+import { Bot, MessageSquare, CloudRain, Bell, CheckCircle, Clock, Send, Settings, Loader2 } from "lucide-react"
 import AdminLayout from '../../../components/AdminLayout'
 
 export default function BotsPage() {
+  const [telegramEnabled, setTelegramEnabled] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [updating, setUpdating] = useState(false)
+  const [botConfigured, setBotConfigured] = useState(false)
+
+  useEffect(() => {
+    loadBotStatus()
+  }, [])
+
+  const loadBotStatus = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/telegram/config')
+      if (response.ok) {
+        const data = await response.json()
+        setTelegramEnabled(data.enabled)
+        setBotConfigured(data.configured)
+      }
+    } catch (error) {
+      console.error('Error al cargar estado del bot:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleToggleTelegram = async (enabled) => {
+    try {
+      setUpdating(true)
+      const response = await fetch('/api/telegram/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled })
+      })
+
+      if (response.ok) {
+        setTelegramEnabled(enabled)
+      } else {
+        console.error('Error al actualizar estado del bot')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    } finally {
+      setUpdating(false)
+    }
+  }
   const bots = [
     {
       id: 'telegram-ventas',
@@ -82,8 +130,9 @@ export default function BotsPage() {
                   <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                     {bots.map((bot) => {
                       const Icon = bot.icon
-                      const isActive = bot.status === 'active'
-                      
+                      const isVentasBot = bot.id === 'telegram-ventas'
+                      const isActive = isVentasBot ? (botConfigured && telegramEnabled) : bot.status === 'active'
+
                       return (
                         <Card key={bot.id} className="relative">
                           <CardHeader>
@@ -99,19 +148,37 @@ export default function BotsPage() {
                                   </CardDescription>
                                 </div>
                               </div>
-                              <Badge variant={isActive ? 'default' : 'secondary'}>
-                                {isActive ? (
-                                  <>
-                                    <CheckCircle className="h-3 w-3 mr-1" />
-                                    Activo
-                                  </>
-                                ) : (
-                                  <>
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    Inactivo
-                                  </>
+                              <div className="flex items-center gap-3">
+                                {bot.id === 'telegram-ventas' && (
+                                  <div className="flex items-center gap-2">
+                                    {loading ? (
+                                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                    ) : (
+                                      <>
+                                        <Switch
+                                          checked={telegramEnabled}
+                                          onCheckedChange={handleToggleTelegram}
+                                          disabled={updating || !botConfigured}
+                                        />
+                                        {updating && <Loader2 className="h-4 w-4 animate-spin" />}
+                                      </>
+                                    )}
+                                  </div>
                                 )}
-                              </Badge>
+                                <Badge variant={isActive ? 'default' : 'secondary'}>
+                                  {isActive ? (
+                                    <>
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Activo
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      Inactivo
+                                    </>
+                                  )}
+                                </Badge>
+                              </div>
                             </div>
                           </CardHeader>
                           <CardContent>

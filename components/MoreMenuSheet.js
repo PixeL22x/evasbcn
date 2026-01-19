@@ -130,7 +130,7 @@ export function MoreMenuSheet({ isOpen, onClose }) {
         <Sheet open={isOpen} onOpenChange={onClose}>
             <SheetContent
                 side="bottom"
-                className="h-[85vh] rounded-t-3xl p-0 overflow-hidden"
+                className="h-[85dvh] rounded-t-3xl p-0 overflow-hidden will-change-transform"
             >
                 <div className="h-full flex flex-col">
                     {/* Header */}
@@ -154,15 +154,13 @@ export function MoreMenuSheet({ isOpen, onClose }) {
                                         className="group relative"
                                     >
                                         <div className={`
-                      relative overflow-hidden rounded-2xl p-4 h-28
+                      relative rounded-2xl p-4 h-28
                       bg-gradient-to-br ${item.gradient}
-                      transition-all duration-200
-                      active:scale-95 hover:scale-[1.02]
-                      shadow-md hover:shadow-lg
+                      active:scale-95
                     `}>
                                             {/* Icon */}
                                             <div className="flex items-start justify-between mb-2">
-                                                <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                                                <div className="p-2 bg-white/20 rounded-lg">
                                                     <Icon className="h-5 w-5 text-white" />
                                                 </div>
 
@@ -183,9 +181,6 @@ export function MoreMenuSheet({ isOpen, onClose }) {
                                                     {item.description}
                                                 </p>
                                             </div>
-
-                                            {/* Shine effect on hover */}
-                                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                         </div>
                                     </Link>
                                 )

@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const { id } = await params
-    const { totalVentas, fechaFin, ticketData } = await request.json()
+    const { totalVentas, fechaFin, ticketData, completado } = await request.json()
 
     if (!id) {
       return NextResponse.json(
@@ -66,6 +66,12 @@ export async function PUT(request, { params }) {
     if (ticketData !== undefined && ticketData !== null) {
       // Guardar datos del ticket (items, imageUrl, etc.)
       updateData.ticketData = ticketData
+    }
+
+    // ⭐ NUEVO: Soportar actualización de completado
+    if (completado !== undefined && completado !== null) {
+      updateData.completado = completado
+      console.log(`📝 Marcando cierre ${id} como ${completado ? 'completado' : 'pendiente'}`)
     }
 
     // Si no hay datos para actualizar, retornar error
