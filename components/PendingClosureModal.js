@@ -40,10 +40,10 @@ export default function PendingClosureModal({
         if (isOpen) {
             document.body.style.overflow = 'hidden'
         } else {
-            document.body.style.overflow = 'unset'
+            document.body.style.overflow = '' // Usar string vacío en lugar de 'unset'
         }
         return () => {
-            document.body.style.overflow = 'unset'
+            document.body.style.overflow = '' // Limpiar con string vacío
         }
     }, [isOpen])
 

@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react'
 import { validateAndCompressPhoto, getImageInfo } from '../lib/image-compression'
 
-export default function PhotoTask({ 
-  task, 
-  currentStep, 
-  totalSteps, 
-  onComplete, 
-  onNext, 
+export default function PhotoTask({
+  task,
+  currentStep,
+  totalSteps,
+  onComplete,
+  onNext,
   cierreId,
   trabajador
 }) {
@@ -20,7 +20,7 @@ export default function PhotoTask({
   // Inicializar las fotos requeridas solo cuando cambia la tarea (no las fotosRequeridas)
   useEffect(() => {
     let fotosRequeridasArray = []
-    
+
     // Parsear fotosRequeridas si es un string JSON
     if (task.fotosRequeridas) {
       if (typeof task.fotosRequeridas === 'string') {
@@ -34,7 +34,7 @@ export default function PhotoTask({
         fotosRequeridasArray = task.fotosRequeridas
       }
     }
-    
+
     if (fotosRequeridasArray.length > 0) {
       const fotosIniciales = {}
       fotosRequeridasArray.forEach((foto, index) => {
@@ -47,7 +47,7 @@ export default function PhotoTask({
       })
       setFotos(fotosIniciales)
     }
-    
+
     // Resetear el estado de completado cuando cambia la tarea
     setIsCompleted(false)
     setIsUploading(false)
@@ -63,18 +63,18 @@ export default function PhotoTask({
   const handleImageUpload = async (tipo, file, preview) => {
     try {
       setUploadProgress(`Procesando foto ${tipo}...`)
-      
+
       // Obtener información de la imagen
       const imageInfo = await getImageInfo(file)
       console.log(`📸 Foto ${tipo}:`, imageInfo)
-      
+
       // Comprimir automáticamente si es necesario
       setUploadProgress(`Comprimiendo foto ${tipo}...`)
       const compressedFile = await validateAndCompressPhoto(file)
-      
+
       // Crear preview de la imagen comprimida
       const compressedPreview = URL.createObjectURL(compressedFile)
-      
+
       setFotos(prev => {
         const newState = {
           ...prev,
@@ -92,19 +92,19 @@ export default function PhotoTask({
         }
         return newState
       })
-      
+
       setUploadProgress(`Subiendo foto ${tipo}...`)
       console.log(`✅ Foto ${tipo} procesada, iniciando subida inmediata`)
-      
+
       // Subir inmediatamente a Cloudinary
       await uploadSinglePhoto(tipo, compressedFile, imageInfo)
-      
+
       setUploadProgress('')
-      
+
     } catch (error) {
       console.error(`❌ Error procesando foto ${tipo}:`, error)
       setUploadProgress('')
-      
+
       // Actualizar estado con error
       setFotos(prev => ({
         ...prev,
@@ -114,7 +114,7 @@ export default function PhotoTask({
           uploading: false
         }
       }))
-      
+
       alert(`Error al procesar la foto ${tipo}: ${error.message}`)
     }
   }
@@ -122,7 +122,7 @@ export default function PhotoTask({
   const uploadSinglePhoto = async (tipo, file, imageInfo) => {
     try {
       console.log(`☁️ Subiendo foto ${tipo} inmediatamente...`)
-      
+
       const formData = new FormData()
       formData.append('cierreId', cierreId)
       formData.append('trabajador', trabajador)
@@ -143,7 +143,7 @@ export default function PhotoTask({
       }
 
       console.log(`✅ Foto ${tipo} subida exitosamente`)
-      
+
       // Actualizar estado con éxito
       setFotos(prev => ({
         ...prev,
@@ -163,7 +163,7 @@ export default function PhotoTask({
 
     } catch (error) {
       console.error(`❌ Error subiendo foto ${tipo}:`, error)
-      
+
       // Actualizar estado con error
       setFotos(prev => ({
         ...prev,
@@ -173,7 +173,7 @@ export default function PhotoTask({
           uploading: false
         }
       }))
-      
+
       throw error
     }
   }
@@ -204,7 +204,7 @@ export default function PhotoTask({
         console.log('🎉 Todas las fotos subidas, completando tarea...')
         handleCompleteWithState(currentFotos)
       }
-      
+
       return currentFotos
     })
   }
@@ -224,14 +224,14 @@ export default function PhotoTask({
 
   const canComplete = () => {
     try {
-      
+
       // Si no hay fotos requeridas, no se puede completar
       if (!task.fotosRequeridas) {
         return false
       }
-      
+
       let fotosRequeridasArray = []
-      
+
       // Parsear fotosRequeridas si es un string JSON
       if (typeof task.fotosRequeridas === 'string') {
         try {
@@ -243,23 +243,23 @@ export default function PhotoTask({
       } else if (Array.isArray(task.fotosRequeridas)) {
         fotosRequeridasArray = task.fotosRequeridas
       }
-      
+
       // Si no hay fotos requeridas, no se puede completar
       if (fotosRequeridasArray.length === 0) {
         return false
       }
-      
+
       // Contar cuántas fotos están listas
       let fotosListas = 0
       let fotosRequeridas = fotosRequeridasArray.length
-      
+
       fotosRequeridasArray.forEach(foto => {
         const tieneArchivo = fotos[foto.tipo] && fotos[foto.tipo].file
         if (tieneArchivo) {
           fotosListas++
         }
       })
-      
+
       const resultado = fotosListas === fotosRequeridas
       return resultado
     } catch (error) {
@@ -269,12 +269,12 @@ export default function PhotoTask({
   }
 
   const handleComplete = async () => {
-    
+
     // Evitar múltiples ejecuciones
     if (isUploading || isCompleted) {
       return
     }
-    
+
     setIsUploading(true)
     setUploadProgress('Preparando fotos...')
 
@@ -301,9 +301,9 @@ export default function PhotoTask({
       }
 
       // Agregar cada foto al FormData
-      
+
       fotosRequeridasArray.forEach((foto, index) => {
-        
+
         if (fotos[foto.tipo]?.file) {
           formData.append(`foto_${index}`, fotos[foto.tipo].file)
           formData.append(`tipo_${index}`, foto.tipo)
@@ -311,7 +311,7 @@ export default function PhotoTask({
         } else {
         }
       })
-      
+
       // Verificar que el FormData tenga fotos
       let fotoCount = 0
       for (let [key, value] of formData.entries()) {
@@ -320,16 +320,16 @@ export default function PhotoTask({
         }
       }
 
-        // Subir fotos al servidor
-        const fotosResponse = await fetch(`${window.location.origin}/api/tarea/fotos`, {
-          method: 'POST',
-          body: formData,
-        })
+      // Subir fotos al servidor
+      const fotosResponse = await fetch(`${window.location.origin}/api/tarea/fotos`, {
+        method: 'POST',
+        body: formData,
+      })
 
       if (!fotosResponse.ok) {
         const errorData = await fotosResponse.json().catch(() => ({}))
         console.error('❌ Error response from server:', errorData)
-        
+
         let errorMessage = 'Error al subir las fotos'
         if (errorData.error) {
           errorMessage = errorData.error
@@ -337,7 +337,7 @@ export default function PhotoTask({
         if (errorData.details) {
           errorMessage += `: ${errorData.details}`
         }
-        
+
         throw new Error(errorMessage)
       }
 
@@ -366,10 +366,10 @@ export default function PhotoTask({
       }
     } catch (error) {
       console.error('❌ Error al completar la tarea:', error)
-      
+
       // Mostrar mensaje de error más específico
       let userMessage = 'Error al completar la tarea. Inténtalo de nuevo.'
-      
+
       if (error.message.includes('Cloudinary')) {
         userMessage = 'Error al subir las fotos al servidor. Verifica tu conexión a internet e inténtalo de nuevo.'
       } else if (error.message.includes('compresión') || error.message.includes('Sharp')) {
@@ -379,7 +379,7 @@ export default function PhotoTask({
       } else if (error.message.includes('variables de entorno')) {
         userMessage = 'Error de configuración del servidor. Contacta al administrador.'
       }
-      
+
       alert(userMessage)
       setUploadProgress('')
     } finally {
@@ -433,10 +433,10 @@ export default function PhotoTask({
       }, 1000)
     } catch (error) {
       console.error('❌ Error al completar la tarea:', error)
-      
+
       // Mostrar mensaje de error más específico
       let userMessage = 'Error al completar la tarea. Inténtalo de nuevo.'
-      
+
       if (error.message.includes('Request timeout') || error.message.includes('Timeout')) {
         userMessage = 'La subida de fotos tardó demasiado tiempo. Inténtalo de nuevo con fotos más pequeñas.'
       } else if (error.message.includes('Cloudinary')) {
@@ -456,7 +456,7 @@ export default function PhotoTask({
       } else if (error.message.includes('Archivo demasiado grande')) {
         userMessage = 'Una o más fotos son demasiado grandes. Redúcelas de tamaño e inténtalo de nuevo.'
       }
-      
+
       alert(userMessage)
       setUploadProgress('')
     } finally {
@@ -472,60 +472,72 @@ export default function PhotoTask({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-3 sm:p-6 lg:p-8">
-      <div className="w-full max-w-4xl animate-fade-in">
-        {/* Header */}
-        <div className="text-center mb-4 sm:mb-6 lg:mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-white/10 backdrop-blur-sm rounded-full mb-3 sm:mb-4 lg:mb-6">
-            <span className="text-2xl sm:text-3xl lg:text-4xl">{getTaskIcon(task.nombre)}</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-y-auto" style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
+      {/* Sticky Header - Compacto y siempre visible */}
+      <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 pt-safe">
+        <div className="px-4 py-3">
+          {/* Header compacto */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">{getTaskIcon(task.nombre)}</span>
+              </div>
+              <div>
+                <h1 className="text-base font-bold text-white leading-tight">
+                  {task.nombre}
+                </h1>
+                <p className="text-xs text-white/60">
+                  Paso {currentStep} de {totalSteps}
+                </p>
+              </div>
+            </div>
           </div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-1 sm:mb-2">
-            {task.nombre}
-          </h1>
-          <p className="text-white/70 text-sm sm:text-base lg:text-lg">
-            Paso {currentStep} de {totalSteps}
-          </p>
-        </div>
 
-        {/* Progress Bar */}
-        <div className="mb-4 sm:mb-6 lg:mb-8">
-          <div className="flex justify-between text-white/60 text-xs sm:text-sm mb-2">
-            <span>Progreso del cierre</span>
-            <span>{Math.round(((currentStep - 1) / totalSteps) * 100)}%</span>
-          </div>
-          <div className="w-full bg-white/20 rounded-full h-2 sm:h-3 overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-blue-400 to-purple-500 rounded-full transition-all duration-1000 ease-out"
-              style={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
-            />
+          {/* Progress bar compacta */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-blue-400 to-purple-500 rounded-full transition-all duration-500"
+                style={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
+              />
+            </div>
+            <span className="text-xs text-white/60 font-medium min-w-[3rem] text-right">
+              {Math.round(((currentStep - 1) / totalSteps) * 100)}%
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* Task Card */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 xl:p-8 mb-4 sm:mb-6 lg:mb-8 border border-white/20">
-          <div className="text-center mb-3 sm:mb-4 lg:mb-6">
-            <p className="text-white/70 text-xs sm:text-sm lg:text-base xl:text-lg">
-              Tiempo estimado: {task.duracion} minutos
-            </p>
-            <p className="text-yellow-400 text-sm sm:text-base font-medium mt-2">
-              📸 Esta tarea requiere subir {Object.keys(fotos).length} foto{Object.keys(fotos).length !== 1 ? 's' : ''} específica{Object.keys(fotos).length !== 1 ? 's' : ''}
-            </p>
-            {!canComplete() && (
-              <p className="text-red-400 text-sm font-medium mt-1">
-                ❌ Faltan {Object.values(fotos).filter(foto => !foto.file).length} foto{Object.values(fotos).filter(foto => !foto.file).length !== 1 ? 's' : ''} por subir
+      {/* Contenido Scrollable */}
+      <div className="px-4 py-4 pb-safe">
+        <div className="max-w-2xl mx-auto space-y-4">
+
+          {/* Info de la tarea */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/70">⏱️ Tiempo estimado</span>
+              <span className="text-white font-semibold">{task.duracion} min</span>
+            </div>
+            <div className="mt-2 pt-2 border-t border-white/10">
+              <p className="text-yellow-400 text-xs font-medium">
+                📸 {Object.keys(fotos).length} foto{Object.keys(fotos).length !== 1 ? 's' : ''} requerida{Object.keys(fotos).length !== 1 ? 's' : ''}
               </p>
-            )}
-            <p className="text-blue-400 text-xs mt-1">
-              ⚡ Las fotos se suben automáticamente al seleccionarlas
-            </p>
+              {!canComplete() && (
+                <p className="text-red-400 text-xs font-medium mt-1">
+                  ⚠️ Faltan {Object.values(fotos).filter(foto => !foto.file).length} por subir
+                </p>
+              )}
+              <p className="text-blue-400 text-xs mt-1">
+                ⚡ Se suben automáticamente al seleccionarlas
+              </p>
+            </div>
           </div>
 
-          {/* Photo Upload Section */}
-          <div className="space-y-4 mb-6">
+          {/* Tarjetas de Fotos */}
+          <div className="space-y-3">
             {(() => {
               let fotosRequeridasArray = []
-              
-              // Parsear fotosRequeridas si es un string JSON
+
               if (task.fotosRequeridas) {
                 if (typeof task.fotosRequeridas === 'string') {
                   try {
@@ -538,23 +550,25 @@ export default function PhotoTask({
                   fotosRequeridasArray = task.fotosRequeridas
                 }
               }
-              
+
               return fotosRequeridasArray.map((foto, index) => (
-              <div key={foto.tipo} className="bg-white/5 rounded-lg p-4 border border-white/10">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-white font-bold text-base sm:text-lg lg:text-xl">
-                    {foto.descripcion}
-                  </h3>
-                  <div className="flex items-center space-x-2">
-                    {fotos[foto.tipo]?.file ? (
-                      <span className="text-green-400 text-base font-semibold">✅ Subida</span>
-                    ) : (
-                      <span className="text-red-400 text-base font-semibold">❌ Pendiente</span>
-                    )}
+                <div key={foto.tipo} className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20">
+                  {/* Header de la foto */}
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-white font-semibold text-base flex-1 min-w-0 pr-2">
+                      {foto.descripcion}
+                    </h3>
+                    <div className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${fotos[foto.tipo]?.uploaded
+                      ? 'bg-green-500/20 text-green-400'
+                      : fotos[foto.tipo]?.uploading
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : 'bg-amber-500/20 text-amber-400'
+                      }`}>
+                      {fotos[foto.tipo]?.uploaded ? '✓ Subida' : fotos[foto.tipo]?.uploading ? '⏳ Subiendo' : 'Pendiente'}
+                    </div>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
+
+                  {/* Input de foto */}
                   <input
                     type="file"
                     accept="image/*"
@@ -567,146 +581,126 @@ export default function PhotoTask({
                     }}
                     className="hidden"
                     id={`file-${foto.tipo}`}
-                    disabled={isUploading}
+                    disabled={isUploading || fotos[foto.tipo]?.uploading}
                   />
-                  
+
                   <label
                     htmlFor={`file-${foto.tipo}`}
-                    className={`block w-full p-4 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${
-                      fotos[foto.tipo]?.file
-                        ? 'border-green-400 bg-green-50/10 text-green-400'
-                        : 'border-gray-300 hover:border-blue-400 text-gray-400 hover:text-blue-400'
-                    }`}
+                    className={`block cursor-pointer ${isUploading || fotos[foto.tipo]?.uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    {fotos[foto.tipo]?.file ? (
-                      <div>
-                        <div className="text-3xl mb-3">✅</div>
-                        <p className="text-base font-semibold">Foto seleccionada</p>
-                        <p className="text-sm opacity-75">Haz clic para cambiar</p>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="text-3xl mb-3">📸</div>
-                        <p className="text-base font-semibold">Haz clic para seleccionar foto</p>
-                        <p className="text-sm opacity-75">JPG, PNG, GIF</p>
-                      </div>
-                    )}
+                    <div className={`
+                      relative overflow-hidden rounded-xl border-2 border-dashed
+                      transition-all active:scale-[0.98]
+                      ${fotos[foto.tipo]?.preview
+                        ? 'border-green-400 bg-green-500/10'
+                        : 'border-white/30 bg-white/5 active:bg-white/10'
+                      }
+                    `}>
+                      {fotos[foto.tipo]?.preview ? (
+                        <div className="relative aspect-video">
+                          <img
+                            src={fotos[foto.tipo].preview}
+                            alt={foto.descripcion}
+                            className="w-full h-full object-cover"
+                          />
+
+                          {/* Overlay con estado */}
+                          {fotos[foto.tipo]?.uploading && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                              <div className="text-center">
+                                <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-2"></div>
+                                <p className="text-white text-sm font-medium">Subiendo...</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {fotos[foto.tipo]?.uploaded && (
+                            <div className="absolute top-2 right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                              <span className="text-white text-lg">✓</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="aspect-video flex flex-col items-center justify-center py-6">
+                          <div className="text-4xl mb-2">📸</div>
+                          <p className="text-white font-medium text-sm">Toca para seleccionar</p>
+                          <p className="text-white/60 text-xs mt-1">JPG, PNG, GIF</p>
+                        </div>
+                      )}
+                    </div>
                   </label>
-                  
-                  {fotos[foto.tipo]?.preview && (
-                    <div className="mt-2">
-                      <img
-                        src={fotos[foto.tipo].preview}
-                        alt="Preview"
-                        className="w-full h-32 object-cover rounded-lg border border-white/20"
-                      />
-                      <div className="mt-2 space-y-1">
-                        {/* Estado de la foto */}
-                        {fotos[foto.tipo].uploading && (
-                          <div className="text-blue-400 text-xs">
-                            ⏳ Subiendo...
-                          </div>
-                        )}
-                        {fotos[foto.tipo].uploaded && (
-                          <div className="text-green-400 text-xs">
-                            ✅ Subida exitosa
-                          </div>
-                        )}
-                        {fotos[foto.tipo].error && (
-                          <div className="text-red-400 text-xs">
-                            ❌ Error: {fotos[foto.tipo].error}
-                          </div>
-                        )}
-                        {/* Información de compresión */}
-                        {fotos[foto.tipo].originalSize && (
-                          <div className="text-white/60 text-xs">
-                            📦 {fotos[foto.tipo].originalSize}MB → {fotos[foto.tipo].compressedSize}MB
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleImageRemove(foto.tipo)}
-                        className="mt-2 w-full bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm"
-                        disabled={isUploading || fotos[foto.tipo]?.uploading}
-                      >
-                        Eliminar foto
-                      </button>
+
+                  {/* Info de compresión y error */}
+                  {fotos[foto.tipo]?.originalSize && (
+                    <div className="mt-2 text-xs text-white/60 flex items-center gap-2">
+                      <span>📦</span>
+                      <span>{fotos[foto.tipo].originalSize}MB → {fotos[foto.tipo].compressedSize}MB</span>
                     </div>
                   )}
+
+                  {fotos[foto.tipo]?.error && (
+                    <div className="mt-2 text-xs text-red-400 flex items-center gap-2">
+                      <span>❌</span>
+                      <span>{fotos[foto.tipo].error}</span>
+                    </div>
+                  )}
+
+                  {/* Botón para eliminar foto */}
+                  {fotos[foto.tipo]?.preview && !fotos[foto.tipo]?.uploading && (
+                    <button
+                      onClick={() => handleImageRemove(foto.tipo)}
+                      className="mt-3 w-full py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition-colors active:scale-[0.98]"
+                      disabled={isUploading}
+                    >
+                      🗑️ Eliminar foto
+                    </button>
+                  )}
                 </div>
-              </div>
-            ))
+              ))
             })()}
           </div>
 
-          {/* Completion Status */}
+          {/* Estado de completado */}
           {isCompleted && (
-            <div className="text-center mb-6">
-              <div className="text-3xl sm:text-4xl lg:text-6xl mb-2 sm:mb-3 lg:mb-4">✅</div>
-              <p className="text-green-400 text-sm sm:text-base lg:text-lg font-medium">
-                ¡Todas las fotos subidas correctamente! Avanzando automáticamente...
+            <div className="bg-green-500/20 backdrop-blur-lg rounded-2xl p-6 border border-green-500/30 text-center">
+              <div className="text-5xl mb-3">✅</div>
+              <p className="text-green-400 text-lg font-bold mb-1">
+                ¡Tarea Completada!
+              </p>
+              <p className="text-green-300/70 text-sm">
+                Avanzando automáticamente...
               </p>
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 sm:gap-3 lg:gap-4 justify-center">
-            {isUploading ? (
-              <div className="text-center w-full">
-                <div className="text-blue-400 text-base font-semibold mb-2">
-                  ⏳ {uploadProgress || 'Subiendo fotos...'}
-                </div>
-                <div className="text-white/60 text-sm mb-2">
-                  Por favor espera mientras se procesan las fotos
-                </div>
-                <div className="text-xs text-white/40">
-                  📤 Enviando fotos una por una para evitar errores
-                </div>
-              </div>
-            ) : isCompleted ? (
-              <div className="text-center">
-                <div className="text-green-400 text-sm sm:text-base lg:text-lg font-medium mb-3">
-                  ✅ Tarea completada
-                </div>
-                <div className="text-blue-400 text-sm font-medium">
-                  ⏳ Avanzando automáticamente...
-                </div>
-              </div>
-            ) : (
-              <div className="text-center w-full">
-                <div className="text-yellow-400 text-base font-semibold mb-2">
-                  📸 Sube todas las fotos requeridas
-                </div>
-                <div className="text-white/60 text-sm">
-                  Cada foto se sube automáticamente al seleccionarla
-                </div>
-                <div className="text-blue-400 text-xs mt-1">
-                  ⚡ Carga progresiva: menos timeouts, mejor experiencia
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+          {/* Mensaje de progreso */}
+          {uploadProgress && !isCompleted && (
+            <div className="bg-blue-500/20 backdrop-blur-lg rounded-2xl p-4 border border-blue-500/30 text-center">
+              <div className="w-6 h-6 border-3 border-blue-400/30 border-t-blue-400 rounded-full animate-spin mx-auto mb-2"></div>
+              <p className="text-blue-400 text-sm font-medium">
+                {uploadProgress}
+              </p>
+              <p className="text-blue-300/70 text-xs mt-1">
+                Por favor espera...
+              </p>
+            </div>
+          )}
 
-        {/* Navigation */}
-        <div className="flex items-center justify-center gap-2 sm:gap-4">
-          <div className="flex space-x-1 sm:space-x-2">
-            {Array.from({ length: totalSteps }, (_, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
-                  index < currentStep - 1 
-                    ? 'bg-green-400' 
+          {/* Indicadores de navegación */}
+          <div className="flex items-center justify-center gap-2 py-4">
+            <div className="flex space-x-1.5">
+              {Array.from({ length: totalSteps }, (_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${index < currentStep - 1
+                    ? 'bg-green-400'
                     : index === currentStep - 1
-                    ? 'bg-blue-400 animate-pulse'
-                    : 'bg-white/30'
-                }`}
-              />
-            ))}
-          </div>
-
-          <div className="text-white/60 text-xs sm:text-sm">
-            {currentStep} / {totalSteps}
+                      ? 'bg-blue-400 w-6'
+                      : 'bg-white/30'
+                    }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

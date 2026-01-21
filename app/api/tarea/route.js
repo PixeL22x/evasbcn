@@ -13,6 +13,19 @@ export async function PUT(request) {
       )
     }
 
+    // Verificar que la tarea existe antes de actualizar
+    const tareaExistente = await prisma.tarea.findUnique({
+      where: { id: tareaId }
+    })
+
+    if (!tareaExistente) {
+      console.warn(`⚠️ Intento de actualizar tarea inexistente: ${tareaId}`)
+      return NextResponse.json(
+        { error: 'Tarea no encontrada. Es posible que esta sesión sea antigua y las tareas ya no existan.' },
+        { status: 404 }
+      )
+    }
+
     // Actualizar la tarea
     const tarea = await prisma.tarea.update({
       where: { id: tareaId },
