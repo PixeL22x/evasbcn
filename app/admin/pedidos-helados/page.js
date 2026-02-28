@@ -228,7 +228,7 @@ export default function PedidosHeladosPage() {
                       pedidos.map((pedido) => {
                         const sabores = parseSabores(pedido.sabores)
                         const totalUnidades = getTotalUnidades(sabores)
-                        
+
                         return (
                           <div key={pedido.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between mb-3">

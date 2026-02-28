@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useToast } from "@/contexts/ToastContext"
+import { generateHoursPDF } from '@/lib/pdfHoursReport'
 import AdminLayout from '../../../components/AdminLayout'
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
@@ -17,7 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, ChevronLeft, ChevronRight, Sun, Moon, Coffee, Save, CalendarCheck, BarChart3, Clock, Settings } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Sun, Moon, Coffee, Save, CalendarCheck, BarChart3, Clock, Settings, FileText } from "lucide-react"
 import { ScheduleSettings } from "@/components/admin/settings/ScheduleSettings"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -111,6 +112,7 @@ export default function HorariosPage() {
   const [saving, setSaving] = useState(false)
   const [savingProgress, setSavingProgress] = useState({ current: 0, total: 0 })
   const [view, setView] = useState('resumen') // 'resumen' o 'planning'
+  const [generatingReport, setGeneratingReport] = useState(false)
 
   // Dynamic Configuration
   const [turnosConfig, setTurnosConfig] = useState(DEFAULT_TURNOS)
@@ -365,6 +367,36 @@ export default function HorariosPage() {
     return { totalMañanas, totalTardes, totalLibres, totalHoras }
   }
 
+  const generateHoursReport = async () => {
+    setGeneratingReport(true)
+    try {
+      // Usar mes y año del estado actual (del selector existente)
+      const response = await fetch(`/api/admin/reports/hours?month=${mes}&year=${anio}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al generar informe')
+      }
+
+      // Generar PDF
+      generateHoursPDF(data)
+
+      toast({
+        title: "Informe generado",
+        description: `Informe de horas de ${monthLabel} generado correctamente`,
+        variant: "default"
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || 'Error al generar informe',
+        variant: "destructive"
+      })
+    } finally {
+      setGeneratingReport(false)
+    }
+  }
+
   const globalStats = getGlobalStats()
 
   return (
@@ -451,6 +483,24 @@ export default function HorariosPage() {
                             >
                               <Settings className="h-3 w-3 md:h-4 md:w-4 mr-2" />
                               Config
+                            </Button>
+                            <Button
+                              onClick={generateHoursReport}
+                              disabled={generatingReport || loading}
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 sm:flex-none whitespace-nowrap border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+                            >
+                              <FileText className="h-3 w-3 md:h-4 md:w-4 mr-2" />
+                              {generatingReport ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-emerald-600 mr-2"></div>
+                                  <span className="hidden sm:inline">Generando...</span>
+                                  <span className="sm:hidden">...</span>
+                                </>
+                              ) : (
+                                'Informe RRHH'
+                              )}
                             </Button>
                           </div>
                         </div>

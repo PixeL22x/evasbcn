@@ -74,6 +74,13 @@ export default function PedidoHelados({ onClose }) {
       return
     }
 
+    // 🔍 DIAGNOSTIC LOGGING
+    console.log('🍦 Pedido de Helados - Debug Info:')
+    console.log('User object:', user)
+    console.log('User ID:', user?.id)
+    console.log('User name:', user?.name)
+    console.log('User role:', user?.role)
+
     setIsSubmitting(true)
 
     try {
@@ -83,19 +90,27 @@ export default function PedidoHelados({ onClose }) {
         emoji: sabor.emoji
       }))
 
+      const requestBody = {
+        trabajadorId: user?.id,
+        sabores: saboresSeleccionados,
+        observaciones: observaciones.trim() || null
+      }
+
+      console.log('📤 Request body:', requestBody)
+
       const response = await fetch('/api/pedidos-helados', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          trabajadorId: user?.id,
-          sabores: saboresSeleccionados,
-          observaciones: observaciones.trim() || null
-        }),
+        body: JSON.stringify(requestBody),
       })
 
+      console.log('📥 Response status:', response.status)
+
       if (response.ok) {
+        const successData = await response.json()
+        console.log('✅ Success response:', successData)
         setShowSuccess(true)
         setTimeout(() => {
           setShowSuccess(false)
@@ -103,10 +118,11 @@ export default function PedidoHelados({ onClose }) {
         }, 2000)
       } else {
         const errorData = await response.json()
+        console.error('❌ Error response:', errorData)
         alert(`Error: ${errorData.error}`)
       }
     } catch (error) {
-      console.error('Error al crear pedido:', error)
+      console.error('💥 Exception al crear pedido:', error)
       alert('Error al crear el pedido. Inténtalo de nuevo.')
     } finally {
       setIsSubmitting(false)

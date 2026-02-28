@@ -17,7 +17,14 @@ export function SiteHeader() {
     await logout()
   }
   return (
-    <header className="sticky top-0 z-50 flex h-14 sm:h-16 shrink-0 items-center gap-2 bg-gradient-to-b from-background to-muted/20 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 border-b border-border/50 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+    <header
+      className="sticky top-0 z-50 flex shrink-0 items-center gap-2 bg-gradient-to-b from-background to-muted/20 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 border-b border-border/50 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12"
+      style={{
+        boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+        paddingTop: 'env(safe-area-inset-top)',
+        minHeight: 'calc(3.5rem + env(safe-area-inset-top))',
+      }}
+    >
       <div className="flex items-center gap-2 px-2 sm:px-4">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />

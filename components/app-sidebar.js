@@ -164,7 +164,7 @@ const data = {
 export function AppSidebar({ variant = "sidebar", ...props }) {
   return (
     <Sidebar variant={variant} {...props}>
-      <SidebarHeader>
+      <SidebarHeader style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="flex items-center gap-2 px-2 py-2">
           <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
             <BarChart3 className="size-4" />
@@ -196,7 +196,7 @@ export function AppSidebar({ variant = "sidebar", ...props }) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
