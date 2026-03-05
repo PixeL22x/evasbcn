@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TurnoApp — Gestión Inteligente para Hostelería · Barcelona</title>
+    <meta name="description"
+        content="El software de gestión para heladerías, pastelerías y cafeterías que sí entiende tu negocio. Fichaje legal, turnos, stock, IA para informes y más. Prueba gratis 30 días." />
+    <meta name="keywords"
+        content="software gestión hostelería barcelona, fichaje electrónico, gestión turnos, heladería, pastelería, cafetería, SaaS hostelería" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #f472b6;
+            --accent: #22d3ee;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg-dark: #06060f;
+            --bg-card: #0d0d1f;
+            --bg-card2: #111128;
+            --border: rgba(99, 102, 241, 0.2);
+            --text: #f0f0ff;
+            --text-muted: #8b8bb0;
+            --gradient-hero: linear-gradient(135deg, #06060f 0%, #0d0d2e 50%, #06060f 100%);
+            --gradient-primary: linear-gradient(135deg, #6366f1, #a855f7, #f472b6);
+            --gradient-card: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.05));
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ===================== NOISE TEXTURE OVERLAY ===================== */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* ===================== NAV ===================== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(6, 6, 15, 0.7);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .nav-logo-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.25rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-cta {
+            background: var(--gradient-primary);
+            color: white !important;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600 !important;
+            font-size: 0.875rem !important;
+            transition: opacity 0.2s, transform 0.2s !important;
+        }
+
+        .nav-cta:hover {
+            opacity: 0.9;
+            transform: translateY(-1px) !important;
+        }
+
+        /* ===================== HERO ===================== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8rem 2rem 5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated glow orbs */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+            animation: pulse-glow 4s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            right: -100px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(ellipse at center, rgba(244, 114, 182, 0.15) 0%, transparent 70%);
+            animation: pulse-glow 5s ease-in-out infinite alternate-reverse;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                opacity: 0.5;
+                transform: translateX(-50%) scale(1);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) scale(1.1);
+            }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            border-radius: 100px;
+            padding: 0.35rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-light);
+            margin-bottom: 2rem;
+            animation: fade-up 0.6s ease both;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            max-width: 900px;
+            margin-bottom: 1.5rem;
+            animation: fade-up 0.7s ease both 0.1s;
+        }
+
+        .hero h1 .gradient-text {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+            animation: fade-up 0.8s ease both 0.2s;
+        }
+
+        .hero-cta-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fade-up 0.9s ease both 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 0.9rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 24px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 0.9rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .hero-trustedby {
+            margin-top: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            animation: fade-up 1s ease both 0.4s;
+        }
+
+        .avatars {
+            display: flex;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-dark);
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            margin-left: -8px;
+        }
+
+        .avatar:first-child {
+            margin-left: 0;
+        }
+
+        /* Hero image */
+        .hero-image-wrapper {
+            position: relative;
+            margin-top: 4rem;
+            width: 100%;
+            max-width: 1000px;
+            animation: fade-up 1s ease both 0.5s;
+        }
+
+        .hero-image-wrapper::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 10%;
+            right: 10%;
+            height: 100px;
+            background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.6) 0%, transparent 70%);
+            filter: blur(20px);
+            z-index: 0;
+        }
+
+        .hero-image {
+            width: 100%;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===================== TRUST BAR ===================== */
+        .trust-bar {
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: rgba(13, 13, 31, 0.6);
+            overflow: hidden;
+        }
+
+        .trust-bar-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .trust-icon {
+            font-size: 1.1rem;
+        }
+
+        /* ===================== SECTIONS ===================== */
+        section {
+            padding: 5rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--primary-light);
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+
+        .section-sub {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 540px;
+            line-height: 1.7;
+        }
+
+        /* ===================== FEATURES ===================== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3.5rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+            cursor: default;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-card);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(99, 102, 241, 0.1);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(34, 211, 238, 0.12);
+            color: var(--accent);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-tag.ai-tag {
+            background: rgba(168, 85, 247, 0.12);
+            color: #c084fc;
+            border-color: rgba(168, 85, 247, 0.2);
+        }
+
+        .feature-tag.legal-tag {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .feature-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* ===================== LEGAL BANNER ===================== */
+        .legal-banner {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(34, 211, 238, 0.05));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            padding: 2.5rem;
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            margin-bottom: 5rem;
+            flex-wrap: wrap;
+        }
+
+        .legal-banner-icon {
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+
+        .legal-banner h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #34d399;
+            margin-bottom: 0.5rem;
+        }
+
+        .legal-banner p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* ===================== HOW IT WORKS ===================== */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            margin-top: 3.5rem;
+        }
+
+        .step {
+            text-align: center;
+        }
+
+        .step-num {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-primary);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin: 0 auto 1rem;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        .step h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+        }
+
+        .step p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* ===================== PRICING ===================== */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3.5rem;
+        }
+
+        .plan-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .plan-card.featured {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.04));
+            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2), 0 20px 40px rgba(99, 102, 241, 0.1);
+        }
+
+        .plan-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-primary);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0.25rem 1rem;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+
+        .plan-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .plan-price span {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .plan-desc {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .plan-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .plan-features li::before {
+            content: '✓';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .plan-cta {
+            width: 100%;
+            padding: 0.85rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+
+        .plan-cta.primary-cta {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+        }
+
+        .plan-cta.primary-cta:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .plan-cta.secondary-cta {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .plan-cta.secondary-cta:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        /* ===================== TESTIMONIAL ===================== */
+        .testimonial-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 800px;
+            margin: 3.5rem auto 0;
+            position: relative;
+        }
+
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: 1rem;
+            left: 2rem;
+            font-size: 6rem;
+            font-family: Georgia, serif;
+            color: rgba(99, 102, 241, 0.15);
+            line-height: 1;
+        }
+
+        .testimonial-text {
+            font-size: 1.15rem;
+            line-height: 1.7;
+            color: var(--text);
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .author-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .author-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .author-role {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .stars {
+            color: #fbbf24;
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+
+        /* ===================== STATS ===================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* ===================== CTA FINAL ===================== */
+        .cta-final {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.04));
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 4rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-final::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 300px;
+            background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cta-final h2 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 900;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .cta-final p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        /* ===================== FOOTER ===================== */
+        footer {
+            padding: 3rem 2rem 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        footer .footer-logo {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+        }
+
+        footer p {
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        /* ===================== ANIMATIONS ===================== */
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===================== MOBILE ===================== */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 7rem 1.25rem 4rem;
+            }
+
+            section {
+                padding: 3.5rem 1.25rem;
+            }
+
+            .legal-banner {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1.75rem;
+                text-align: center;
+            }
+
+            .hero-cta-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Mobile hamburger */
+        .mobile-cta {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-cta {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: var(--gradient-primary);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                font-weight: 700;
+                text-decoration: none;
+                border: none;
+                cursor: pointer;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav id="navbar">
+        <a href="#" class="nav-logo">
+            <div class="nav-logo-icon">🍦</div>
+            <span class="nav-logo-text">TurnoApp</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="#features">Funcionalidades</a></li>
+            <li><a href="#como-funciona">Cómo funciona</a></li>
+            <li><a href="#pricing">Precios</a></li>
+            <li><a href="#contacto" class="nav-cta">Prueba gratis →</a></li>
+        </ul>
+
+        <a href="#contacto" class="mobile-cta">Prueba gratis</a>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-badge">
+            <div class="badge-dot"></div>
+            Hecho para hostelería en Barcelona
+        </div>
+
+        <h1>
+            La gestión de tu local,<br />
+            <span class="gradient-text">ahora con Inteligencia Artificial</span>
+        </h1>
+
+        <p class="hero-sub">
+            Fichaje legal, control de turnos, inventario, informes automáticos con IA y app móvil para tus trabajadores.
+            Todo en un solo lugar. Sin complicaciones.
+        </p>
+
+        <div class="hero-cta-group">
+            <a href="#contacto" class="btn-primary">
+                🚀 Empieza gratis 30 días
+            </a>
+            <a href="#features" class="btn-secondary">
+                Ver funcionalidades ↓
+            </a>
+        </div>
+
+        <div class="hero-trustedby">
+            <div class="avatars">
+                <div class="avatar">👩</div>
+                <div class="avatar">👨</div>
+                <div class="avatar">👩</div>
+                <div class="avatar">👨</div>
+            </div>
+            <span>Usado en heladerías y pastelerías de Barcelona</span>
+        </div>
+
+        <div class="hero-image-wrapper">
+            <img src="hero.png" alt="Dashboard TurnoApp — panel de gestión para hostelería" class="hero-image" />
+        </div>
+    </section>
+
+    <!-- TRUST BAR -->
+    <div class="trust-bar">
+        <div class="trust-bar-inner">
+            <div class="trust-item"><span class="trust-icon">⚖️</span> Fichaje obligatorio por ley desde 2019</div>
+            <div class="trust-item"><span class="trust-icon">🇪🇸</span> Hecho en Barcelona</div>
+            <div class="trust-item"><span class="trust-icon">🤖</span> IA de Google integrada</div>
+            <div class="trust-item"><span class="trust-icon">📱</span> App móvil sin instalación</div>
+            <div class="trust-item"><span class="trust-icon">🔒</span> RGPD compliant</div>
+        </div>
+    </div>
+
+    <!-- LEGAL ALERT -->
+    <section id="legal" style="padding-top: 4rem; padding-bottom: 0;">
+        <div class="container">
+            <div class="legal-banner reveal">
+                <div class="legal-banner-icon">⚠️</div>
+                <div>
+                    <h3>¿Sabías que el fichaje electrónico es obligatorio en España?</h3>
+                    <p>
+                        Desde el <strong style="color: var(--text);">12 de mayo de 2019</strong>, todas las empresas
+                        están obligadas a registrar la jornada diaria de sus trabajadores por ley (RDL 8/2019).
+                        Las multas por incumplimiento van de <strong style="color: var(--text);">626€ a 6.250€</strong>.
+                        TurnoApp cumple con todos los requisitos legales y te protege ante una inspección.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features">
+        <div class="container">
+            <div class="reveal">
+                <div class="section-label">✦ Funcionalidades</div>
+                <h2 class="section-title">Todo lo que tu negocio necesita,<br />en una sola app</h2>
+                <p class="section-sub">Diseñado específicamente para heladerías, pastelerías y cafeterías. No un ERP
+                    genérico.</p>
+            </div>
+
+            <div class="features-grid">
+
+                <div class="feature-card reveal">
+                    <span class="feature-icon">🤖</span>
+                    <div class="feature-tag ai-tag">IA · Google Gemini</div>
+                    <h3>Informes de horas con IA</h3>
+                    <p>La inteligencia artificial analiza las incidencias del mes y ajusta automáticamente las horas de
+                        cada trabajador. Tu contable te lo agradecerá.</p>
+                </div>
+
+                <div class="feature-card reveal">
+                    <span class="feature-icon">📱</span>
+                    <div class="feature-tag">App móvil PWA</div>
+                    <h3>Cierre de turno guiado</h3>
+                    <p>Tus empleados siguen un proceso paso a paso desde su móvil — sin instalar nada. Tareas, fotos,
+                        temperatura y firma digital en cada cierre.</p>
+                </div>
+
+                <div class="feature-card reveal">
+                    <span class="feature-icon">🕰️</span>
+                    <div class="feature-tag legal-tag">Obligatorio por ley</div>
+                    <h3>Fichaje electrónico legal</h3>
+                    <p>Registro de entrada y salida con timestamp verificable. Cumple el RDL 8/2019 y evita sanciones.
+                        Tus datos siempre disponibles para una inspección.</p>
+                </div>
+
+                <div class="feature-card reveal">
+                    <span class="feature-icon">📅</span>
+                    <div class="feature-tag">Gestión RRHH</div>
+                    <h3>Horarios y turnos inteligentes</h3>
+                    <p>Define reglas semanales por trabajador, gestiona excepciones puntuales y aprueba cambios de turno
+                        con un flujo simple. Sin WhatsApp.</p>
+                </div>
+
+                <div class="feature-card reveal">
+                    <span class="feature-icon">📦</span>
+                    <div class="feature-tag">Operaciones</div>
+                    <h3>Inventario en tiempo real</h3>
+                    <p>Control de stock con alertas de mínimo, movimientos de entrada y salida, y seguimiento de mermas.
+                        Los trabajadores actualizan desde su móvil.</p>
+                </div>
+
+                <div class="feature-card reveal">
+                    <span class="feature-icon">🧾</span>
+                    <div class="feature-tag ai-tag">IA · Escaneo</div>
+                    <h3>Facturas y tickets con IA</h3>
+                    <p>Escanea tus facturas de proveedores y tickets del día con la cámara. La IA extrae automáticamente
+                        los importes, productos y datos fiscales.</p>
+                </div>
+
+                <div class="feature-card reveal">
+                    <span class="feature-icon">🌡️</span>
+                    <div class="feature-tag">Trazabilidad</div>
+                    <h3>Control de temperatura</h3>
+                    <p>Registro fotográfico de temperatura de vitrinas con hora, fecha y trabajador responsable.
+                        Esencial para tu APPCC y auditorías sanitarias.</p>
+                </div>
+
+                <div class="feature-card reveal">
+                    <span class="feature-icon">📊</span>
+                    <div class="feature-tag">Analytics</div>
+                    <h3>Dashboard con KPIs en tiempo real</h3>
+                    <p>Ventas diarias, horas trabajadas, reseñas de clientes, evolución del stock. Todo visible en un
+                        panel limpio y responsive.</p>
+                </div>
+
+                <div class="feature-card reveal">
+                    <span class="feature-icon">📄</span>
+                    <div class="feature-tag">Reportes</div>
+                    <h3>PDFs automáticos</h3>
+                    <p>Genera informes de horas, nóminas, cierres de turno y estadísticas en formato PDF con un clic.
+                        Listo para enviar a tu gestoría.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <section style="padding-top: 0;">
+        <div class="container">
+            <div class="stats-grid reveal">
+                <div class="stat-card">
+                    <div class="stat-value">~50%</div>
+                    <div class="stat-label">Tiempo ahorrado en gestión administrativa mensual</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">0€</div>
+                    <div class="stat-label">Coste de hardware — solo necesitas el móvil que ya tienes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">24/7</div>
+                    <div class="stat-label">Acceso desde cualquier dispositivo, sin instalación</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">Cumplimiento con la ley de registro de jornada</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="como-funciona">
+        <div class="container">
+            <div class="reveal">
+                <div class="section-label">✦ Cómo funciona</div>
+                <h2 class="section-title">Configurado y funcionando<br />en menos de un día</h2>
+            </div>
+
+            <div class="steps">
+                <div class="step reveal">
+                    <div class="step-num">1</div>
+                    <h3>Crea tu cuenta</h3>
+                    <p>Registro en 2 minutos. Añade tu negocio, logo y trabajadores.</p>
+                </div>
+                <div class="step reveal">
+                    <div class="step-num">2</div>
+                    <h3>Configura los horarios</h3>
+                    <p>Define los turnos semanales de cada empleado. Se adapta a cualquier timetable.</p>
+                </div>
+                <div class="step reveal">
+                    <div class="step-num">3</div>
+                    <h3>Tus empleados fichan</h3>
+                    <p>Acceden desde su móvil con contraseña. Sin app que instalar. Solo el navegador.</p>
+                </div>
+                <div class="step reveal">
+                    <div class="step-num">4</div>
+                    <h3>Tú gestionas todo</h3>
+                    <p>Panel admin centralizado. Aprueba cambios, ve reportes, genera PDFs con IA.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIAL -->
+    <section>
+        <div class="container">
+            <div class="reveal" style="text-align: center;">
+                <div class="section-label">✦ Caso de éxito</div>
+                <h2 class="section-title">Un negocio real, resultados reales</h2>
+            </div>
+
+            <div class="testimonial-card reveal">
+                <p class="testimonial-text">
+                    Antes gestionaba los turnos por WhatsApp y el fichaje era un papel en la pared. Ahora mis
+                    trabajadoras fichan desde el móvil, tengo el cierre del turno documentado con fotos y el informe de
+                    horas del mes me lo genera en un clic con IA. He ahorrado horas cada semana.
+                </p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">🍦</div>
+                    <div>
+                        <div class="stars">★★★★★</div>
+                        <div class="author-name">Eva · Propietaria</div>
+                        <div class="author-role">Heladería Artesana · Barcelona</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="pricing">
+        <div class="container">
+            <div class="reveal" style="text-align: center;">
+                <div class="section-label">✦ Precios</div>
+                <h2 class="section-title">Simple y transparente. Sin sorpresas.</h2>
+                <p class="section-sub" style="margin: 0 auto 1rem;">Prueba cualquier plan gratis 30 días. Sin tarjeta de
+                    crédito.</p>
+            </div>
+
+            <div class="pricing-grid">
+
+                <!-- Básico -->
+                <div class="plan-card reveal">
+                    <div class="plan-name">Básico</div>
+                    <div class="plan-price">49€ <span>/ mes</span></div>
+                    <p class="plan-desc">Para negocios pequeños que empiezan a organizarse.</p>
+                    <ul class="plan-features">
+                        <li>1 local</li>
+                        <li>Hasta 5 trabajadores</li>
+                        <li>Fichaje electrónico legal</li>
+                        <li>Gestión de turnos</li>
+                        <li>App móvil PWA</li>
+                        <li>Inventario básico</li>
+                        <li>Soporte por email</li>
+                    </ul>
+                    <a href="#contacto" class="plan-cta secondary-cta">Empezar gratis →</a>
+                </div>
+
+                <!-- Pro (featured) -->
+                <div class="plan-card featured reveal">
+                    <div class="plan-badge">⭐ Más popular</div>
+                    <div class="plan-name">Pro</div>
+                    <div class="plan-price">89€ <span>/ mes</span></div>
+                    <p class="plan-desc">Para negocios que quieren sacar partido a la IA.</p>
+                    <ul class="plan-features">
+                        <li>1 local</li>
+                        <li>Hasta 15 trabajadores</li>
+                        <li>Todo lo del plan Básico</li>
+                        <li>IA para informes de horas</li>
+                        <li>Escaneo de facturas con IA</li>
+                        <li>Control de temperatura APPCC</li>
+                        <li>Generación de PDFs</li>
+                        <li>Dashboard avanzado con KPIs</li>
+                        <li>Soporte prioritario WhatsApp</li>
+                    </ul>
+                    <a href="#contacto" class="plan-cta primary-cta">Empezar gratis →</a>
+                </div>
+
+                <!-- Multi-local -->
+                <div class="plan-card reveal">
+                    <div class="plan-name">Multi-local</div>
+                    <div class="plan-price">149€ <span>/ mes</span></div>
+                    <p class="plan-desc">Para cadenas o negocios con varios puntos de venta.</p>
+                    <ul class="plan-features">
+                        <li>Hasta 3 locales</li>
+                        <li>Trabajadores ilimitados</li>
+                        <li>Todo lo del plan Pro</li>
+                        <li>Analíticas multi-local</li>
+                        <li>Dashboard consolidado</li>
+                        <li>Gestión centralizada de RRHH</li>
+                        <li>Onboarding personal</li>
+                        <li>Soporte dedicado</li>
+                    </ul>
+                    <a href="#contacto" class="plan-cta secondary-cta">Contactar →</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section id="contacto">
+        <div class="container">
+            <div class="cta-final reveal">
+                <h2>¿Listo para modernizar tu negocio?</h2>
+                <p>Empieza gratis durante 30 días. Sin compromiso. Sin tarjeta de crédito.<br />Te ayudamos a
+                    configurarlo todo en menos de un día.</p>
+
+                <div class="hero-cta-group" style="justify-content: center;">
+                    <a href="mailto:hola@turnoapp.es?subject=Quiero%20probar%20TurnoApp" class="btn-primary">
+                        📩 Solicitar demo gratuita
+                    </a>
+                    <a href="https://wa.me/34600000000?text=Hola%2C%20quiero%20probar%20TurnoApp%20para%20mi%20negocio"
+                        class="btn-secondary" target="_blank">
+                        💬 Hablar por WhatsApp
+                    </a>
+                </div>
+
+                <p style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                    ✓ Respuesta en menos de 24h &nbsp;·&nbsp; ✓ Onboarding incluido &nbsp;·&nbsp; ✓ Sin permanencia
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-logo">🍦 TurnoApp</div>
+        <p>Gestión inteligente para hostelería · Hecho en Barcelona, España</p>
+        <div class="footer-links">
+            <a href="#">Funcionalidades</a>
+            <a href="#">Precios</a>
+            <a href="#">Política de privacidad</a>
+            <a href="#">Aviso legal</a>
+            <a href="mailto:hola@turnoapp.es">Contacto</a>
+        </div>
+        <p style="margin-top: 1rem;">© 2026 TurnoApp · <a href="mailto:hola@turnoapp.es">hola@turnoapp.es</a></p>
+    </footer>
+
+    <script>
+        // Smooth scroll reveal
+        const reveals = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, i * 60);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.08 });
+        reveals.forEach(el => observer.observe(el));
+
+        // Nav scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 80) {
+                navbar.style.background = 'rgba(6,6,15,0.95)';
+            } else {
+                navbar.style.background = 'rgba(6,6,15,0.7)';
+            }
+        });
+
+        // Animate numbers
+        function animateValue(el, start, end, duration, suffix = '') {
+            let startTime = null;
+            const step = (timestamp) => {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                const value = Math.floor(progress * (end - start) + start);
+                el.textContent = value + suffix;
+                if (progress < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+        }
+    </script>
+
+</body>
+
+</html>
