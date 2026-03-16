@@ -11,6 +11,8 @@ import StockWorker from '../components/StockWorker'
 import TemperaturaVitrina from '../components/TemperaturaVitrina'
 import ResenaWorker from '../components/ResenaWorker'
 import ControlTartas from '../components/ControlTartas'
+import ControlMasas from '../components/ControlMasas'
+import ListaCompras from '../components/ListaCompras'
 import PendingClosureModal from '../components/PendingClosureModal'  // ⭐ NUEVO
 import BottomNav from '../components/worker/BottomNav'
 import MoreMenuSheet from '../components/worker/MoreMenuSheet'
@@ -31,6 +33,8 @@ export default function Home() {
   const [showTemperaturaVitrina, setShowTemperaturaVitrina] = useState(false)
   const [showResenaWorker, setShowResenaWorker] = useState(false)
   const [showControlTartas, setShowControlTartas] = useState(false)
+  const [showControlMasas, setShowControlMasas] = useState(false)
+  const [showListaCompras, setShowListaCompras] = useState(false)
   const [currentView, setCurrentView] = useState('home')
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [cierreId, setCierreId] = useState(null)
@@ -335,6 +339,12 @@ export default function Home() {
       case 'tartas':
         setShowControlTartas(true)
         break
+      case 'masas':
+        setShowControlMasas(true)
+        break
+      case 'lista-compras':
+        setShowListaCompras(true)
+        break
     }
   }
 
@@ -624,6 +634,16 @@ export default function Home() {
         {/* Modal de Control de Tartas */}
         {showControlTartas && (
           <ControlTartas onClose={() => setShowControlTartas(false)} />
+        )}
+
+        {/* Modal de Control de Masas */}
+        {showControlMasas && (
+          <ControlMasas onClose={() => setShowControlMasas(false)} />
+        )}
+
+        {/* Modal de Lista de Compras */}
+        {showListaCompras && (
+          <ListaCompras onClose={() => setShowListaCompras(false)} />
         )}
 
         {/* Bottom Navigation - Solo móvil */}

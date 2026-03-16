@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect, useMemo } from "react"
 import { useToast } from "@/contexts/ToastContext"
@@ -36,7 +36,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Clock, CheckCircle, XCircle, Eye, Trash2, Calendar, Search, X, Edit, Save, Sun, Moon, ChevronLeft, ChevronRight, RotateCw, ZoomIn, ZoomOut, User, Euro, ListTodo, Maximize2, ImageIcon, MoreVertical, TrendingUp } from "lucide-react"
+import { Clock, CheckCircle, XCircle, Eye, Trash2, Calendar, Search, X, Edit, Save, Sun, Moon, ChevronLeft, ChevronRight, RotateCw, ZoomIn, ZoomOut, User, Euro, ListTodo, Maximize2, ImageIcon, MoreVertical, TrendingUp, Zap } from "lucide-react"
 import { Label } from "@/components/ui/label"
 
 export default function CierresPage() {
@@ -55,6 +55,13 @@ export default function CierresPage() {
   const [lightboxImage, setLightboxImage] = useState(null)
   const [rotation, setRotation] = useState(0)
   const [zoom, setZoom] = useState(1)
+
+  // Forzar Cierre
+  const [showForzarModal, setShowForzarModal] = useState(false)
+  const [forzarCierre, setForzarCierre] = useState(null)
+  const [forzarVentas, setForzarVentas] = useState('')
+  const [forzarTelegram, setForzarTelegram] = useState(true)
+  const [forzando, setForzando] = useState(false)
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1)
@@ -263,6 +270,44 @@ export default function CierresPage() {
     setTurnoFilter("todos")
     setDateRangeFilter("todos")
     setCurrentPage(1)
+  }
+
+  const handleForzarCierre = (cierre) => {
+    setForzarCierre(cierre)
+    setForzarVentas(cierre.totalVentas ?? '')
+    setForzarTelegram(true)
+    setShowForzarModal(true)
+  }
+
+  const handleConfirmForzar = async () => {
+    if (!forzarCierre) return
+    setForzando(true)
+    try {
+      const res = await fetch(`/api/cierre/${forzarCierre.id}/forzar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          totalVentas: forzarVentas !== '' ? parseFloat(forzarVentas) : undefined,
+          enviarTelegram: forzarTelegram
+        })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        await fetchCierres()
+        setShowForzarModal(false)
+        toast({
+          title: '⚡ Cierre forzado',
+          description: `Cierre de ${forzarCierre.trabajador} completado${data.telegramSent ? ' · Telegram enviado ✓' : ''}`,
+          variant: 'default'
+        })
+      } else {
+        toast({ title: 'Error', description: data.error || 'Error al forzar cierre', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Error de conexión', variant: 'destructive' })
+    } finally {
+      setForzando(false)
+    }
   }
 
   const hasActiveFilters = searchTerm.trim() || turnoFilter !== "todos" || dateRangeFilter !== "todos"
@@ -540,6 +585,14 @@ export default function CierresPage() {
                                       <DropdownMenuItem onClick={() => handleEditCierre(cierre)}>
                                         <Edit className="mr-2 h-4 w-4" /> Editar
                                       </DropdownMenuItem>
+                                      {!cierre.completado && (
+                                        <DropdownMenuItem
+                                          onClick={() => handleForzarCierre(cierre)}
+                                          className="text-amber-600 focus:text-amber-600 dark:text-amber-400"
+                                        >
+                                          <Zap className="mr-2 h-4 w-4" /> Forzar Cierre
+                                        </DropdownMenuItem>
+                                      )}
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem
                                         onClick={() => handleDeleteCierre(cierre.id)}
@@ -1072,6 +1125,52 @@ export default function CierresPage() {
                               </Button>
                             </div>
                           </form>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                  {/* Modal Forzar Cierre */}
+                  {showForzarModal && forzarCierre && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                      <Card className="w-full max-w-md shadow-2xl border-0 ring-1 ring-amber-500/30">
+                        <CardHeader className="border-b bg-amber-50/80 dark:bg-amber-900/20 pb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                              <Zap className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg text-amber-800 dark:text-amber-300">Forzar Cierre</CardTitle>
+                              <CardDescription className="text-amber-600/80 dark:text-amber-400/70 text-xs mt-0.5">Completara el cierre manualmente</CardDescription>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-5 space-y-4">
+                          <div className="rounded-xl bg-muted/50 border px-4 py-3 text-sm space-y-1">
+                            <div className="flex justify-between"><span className="text-muted-foreground">Trabajador</span><span className="font-semibold">{forzarCierre.trabajador}</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Turno</span><span className="font-semibold capitalize">{forzarCierre.turno}</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Inicio</span><span className="font-semibold">{formatDate(forzarCierre.fechaInicio)}</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Progreso tareas</span><span className="font-semibold">{forzarCierre.tareas?.filter(t => t.completada).length ?? 0}/{forzarCierre.tareas?.length ?? 0}</span></div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="forzar-ventas" className="text-sm">Total de ventas (euro) <span className="text-muted-foreground font-normal">opcional</span></Label>
+                            <Input id="forzar-ventas" type="number" min="0" step="0.01" value={forzarVentas} onChange={e => setForzarVentas(e.target.value)} placeholder="Ej: 1250.50" />
+                            <p className="text-xs text-muted-foreground">{forzarCierre.totalVentas ? `Valor actual: EUR${forzarCierre.totalVentas}` : 'Sin ventas registradas'}</p>
+                          </div>
+                          <div className="flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setForzarTelegram(!forzarTelegram)}>
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-lg">✈️</span>
+                              <div><p className="text-sm font-medium">Notificacion Telegram</p><p className="text-xs text-muted-foreground">Marcado como Cierre Forzado</p></div>
+                            </div>
+                            <div className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${forzarTelegram ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}>
+                              <div className={`w-5 h-5 bg-white rounded-full shadow transition-all ${forzarTelegram ? 'translate-x-5' : ''}`} />
+                            </div>
+                          </div>
+                          <div className="flex gap-2 pt-1">
+                            <Button onClick={handleConfirmForzar} disabled={forzando} className="flex-1 bg-amber-600 hover:bg-amber-700 text-white">
+                              {forzando ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />Forzando...</> : <><Zap className="h-4 w-4 mr-2" />Forzar Cierre</>}
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowForzarModal(false)} disabled={forzando}>Cancelar</Button>
+                          </div>
                         </CardContent>
                       </Card>
                     </div>

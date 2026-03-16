@@ -20,6 +20,7 @@ import {
   Star,
   ChevronRight,
   Receipt,
+  ShoppingCart,
 } from "lucide-react"
 
 import {
@@ -92,6 +93,11 @@ const data = {
       title: "Pedidos Helados",
       url: "/admin/pedidos-helados",
       icon: IceCream,
+    },
+    {
+      title: "Lista de Compras",
+      url: "/admin/lista-compras",
+      icon: ShoppingCart,
     },
     {
       title: "Control Stocks",

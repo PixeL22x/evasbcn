@@ -42,6 +42,20 @@ export default function MoreMenuSheet({ onClose, onNavigate }) {
             color: 'from-rose-500 to-pink-500'
         },
         {
+            id: 'masas',
+            icon: '🧇',
+            label: 'Control Masas',
+            description: 'Waffle & Creps en frío',
+            color: 'from-amber-500 to-orange-500'
+        },
+        {
+            id: 'lista-compras',
+            icon: '🛒',
+            label: 'Lista de Compras',
+            description: 'Lista compartida del equipo',
+            color: 'from-emerald-500 to-teal-500'
+        },
+        {
             id: 'resenas',
             icon: '⭐',
             label: 'Reseñas',

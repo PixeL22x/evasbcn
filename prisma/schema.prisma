@@ -71,6 +71,8 @@ model Trabajador {
   registrosTemperatura RegistroTemperatura[]
   resenas   Resena[]
   loteTartas LoteTarta[]
+  loteMasas  LoteMasa[]
+  itemsCompra ItemCompra[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -346,3 +348,46 @@ model LineaFactura {
   createdAt       DateTime @default(now())
 }
 
+// ============================================
+// CONTROL DE MASAS – WAFFLE & CREPS
+// ============================================
+
+model TipoMasa {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre    String   @unique // "Waffle", "Creps"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LoteMasa {
+  id                 String     @id @default(auto()) @map("_id") @db.ObjectId
+  numero             Int?       // Número de lote secuencial (para marcar físicamente)
+  tipo               String     // "Waffle" o "Creps"
+  fechaElaboracion   DateTime   // Fecha/hora de elaboración
+  fechaLimite        DateTime   // fechaElaboracion + 3 días
+  estado             String     @default("activo") // "activo", "finalizado", "merma"
+  trabajadorId       String     @db.ObjectId
+  trabajador         Trabajador @relation(fields: [trabajadorId], references: [id])
+  motivoFinalizacion String?    // "finalizado" o "merma"
+  fechaFinalizacion  DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+
+// ============================================
+// LISTA DE COMPRAS
+// ============================================
+
+model ItemCompra {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  nombre       String
+  cantidad     Float?     // número ej. 2
+  unidad       String?    // "kg", "L", "unidades", "botes"...
+  urgente      Boolean    @default(false)
+  estado       String     @default("pendiente") // "pendiente" | "comprado"
+  trabajadorId String     @db.ObjectId
+  trabajador   Trabajador @relation(fields: [trabajadorId], references: [id])
+  creadoAt     DateTime   @default(now())
+  compradoAt   DateTime?
+}

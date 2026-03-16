@@ -19,6 +19,7 @@ import { WorkersSettings } from "@/components/admin/settings/WorkersSettings"
 import { SystemSettings } from "@/components/admin/settings/SystemSettings"
 import { settingsSchema } from "@/components/admin/settings/schemas"
 import { ScheduleSettings } from "@/components/admin/settings/ScheduleSettings"
+import { StorageMonitor } from "@/components/admin/settings/StorageMonitor"
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
@@ -281,6 +282,11 @@ export default function SettingsPage() {
 
                   </form>
                 </FormProvider>
+
+                {/* Storage Monitor — fuera del form, no es un setting guardable */}
+                <div className="mt-6">
+                  <StorageMonitor />
+                </div>
               </div>
             </main>
           </div>
