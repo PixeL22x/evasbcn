@@ -121,45 +121,48 @@ export default function Home() {
     }
   }
 
-  // ⭐ NUEVO: Función para continuar cierre pendiente
-  function handleContinuePendingCierre() {
+  // Función para continuar cierre pendiente — hace fresh fetch para datos actualizados
+  async function handleContinuePendingCierre() {
     if (!pendingCierreData) return
 
-    const { cierre, totalTareas } = pendingCierreData
-
-    console.log('✅ Restaurando sesión desde BD...')
-    setCierreId(cierre.id)
-    setWorkerName(cierre.trabajador)
-    setTasks(cierre.tareas)
-
-    const firstPendingIndex = cierre.tareas.findIndex(t => !t.completada)
-    setCurrentStep(firstPendingIndex !== -1 ? firstPendingIndex + 1 : 1)
-
-    setGameStarted(true)
-    setStartTime(new Date(cierre.fechaInicio).getTime())
-
-    console.log(`✅ Sesión restaurada: Paso ${firstPendingIndex + 1}/${totalTareas}`)
-
+    const cierreIdToResume = pendingCierreData.cierre.id
     setShowPendingModal(false)
     setPendingCierreData(null)
+    setLoadingTasks(true)
+
+    try {
+      // Fresh fetch: datos actualizados al momento de continuar
+      const res = await fetch(`/api/cierre/${cierreIdToResume}`)
+      if (!res.ok) throw new Error('No se pudo cargar el cierre')
+      const { cierre } = await res.json()
+
+      const firstPendingIndex = cierre.tareas.findIndex(t => !t.completada)
+
+      setCierreId(cierre.id)
+      setWorkerName(cierre.trabajador)
+      setTasks(cierre.tareas)
+      setCurrentStep(firstPendingIndex !== -1 ? firstPendingIndex + 1 : 1)
+      setStartTime(new Date(cierre.fechaInicio).getTime())
+      setLoadingTasks(false)
+      setGameStarted(true)
+
+      console.log(`✅ Cierre reanudado: paso ${firstPendingIndex + 1}/${cierre.tareas.length}`)
+    } catch (err) {
+      console.error('❌ Error al reanudar cierre:', err)
+      setLoadingTasks(false)
+    }
   }
 
   function handleNewCierre() {
-    console.log('🆕 Usuario eligió iniciar nuevo cierre')
-
-    // Registrar que el usuario rechazó continuar el cierre pendiente
     if (pendingCierreData?.cierre?.id) {
+      // Eliminar el cierre abandonado para no generar zombies en BD
       fetch(`/api/cierre/${pendingCierreData.cierre.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          observaciones: `Usuario eligió iniciar nuevo cierre en lugar de continuar (${new Date().toLocaleString('es-ES')})`
-        })
-      }).catch(err => console.error('Error al registrar rechazo:', err))
+        method: 'DELETE'
+      }).catch(err => console.error('Error al eliminar cierre abandonado:', err))
     }
-
     setShowPendingModal(false)
     setPendingCierreData(null)
+    setShowWorkerForm(true)  // Abrir directamente el formulario de nuevo cierre
   }
 
   function handleCloseModal() {
@@ -169,7 +172,14 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (isAllCompleted && gameStarted) {
+    if (isAllCompleted && gameStarted && cierreId) {
+      // Marcar el cierre como completado en BD (cubre el caso de resume donde
+      // handleNext nunca llegó al else-branch porque la conexión falló)
+      fetch(`/api/cierre/${cierreId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completado: true, fechaFin: new Date() })
+      }).catch(err => console.error('Error auto-completando cierre:', err))
       setShowCelebration(true)
     }
   }, [isAllCompleted, gameStarted])
@@ -256,7 +266,13 @@ export default function Home() {
 
 
   const handleStartGame = () => {
-    setShowWorkerForm(true)
+    // Si hay cierre pendiente, mostrar el modal de recuperación
+    // en lugar de crear uno nuevo (evita cierres zombie)
+    if (pendingCierreData) {
+      setShowPendingModal(true)
+    } else {
+      setShowWorkerForm(true)
+    }
   }
 
   const handleWorkerSubmit = async (newCierreId, newWorkerName, turno) => {
@@ -422,7 +438,19 @@ export default function Home() {
     )
   }
 
-  // Pantalla de inicio
+  // Modal de cierre pendiente — early return propio (sin Fragment, evita error React)
+  if (showPendingModal && pendingCierreData) {
+    return (
+      <PendingClosureModal
+        isOpen={true}
+        onClose={handleCloseModal}
+        onContinue={handleContinuePendingCierre}
+        onNewClosure={handleNewCierre}
+        cierreData={pendingCierreData}
+      />
+    )
+  }
+
   if (!gameStarted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex flex-col">
@@ -500,9 +528,12 @@ export default function Home() {
                         <p className="text-yellow-800 text-xs mb-2">
                           Cierre de <span className="font-semibold">{pendingCierreData.turno.toUpperCase()}</span> • {pendingCierreData.tareasCompletadas}/{pendingCierreData.totalTareas} tareas ({pendingCierreData.progreso}%)
                         </p>
-                        <p className="text-yellow-700 text-xs italic">
-                          💡 Haz click en "Iniciar Cierre" para continuar
-                        </p>
+                        <button
+                          onClick={() => setShowPendingModal(true)}
+                          className="text-xs font-semibold text-yellow-700 underline underline-offset-2"
+                        >
+                          → Reanudar cierre pendiente
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -746,6 +777,8 @@ export default function Home() {
           {showTemperaturaVitrina && (
             <TemperaturaVitrina onClose={() => setShowTemperaturaVitrina(false)} />
           )}
+
+          {/* Modal de cierre pendiente — en el home state (ver !gameStarted block) */}
         </div>
       </div>
     )
@@ -814,14 +847,7 @@ export default function Home() {
         <TemperaturaVitrina onClose={() => setShowTemperaturaVitrina(false)} />
       )}
 
-      {/* ⭐ NUEVO: Modal de recuperación de cierre pendiente */}
-      <PendingClosureModal
-        isOpen={showPendingModal}
-        onClose={handleCloseModal}
-        onContinue={handleContinuePendingCierre}
-        onNewClosure={handleNewCierre}
-        cierreData={pendingCierreData}
-      />
+      {/* PendingClosureModal está en el home state, no aquí */}
     </>
   )
 }

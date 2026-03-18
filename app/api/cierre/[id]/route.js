@@ -103,3 +103,28 @@ export async function PUT(request, { params }) {
     )
   }
 }
+
+// Eliminar cierre (usado cuando el worker abandona y elige iniciar uno nuevo)
+export async function DELETE(request, { params }) {
+  try {
+    const { id } = await params
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
+    }
+
+    // Prisma elimina las Tareas en cascada si está configurado,
+    // si no, las eliminamos manualmente primero
+    await prisma.tarea.deleteMany({ where: { cierreId: id } })
+    await prisma.cierre.delete({ where: { id } })
+
+    console.log(`🗑️ Cierre ${id} eliminado (trabajador inició nuevo cierre)`)
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return NextResponse.json({ error: 'Cierre no encontrado' }, { status: 404 })
+    }
+    console.error('Error al eliminar cierre:', error)
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+  }
+}
