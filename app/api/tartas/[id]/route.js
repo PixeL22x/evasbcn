@@ -86,3 +86,18 @@ export async function PUT(request, { params }) {
         return NextResponse.json({ error: 'Error al finalizar lote' }, { status: 500 })
     }
 }
+
+// DELETE - Eliminar lote (entrada por error)
+export async function DELETE(request, { params }) {
+    try {
+        const { id } = await params
+        await prisma.loteTarta.delete({ where: { id } })
+        return NextResponse.json({ ok: true })
+    } catch (error) {
+        if (error.code === 'P2025') {
+            return NextResponse.json({ error: 'Lote no encontrado' }, { status: 404 })
+        }
+        console.error('Error al eliminar lote de tarta:', error)
+        return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+    }
+}

@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Receipt,
   ShoppingCart,
+  Layers,
 } from "lucide-react"
 
 import {
@@ -98,6 +99,11 @@ const data = {
       title: "Lista de Compras",
       url: "/admin/lista-compras",
       icon: ShoppingCart,
+    },
+    {
+      title: "Control Producción",
+      url: "/admin/masas",
+      icon: Layers,
     },
     {
       title: "Control Stocks",
