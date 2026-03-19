@@ -273,7 +273,7 @@ export default function ControlProduccionPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h1 className="text-xl font-bold md:text-2xl">🧇 Control de Producción</h1>
-                <p className="text-sm text-muted-foreground">Masas (waffles & creps) y tartas en cámara</p>
+                <p className="text-sm text-muted-foreground">Masas (waffles & creps) y tartas en vitrina</p>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Filtro toggle */}
@@ -320,7 +320,7 @@ export default function ControlProduccionPage() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {tab === "masas"
                     ? "Lotes de masa — Waffles & Creps · máx 3 días"
-                    : "Lotes de tarta en cámara · máx 4 días"}
+                    : "Lotes de tarta en vitrina fría · máx 4 días"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
