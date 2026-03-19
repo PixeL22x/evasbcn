@@ -22,6 +22,7 @@ import {
   Receipt,
   ShoppingCart,
   Layers,
+  ClipboardCheck,
 } from "lucide-react"
 
 import {
@@ -104,6 +105,11 @@ const data = {
       title: "Control Producción",
       url: "/admin/masas",
       icon: Layers,
+    },
+    {
+      title: "Tareas Asignadas",
+      url: "/admin/tareas",
+      icon: ClipboardCheck,
     },
     {
       title: "Control Stocks",

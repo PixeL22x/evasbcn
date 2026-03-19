@@ -73,6 +73,7 @@ model Trabajador {
   loteTartas LoteTarta[]
   loteMasas  LoteMasa[]
   itemsCompra ItemCompra[]
+  tareasAsignadas TareaAsignada[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -391,3 +392,25 @@ model ItemCompra {
   creadoAt     DateTime   @default(now())
   compradoAt   DateTime?
 }
+
+// ─── Tareas Asignadas por el Admin ─────────────────────────────────────────
+model TareaAsignada {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  titulo       String
+  descripcion  String?
+  categoria    String     @default("limpieza")
+  // limpieza | mantenimiento | reposicion | higiene | otro
+  prioridad    String     @default("normal")
+  // baja | normal | alta | urgente
+  estado       String     @default("pendiente")
+  // pendiente | completada
+  trabajadorId String     @db.ObjectId
+  trabajador   Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Cascade)
+  creadaPor    String     // Nombre del admin
+  fechaLimite  DateTime?
+  completadaAt DateTime?
+  notasWorker  String?    // Nota del worker al completar
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+

@@ -78,7 +78,8 @@ async function obtenerComparativaVentas(fechaFin, trabajador, turno) {
 
 export async function POST(request) {
   try {
-    const { cierreId, trabajador, turno, totalVentas, fechaFin } = await request.json()
+    const body = await request.json()
+    const { cierreId, trabajador, turno, totalVentas, fechaFin, message } = body
 
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
       console.log('⚠️ Variables de Telegram no configuradas')
@@ -101,6 +102,31 @@ export async function POST(request) {
       }, { status: 200 })
     }
 
+    // ─── Mensaje genérico (tareas asignadas u otros usos) ───────────────────
+    if (!cierreId && message) {
+      const telegramResponse = await fetch(
+        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: TELEGRAM_CHAT_ID,
+            text: message,
+            parse_mode: 'Markdown',
+            disable_web_page_preview: true
+          })
+        }
+      )
+      if (!telegramResponse.ok) {
+        const err = await telegramResponse.json()
+        console.error('❌ Error enviando mensaje genérico a Telegram:', err)
+        return NextResponse.json({ error: 'Error enviando a Telegram' }, { status: 500 })
+      }
+      console.log('✅ Mensaje genérico enviado a Telegram')
+      return NextResponse.json({ message: 'Notificación enviada', telegramSent: true })
+    }
+
+    // ─── Notificación de cierre completado (flujo original) ─────────────────
     // Obtener comparativa con el día anterior
     const comparativa = await obtenerComparativaVentas(fechaFin, trabajador, turno)
 

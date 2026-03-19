@@ -16,6 +16,7 @@ import ListaCompras from '../components/ListaCompras'
 import PendingClosureModal from '../components/PendingClosureModal'  // ⭐ NUEVO
 import BottomNav from '../components/worker/BottomNav'
 import MoreMenuSheet from '../components/worker/MoreMenuSheet'
+import MisTareas from '../components/worker/MisTareas'
 import WorkerDashboardWidgetsLight from '../components/worker/DashboardWidgetsLight'
 
 
@@ -45,6 +46,8 @@ export default function Home() {
   const [hasCheckedPending, setHasCheckedPending] = useState(false)  // ⭐ NUEVO: Flag para evitar múltiples checks
   const [showPendingModal, setShowPendingModal] = useState(false)  // ⭐ NUEVO: Controlar modal
   const [pendingCierreData, setPendingCierreData] = useState(null)  // ⭐ NUEVO: Datos del cierre pendiente
+  const [showMisTareas, setShowMisTareas] = useState(false)  // Mis tareas asignadas
+  const [tareasCount, setTareasCount] = useState(0)  // Contador de tareas pendientes
 
   const totalTasks = tasks.length
   const currentTask = tasks[currentStep - 1]
@@ -81,6 +84,16 @@ export default function Home() {
       checkForPendingCierre()
     }
   }, [loading, isAuthenticated, user?.role, hasCheckedPending])
+
+  // Fetch tareas asignadas pendientes (badge count)
+  useEffect(() => {
+    if (!loading && isAuthenticated() && user?.role === 'worker' && user?.id) {
+      fetch(`/api/tareas-asignadas?trabajadorId=${user.id}&estado=pendiente`)
+        .then(r => r.ok ? r.json() : [])
+        .then(data => setTareasCount(Array.isArray(data) ? data.length : 0))
+        .catch(() => {})
+    }
+  }, [loading, isAuthenticated, user?.role, user?.id])
 
   // ⭐ NUEVO: Función para verificar cierres pendientes
   async function checkForPendingCierre() {
@@ -539,6 +552,27 @@ export default function Home() {
                   </div>
                 )}
 
+                {/* 📋 Badge tareas asignadas */}
+                {tareasCount > 0 && (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 text-2xl">📋</div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-blue-900 text-sm mb-1">
+                          {tareasCount === 1 ? '1 tarea pendiente' : `${tareasCount} tareas pendientes`}
+                        </h4>
+                        <p className="text-blue-700 text-xs mb-2">El administrador te ha asignado tareas operativas.</p>
+                        <button
+                          onClick={() => setShowMisTareas(true)}
+                          className="text-xs font-semibold text-blue-700 underline underline-offset-2"
+                        >
+                          → Ver mis tareas
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Acción Principal */}
                 <div>
                   <h3 className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-3 px-1">
@@ -687,6 +721,21 @@ export default function Home() {
           <MoreMenuSheet
             onClose={() => setShowMoreMenu(false)}
             onNavigate={handleNavigate}
+          />
+        )}
+
+        {/* Mis Tareas sheet */}
+        {showMisTareas && (
+          <MisTareas
+            trabajadorId={user?.id}
+            onClose={() => {
+              setShowMisTareas(false)
+              // Refrescar el contador al cerrar
+              fetch(`/api/tareas-asignadas?trabajadorId=${user?.id}&estado=pendiente`)
+                .then(r => r.ok ? r.json() : [])
+                .then(data => setTareasCount(Array.isArray(data) ? data.length : 0))
+                .catch(() => {})
+            }}
           />
         )}
       </div>
