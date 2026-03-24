@@ -17,7 +17,7 @@ import {
 // Dialog de creacion — inline modal (no requiere @/components/ui/dialog)
 import {
   CheckCircle2, Trash2, Plus, MoreVertical, RefreshCw,
-  Clock, ListTodo, CheckCheck,
+  Clock, ListTodo, CheckCheck, Send, X, Loader2,
 } from "lucide-react"
 
 // ─── Config ─────────────────────────────────────────────────────────────────
@@ -176,21 +176,30 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
 
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-      onClick={e => e.target === e.currentTarget && onClose()}>
-      {/* mb-16 sm:mb-0 — keeps the modal above the bottom nav on mobile */}
-      <div className="bg-background rounded-2xl shadow-2xl w-full max-w-md border overflow-y-auto mb-16 sm:mb-0"
-        style={{ maxHeight: 'calc(100vh - 8rem)' }}>
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b">
+    // Backdrop — sheet on mobile, centered on sm+
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-20 sm:p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)' }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      {/* Modal panel — full sheet on mobile, card on sm+ */}
+      <div
+        className="bg-background w-full sm:max-w-md sm:rounded-2xl sm:border flex flex-col overflow-hidden"
+        style={{ maxHeight: 'calc(100dvh - 5rem)', borderRadius: '1.25rem 1.25rem 0 0' }}
+      >
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b flex-shrink-0">
           <h2 className="text-base font-bold">📋 Nueva tarea asignada</h2>
-          <button onClick={onClose} className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-muted/80">×</button>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-muted/80 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
-        {/* Body */}
-        <div className="px-5 py-4 space-y-4">
+        {/* ── Body (scrollable) ── */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-4">
           {/* Título */}
           <div>
             <label className="text-sm font-medium mb-1.5 block">Título *</label>
@@ -209,8 +218,8 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
               className="w-full rounded-lg border px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-background"
             />
           </div>
-          {/* Row: Categoría + Prioridad */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Categoría + Prioridad */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Categoría</label>
               <select value={form.categoria} onChange={e => set("categoria", e.target.value)}
@@ -226,8 +235,8 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
               </select>
             </div>
           </div>
-          {/* Row: Trabajador + Fecha límite */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Trabajador + Fecha límite */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Trabajador *</label>
               <select value={form.trabajadorId} onChange={e => set("trabajadorId", e.target.value)}
@@ -242,23 +251,45 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
                 className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background" />
             </div>
           </div>
-          {/* Toggle Telegram */}
-          <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-            <input type="checkbox" checked={form.notificarTelegram} onChange={e => set("notificarTelegram", e.target.checked)}
-              className="rounded w-4 h-4 accent-primary" />
-            <div>
-              <p className="text-sm font-medium">Notificar al trabajador</p>
-              <p className="text-xs text-muted-foreground">El worker recibirá un mensaje con los detalles</p>
-            </div>
-          </label>
         </div>
 
-        {/* Footer */}
-        <div className="flex gap-2 px-5 pb-5">
-          <Button variant="outline" className="flex-1" onClick={onClose} disabled={saving}>Cancelar</Button>
-          <Button className="flex-1" onClick={handleSubmit} disabled={saving}>
-            {saving ? "Guardando…" : "✅ Crear tarea"}
-          </Button>
+        {/* ── Sticky Footer ── */}
+        <div className="flex-shrink-0 flex items-center gap-2 px-4 py-3 border-t bg-background">
+          {/* Compact notify toggle */}
+          <label className="flex items-center gap-2 flex-1 cursor-pointer min-w-0">
+            <input
+              type="checkbox"
+              checked={form.notificarTelegram}
+              onChange={e => set("notificarTelegram", e.target.checked)}
+              className="rounded w-4 h-4 accent-primary flex-shrink-0"
+            />
+            <span className="text-xs font-medium text-muted-foreground leading-tight truncate">
+              Notificar al trabajador
+            </span>
+          </label>
+
+          {/* Cancel */}
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50 flex-shrink-0"
+          >
+            <X className="h-4 w-4" />
+            <span className="hidden sm:inline">Cancelar</span>
+          </button>
+
+          {/* Submit */}
+          <button
+            onClick={handleSubmit}
+            disabled={saving || !form.titulo.trim() || !form.trabajadorId}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 shadow-sm"
+          >
+            {saving
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <Send className="h-4 w-4" />
+            }
+            <span>Enviar tarea</span>
+          </button>
         </div>
       </div>
     </div>
