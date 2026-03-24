@@ -445,12 +445,10 @@ export default function ListaCompras({ onClose }) {
                     )}
 
                     {/* Info footer */}
-                    <div className="mx-4 mt-4 mb-8 rounded-2xl px-4 py-4"
-                        style={{ background: 'rgba(255,255,255,0.04)' }}>
-                        <p className="text-white/25 text-xs leading-relaxed space-y-1">
-                            <span className="block">🔒 Edición cerrada a las 20:30</span>
+                    <div className="mx-4 mt-4 mb-8 rounded-2xl px-4 py-4 bg-slate-100 border border-slate-200">
+                        <p className="text-slate-500 text-xs leading-relaxed space-y-1">
                             <span className="block">🔴 Los ítems urgentes aparecen primero</span>
-                            <span className="block">✓ Solo el admin puede marcar como comprado</span>
+                            <span className="block">✓ Solo marcar como comprado con mucha responsabilidad</span>
                         </p>
                     </div>
 
