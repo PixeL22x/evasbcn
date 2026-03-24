@@ -58,7 +58,9 @@ export async function GET() {
       }
     })
 
-    // Ventas de hoy (solo turno de noche para evitar duplicación)
+    // Ventas de hoy — solo el turno de cierre del día (tarde o noche)
+    // El ticket total del día lo escanea SIEMPRE el último turno.
+    // Nunca sumamos "mañana" para evitar doble conteo.
     const ventasHoyResult = await prisma.cierre.aggregate({
       _sum: {
         totalVentas: true
@@ -71,12 +73,12 @@ export async function GET() {
         totalVentas: {
           not: null
         },
-        turno: "tarde"  // Solo contar ventas del turno de tarde (total del día)
+        turno: { in: ['tarde', 'noche'] }  // El cierre de día lo hace tarde (L-J) o noche (V-D)
       }
     })
 
-    // Trabajador de turno actual
-    const trabajadorActual = await getTrabajadorTurnoActual()
+    // Trabajadores de turno activos (puede ser más de uno en caso de solapamiento)
+    const turnosActivos = await getTurnosActivos()
 
     // Obtener últimas 5 ventas (cierres completados)
     const recentSales = await prisma.cierre.findMany({
@@ -105,7 +107,10 @@ export async function GET() {
       ventasTurnoManana: ventasTurnoMananaResult._sum.totalVentas || 0,
       totalTrabajadores,
       ventasHoy: ventasHoyResult._sum.totalVentas || 0,
-      trabajadorActual,
+      // Compatibilidad retroactiva: trabajadorActual = primer activo o null
+      trabajadorActual: turnosActivos[0] ?? null,
+      // Nuevo campo: todos los turnos activos (para solapamientos)
+      turnosActivos,
       recentSales: recentSalesFormatted
     })
 
@@ -124,23 +129,24 @@ export async function GET() {
   }
 }
 
-// Función para obtener el trabajador de turno actual
-async function getTrabajadorTurnoActual() {
+// ─────────────────────────────────────────────────────────────────────────────
+// Devuelve TODOS los turnos activos ahora (array — soporta solapamientos)
+// ─────────────────────────────────────────────────────────────────────────────
+async function getTurnosActivos() {
   try {
-    // Usar zona horaria de Barcelona
     const timeInfo = getBarcelonaTimeInfo()
-    const { hour: currentHour, minute: currentMinute, timeInMinutes: currentTime, dayOfWeek, today, isWeekend } = timeInfo
+    const { hour: currentHour, minute: currentMinute, timeInMinutes: currentTime, dayOfWeek, today } = timeInfo
 
-    // 1. CARGAR CONFIGURACIÓN DINÁMICA DE HORARIOS
+    // 1. Cargar configuración dinámica
     let turnosConfig = {
       M: {
-        0: { hours: 5.5, start: '11:30', end: '17:00' }, // Domingo
-        1: { hours: 4.5, start: '12:30', end: '17:00' }, // Lunes
+        0: { hours: 5.5, start: '11:30', end: '17:00' },
+        1: { hours: 4.5, start: '12:30', end: '17:00' },
         2: { hours: 4.5, start: '12:30', end: '17:00' },
         3: { hours: 4.5, start: '12:30', end: '17:00' },
         4: { hours: 4.5, start: '12:30', end: '17:00' },
         5: { hours: 4.5, start: '12:30', end: '17:00' },
-        6: { hours: 5.5, start: '11:30', end: '17:00' }  // Sábado
+        6: { hours: 5.5, start: '11:30', end: '17:00' }
       },
       T: {
         0: { hours: 6, start: '17:00', end: '23:00' },
@@ -150,6 +156,16 @@ async function getTrabajadorTurnoActual() {
         4: { hours: 6, start: '17:00', end: '23:00' },
         5: { hours: 6, start: '17:00', end: '23:00' },
         6: { hours: 6, start: '17:00', end: '23:00' }
+      },
+      // Turno noche por defecto (viernes=5, sábado=6, domingo=0)
+      N: {
+        0: { hours: 5, start: '18:00', end: '23:00' },
+        1: { hours: 0, start: '00:00', end: '00:00' },
+        2: { hours: 0, start: '00:00', end: '00:00' },
+        3: { hours: 0, start: '00:00', end: '00:00' },
+        4: { hours: 0, start: '00:00', end: '00:00' },
+        5: { hours: 5, start: '18:30', end: '23:30' },
+        6: { hours: 5, start: '18:30', end: '23:30' }
       }
     }
 
@@ -159,178 +175,102 @@ async function getTrabajadorTurnoActual() {
       })
       if (config?.valor?.shifts) {
         turnosConfig = config.valor.shifts
-        console.log('✅ Configuración de horarios cargada desde BD')
       }
     } catch (e) {
-      console.warn('⚠️ Error cargando configuración, usando horarios por defecto:', e.message)
+      console.warn('⚠️ Error cargando configuración:', e.message)
     }
 
-    // 2. HELPER: Convertir hora "HH:MM" a minutos desde medianoche
-    const timeToMinutes = (timeStr) => {
-      const [h, m] = timeStr.split(':').map(Number)
+    // 2. Helper: hh:mm → minutos
+    const timeToMinutes = (t) => {
+      const [h, m] = t.split(':').map(Number)
       return h * 60 + m
     }
 
-    // 3. OBTENER HORARIOS DEL DÍA ACTUAL
-    const getMorningSchedule = () => {
-      const config = turnosConfig.M?.[dayOfWeek]
-      if (!config || config.hours === 0) return null
+    // 3. Resolver ventana horaria de un turno para el día actual
+    const getSchedule = (turnoKey) => {
+      const cfg = turnosConfig[turnoKey]?.[dayOfWeek]
+      if (!cfg || cfg.hours === 0) return null
       return {
-        start: timeToMinutes(config.start),
-        end: timeToMinutes(config.end),
-        startStr: config.start,
-        endStr: config.end
+        start: timeToMinutes(cfg.start),
+        end: timeToMinutes(cfg.end),
+        startStr: cfg.start,
+        endStr: cfg.end
       }
     }
 
-    const getEveningSchedule = () => {
-      const config = turnosConfig.T?.[dayOfWeek]
-      if (!config || config.hours === 0) return null
-      return {
-        start: timeToMinutes(config.start),
-        end: timeToMinutes(config.end),
-        startStr: config.start,
-        endStr: config.end
-      }
+    const schedules = {
+      M: getSchedule('M'),
+      T: getSchedule('T'),
+      N: getSchedule('N')
     }
 
-    const morningSchedule = getMorningSchedule()
-    const eveningSchedule = getEveningSchedule()
+    const turnoLabel = { M: 'Mañana', T: 'Tarde', N: 'Noche' }
 
-    console.log('📅 Horarios configurados para hoy (día', dayOfWeek, '):', {
-      mañana: morningSchedule,
-      tarde: eveningSchedule
-    })
-
-    // 4. BUSCAR TRABAJADORES ACTIVOS
+    // 4. Buscar trabajadores activos con sus reglas
     const trabajadores = await prisma.trabajador.findMany({
       where: { activo: true },
-      include: {
-        reglasHorario: true,
-        excepcionesHorario: true
-      }
+      include: { reglasHorario: true, excepcionesHorario: true }
     })
 
-    // 5. RECOPILAR TURNOS ASIGNADOS PARA HOY
+    // 5. Determinar el turno de cada trabajador hoy
     const turnosHoy = []
-
-    for (const trabajador of trabajadores) {
-      let turnoAsignado = null
-
-      // Verificar excepciones primero (tienen prioridad)
-      const excepcionHoy = trabajador.excepcionesHorario.find(exc =>
+    for (const t of trabajadores) {
+      const excepcion = t.excepcionesHorario.find(exc =>
         exc.fecha.toISOString().split('T')[0] === today
       )
+      const turnoAsignado = excepcion
+        ? excepcion.turno
+        : t.reglasHorario.find(r => r.diaSemana === dayOfWeek)?.turno
 
-      if (excepcionHoy) {
-        turnoAsignado = excepcionHoy.turno
-      } else {
-        // Usar regla semanal
-        const reglaHoy = trabajador.reglasHorario.find(regla => regla.diaSemana === dayOfWeek)
-        if (reglaHoy) {
-          turnoAsignado = reglaHoy.turno
-        }
-      }
-
-      // Solo agregar si hay un turno asignado (M o T, no L)
       if (turnoAsignado && turnoAsignado !== 'L') {
-        turnosHoy.push({
-          trabajador: trabajador.nombre,
-          turno: turnoAsignado
+        turnosHoy.push({ nombre: t.nombre, turno: turnoAsignado })
+      }
+    }
+
+    console.log('🔍 Turnos hoy:', turnosHoy, '| Hora actual:', `${currentHour}:${String(currentMinute).padStart(2, '0')}`)
+
+    // 6. Clasificar cada turno como activo / próximo / finalizado
+    const activos = []
+    const proximos = []
+
+    for (const { nombre, turno } of turnosHoy) {
+      const sch = schedules[turno]
+      if (!sch) continue
+
+      const isActive = currentTime >= sch.start && currentTime < sch.end
+
+      if (isActive) {
+        activos.push({
+          nombre,
+          turno: turnoLabel[turno] ?? turno,
+          horaInicio: sch.startStr,
+          horaFin: sch.endStr,
+          minutosRestantes: sch.end - currentTime
+        })
+      } else if (currentTime < sch.start) {
+        proximos.push({
+          nombre,
+          turno: turnoLabel[turno] ?? turno,
+          horaInicio: sch.startStr,
+          horaFin: sch.endStr,
+          minutosRestantes: sch.start - currentTime,
+          proximo: true
         })
       }
     }
 
-    console.log('🔍 Turnos asignados para hoy:', turnosHoy)
-    console.log('⏰ Hora actual:', `${currentHour}:${currentMinute.toString().padStart(2, '0')} (${currentTime} minutos)`)
+    // Si hay activos, devolver solo activos
+    if (activos.length > 0) return activos
 
-    // 6. SI NO HAY TURNOS ASIGNADOS, RETORNAR NULL
-    if (turnosHoy.length === 0) {
-      console.log('❌ No hay turnos asignados para hoy')
-      return null
+    // Si no hay activos, devolver el/los próximos ordenados por hora de inicio
+    if (proximos.length > 0) {
+      return proximos.sort((a, b) => a.minutosRestantes - b.minutosRestantes)
     }
 
-    // 7. VERIFICAR SI ALGÚN TURNO ESTÁ ACTIVO AHORA
-    for (const { trabajador, turno } of turnosHoy) {
-      let isActive = false
-      let horaInicio, horaFin, minutosRestantes
-
-      if (turno === 'M' && morningSchedule) {
-        isActive = currentTime >= morningSchedule.start && currentTime < morningSchedule.end
-        horaInicio = morningSchedule.startStr
-        horaFin = morningSchedule.endStr
-        minutosRestantes = morningSchedule.end - currentTime
-      } else if (turno === 'T' && eveningSchedule) {
-        isActive = currentTime >= eveningSchedule.start && currentTime < eveningSchedule.end
-        horaInicio = eveningSchedule.startStr
-        horaFin = eveningSchedule.endStr
-        minutosRestantes = eveningSchedule.end - currentTime
-      }
-
-      if (isActive) {
-        console.log('✅ Turno activo encontrado:', { trabajador, turno, horaInicio, horaFin })
-        return {
-          nombre: trabajador,
-          turno: turno === 'M' ? 'Mañana' : 'Tarde',
-          horaInicio,
-          horaFin,
-          minutosRestantes
-        }
-      }
-    }
-
-    // 8. SI NO HAY TURNO ACTIVO, BUSCAR EL PRÓXIMO
-    const turnosMañana = turnosHoy.filter(t => t.turno === 'M')
-    const turnosTarde = turnosHoy.filter(t => t.turno === 'T')
-
-    // Si estamos antes del turno de mañana y hay turno de mañana asignado
-    if (morningSchedule && currentTime < morningSchedule.start && turnosMañana.length > 0) {
-      console.log('⏳ Próximo turno: Mañana')
-      return {
-        nombre: turnosMañana[0].trabajador,
-        turno: 'Mañana',
-        horaInicio: morningSchedule.startStr,
-        horaFin: morningSchedule.endStr,
-        minutosRestantes: morningSchedule.start - currentTime,
-        proximo: true
-      }
-    }
-
-    // Si estamos entre turnos (después de mañana, antes de tarde) y hay turno de tarde
-    if (morningSchedule && eveningSchedule && 
-        currentTime >= morningSchedule.end && currentTime < eveningSchedule.start && 
-        turnosTarde.length > 0) {
-      console.log('⏳ Próximo turno: Tarde')
-      return {
-        nombre: turnosTarde[0].trabajador,
-        turno: 'Tarde',
-        horaInicio: eveningSchedule.startStr,
-        horaFin: eveningSchedule.endStr,
-        minutosRestantes: eveningSchedule.start - currentTime,
-        proximo: true
-      }
-    }
-
-    // Si solo hay turno de tarde y estamos antes de que empiece
-    if (eveningSchedule && currentTime < eveningSchedule.start && 
-        turnosTarde.length > 0 && turnosMañana.length === 0) {
-      console.log('⏳ Solo hay turno de tarde hoy, aún no ha comenzado')
-      return {
-        nombre: turnosTarde[0].trabajador,
-        turno: 'Tarde',
-        horaInicio: eveningSchedule.startStr,
-        horaFin: eveningSchedule.endStr,
-        minutosRestantes: eveningSchedule.start - currentTime,
-        proximo: true
-      }
-    }
-
-    // Si estamos después de todos los turnos
-    console.log('🌙 Todos los turnos del día han finalizado')
-    return null
+    return []
 
   } catch (error) {
-    console.error('Error al obtener trabajador actual:', error)
-    return null
+    console.error('Error al obtener turnos activos:', error)
+    return []
   }
 }

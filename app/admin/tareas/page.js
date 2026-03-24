@@ -144,7 +144,7 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
   const [form, setForm] = useState({
     titulo: "", descripcion: "", categoria: "limpieza",
     prioridad: "normal", trabajadorId: "", fechaLimite: "",
-    notificarTelegram: false,
+    notificarTelegram: true,  // activo por defecto
   })
   const [saving, setSaving] = useState(false)
 
@@ -164,7 +164,7 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
       })
       if (r.ok) {
         toast({ title: "✅ Tarea creada" })
-        setForm({ titulo: "", descripcion: "", categoria: "limpieza", prioridad: "normal", trabajadorId: "", fechaLimite: "", notificarTelegram: false })
+        setForm({ titulo: "", descripcion: "", categoria: "limpieza", prioridad: "normal", trabajadorId: "", fechaLimite: "", notificarTelegram: true })
         onCreated()
         onClose()
       } else {
@@ -179,8 +179,9 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-background rounded-2xl shadow-2xl w-full max-w-md border overflow-y-auto"
-        style={{ maxHeight: '90vh' }}>
+      {/* mb-16 sm:mb-0 — keeps the modal above the bottom nav on mobile */}
+      <div className="bg-background rounded-2xl shadow-2xl w-full max-w-md border overflow-y-auto mb-16 sm:mb-0"
+        style={{ maxHeight: 'calc(100vh - 8rem)' }}>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b">
@@ -246,7 +247,7 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
             <input type="checkbox" checked={form.notificarTelegram} onChange={e => set("notificarTelegram", e.target.checked)}
               className="rounded w-4 h-4 accent-primary" />
             <div>
-              <p className="text-sm font-medium">Notificar por Telegram</p>
+              <p className="text-sm font-medium">Notificar al trabajador</p>
               <p className="text-xs text-muted-foreground">El worker recibirá un mensaje con los detalles</p>
             </div>
           </label>

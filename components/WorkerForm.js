@@ -58,34 +58,49 @@ export default function WorkerForm({ onStart, onCancel }) {
 
           {/* Selección de Turno */}
           <div className="mb-6 sm:mb-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
               {/* Turno Mañana */}
               <button
                 onClick={() => setSelectedTurno('mañana')}
-                className={`p-4 sm:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                className={`p-4 sm:p-5 rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
                   selectedTurno === 'mañana'
                     ? 'bg-gradient-to-r from-orange-500 to-yellow-600 border-orange-400 text-white shadow-lg'
                     : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
                 }`}
               >
                 <div className="text-center">
-                  <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">🌅</div>
-                  <div className="text-lg sm:text-xl font-bold mb-1">Turno Mañana</div>
+                  <div className="text-3xl sm:text-4xl mb-2 sm:mb-3 flex justify-center"><span className="drop-shadow-md">🌅</span></div>
+                  <div className="text-base sm:text-lg font-bold mb-1">Turno Mañana</div>
                 </div>
               </button>
 
               {/* Turno Tarde */}
               <button
                 onClick={() => setSelectedTurno('tarde')}
-                className={`p-4 sm:p-6 rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                className={`p-4 sm:p-5 rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
                   selectedTurno === 'tarde'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 border-purple-400 text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-600 border-blue-400 text-white shadow-lg'
                     : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
                 }`}
               >
                 <div className="text-center">
-                  <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">🌆</div>
-                  <div className="text-lg sm:text-xl font-bold mb-1">Turno Tarde</div>
+                  <div className="text-3xl sm:text-4xl mb-2 sm:mb-3 flex justify-center"><span className="drop-shadow-md">🌙</span></div>
+                  <div className="text-base sm:text-lg font-bold mb-1">Turno Tarde</div>
+                </div>
+              </button>
+
+              {/* Turno Noche */}
+              <button
+                onClick={() => setSelectedTurno('noche')}
+                className={`p-4 sm:p-5 rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                  selectedTurno === 'noche'
+                    ? 'bg-gradient-to-r from-violet-500 to-purple-600 border-violet-400 text-white shadow-lg'
+                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="text-3xl sm:text-4xl mb-2 sm:mb-3 flex justify-center"><span className="drop-shadow-md">⭐</span></div>
+                  <div className="text-base sm:text-lg font-bold mb-1">Turno Noche</div>
                 </div>
               </button>
             </div>

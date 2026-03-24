@@ -8,6 +8,7 @@ import { es } from 'date-fns/locale';
 const DEFAULT_TURNOS = {
     M: { hours: 5.5 },
     T: { hours: 6 },
+    N: { hours: 5 },   // Turno noche (vie-dom)
     L: { hours: 0 }
 };
 
@@ -167,7 +168,7 @@ Responde ÚNICAMENTE con un JSON array en este formato exacto (sin texto adicion
 ]
 
 REGLAS CRÍTICAS:
-- Si una nota dice "no vino", "ausente", "falta": calcula las horas del turno que perdió (mañana ~5h, tarde ~6h) y pon ajuste negativo
+- Si una nota dice "no vino", "ausente", "falta": calcula las horas del turno que perdió (mañana ~5.5h, tarde ~6h, noche ~5h) y pon ajuste negativo
 - Si dice "horas extras", "trabajó más": pon el número de horas extras como ajuste positivo
 - Si dice "cambio de turno" sin ausencia: NO pongas ajuste (es solo reorganización)
 - El nombre del trabajador debe coincidir EXACTAMENTE con los nombres de la lista de arriba

@@ -18,7 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, ChevronLeft, ChevronRight, Sun, Moon, Coffee, Save, CalendarCheck, BarChart3, Clock, Settings, FileText } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Sun, Moon, Coffee, Save, CalendarCheck, BarChart3, Clock, Settings, FileText, Star } from "lucide-react"
 import { ScheduleSettings } from "@/components/admin/settings/ScheduleSettings"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -79,6 +79,24 @@ const DEFAULT_TURNOS = {
     darkBg: 'dark:bg-blue-900/20',
     darkBorder: 'dark:border-blue-700',
     darkText: 'dark:text-blue-400'
+  },
+  N: {
+    label: 'Noche',
+    icon: Star,
+    0: { hours: 5,   start: '18:00', end: '23:00' },
+    1: { hours: 0,   start: '00:00', end: '00:00' },
+    2: { hours: 0,   start: '00:00', end: '00:00' },
+    3: { hours: 0,   start: '00:00', end: '00:00' },
+    4: { hours: 0,   start: '00:00', end: '00:00' },
+    5: { hours: 5,   start: '18:30', end: '23:30' },
+    6: { hours: 5,   start: '18:30', end: '23:30' },
+    color: 'bg-violet-600',
+    textColor: 'text-violet-700',
+    bgLight: 'bg-violet-50',
+    borderColor: 'border-violet-300',
+    darkBg: 'dark:bg-violet-900/20',
+    darkBorder: 'dark:border-violet-700',
+    darkText: 'dark:text-violet-400'
   },
   L: {
     label: 'Libre',
@@ -329,42 +347,33 @@ export default function HorariosPage() {
 
   function getTrabajadorStats(trabajadorId) {
     const turnos = planning[trabajadorId] || {}
-    let mañanas = 0, tardes = 0, libres = 0, totalHoras = 0, sinAsignar = 0
+    let mañanas = 0, tardes = 0, noches = 0, libres = 0, totalHoras = 0, sinAsignar = 0
 
     daysInMonth.forEach(day => {
       const turno = turnos[day.iso]
-      if (turno === 'M') {
-        mañanas++
-        totalHoras += getTurnoHours('M', day.dayOfWeek)
-      }
-      else if (turno === 'T') {
-        tardes++
-        totalHoras += getTurnoHours('T', day.dayOfWeek)
-      }
-      else if (turno === 'L') {
-        libres++
-      }
-      else {
-        // Día sin asignar
-        sinAsignar++
-      }
+      if (turno === 'M') { mañanas++; totalHoras += getTurnoHours('M', day.dayOfWeek) }
+      else if (turno === 'T') { tardes++;  totalHoras += getTurnoHours('T', day.dayOfWeek) }
+      else if (turno === 'N') { noches++;  totalHoras += getTurnoHours('N', day.dayOfWeek) }
+      else if (turno === 'L') { libres++ }
+      else { sinAsignar++ }
     })
 
-    return { mañanas, tardes, libres, sinAsignar, totalHoras, diasTrabajados: mañanas + tardes }
+    return { mañanas, tardes, noches, libres, sinAsignar, totalHoras, diasTrabajados: mañanas + tardes + noches }
   }
 
   function getGlobalStats() {
-    let totalMañanas = 0, totalTardes = 0, totalLibres = 0, totalHoras = 0
+    let totalMañanas = 0, totalTardes = 0, totalNoches = 0, totalLibres = 0, totalHoras = 0
 
     trabajadores.forEach(t => {
       const stats = getTrabajadorStats(t.id)
       totalMañanas += stats.mañanas
-      totalTardes += stats.tardes
-      totalLibres += stats.libres
-      totalHoras += stats.totalHoras
+      totalTardes  += stats.tardes
+      totalNoches  += stats.noches
+      totalLibres  += stats.libres
+      totalHoras   += stats.totalHoras
     })
 
-    return { totalMañanas, totalTardes, totalLibres, totalHoras }
+    return { totalMañanas, totalTardes, totalNoches, totalLibres, totalHoras }
   }
 
   const generateHoursReport = async () => {
@@ -509,29 +518,37 @@ export default function HorariosPage() {
                   </Card>
 
                   {/* Estadísticas Globales */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Mañanas</CardTitle>
+                        <CardTitle className="text-sm font-medium">Mañanas</CardTitle>
                         <Sun className="h-4 w-4 text-amber-600" />
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold text-amber-600">{globalStats.totalMañanas}</div>
-                        <p className="text-xs text-muted-foreground mt-1">turnos asignados</p>
+                        <p className="text-xs text-muted-foreground mt-1">turnos</p>
                       </CardContent>
                     </Card>
-
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Tardes</CardTitle>
+                        <CardTitle className="text-sm font-medium">Tardes</CardTitle>
                         <Moon className="h-4 w-4 text-blue-600" />
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold text-blue-600">{globalStats.totalTardes}</div>
-                        <p className="text-xs text-muted-foreground mt-1">turnos asignados</p>
+                        <p className="text-xs text-muted-foreground mt-1">turnos</p>
                       </CardContent>
                     </Card>
-
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Noches</CardTitle>
+                        <Star className="h-4 w-4 text-violet-600" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-violet-600">{globalStats.totalNoches}</div>
+                        <p className="text-xs text-muted-foreground mt-1">turnos</p>
+                      </CardContent>
+                    </Card>
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Días Libres</CardTitle>
@@ -542,7 +559,6 @@ export default function HorariosPage() {
                         <p className="text-xs text-muted-foreground mt-1">días libres</p>
                       </CardContent>
                     </Card>
-
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Horas</CardTitle>
@@ -550,7 +566,7 @@ export default function HorariosPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold text-purple-600">{globalStats.totalHoras}h</div>
-                        <p className="text-xs text-muted-foreground mt-1">horas totales del mes</p>
+                        <p className="text-xs text-muted-foreground mt-1">horas del mes</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -667,7 +683,7 @@ function ResumenView({ trabajadores, daysInMonth, planning, getTrabajadorStats, 
                       {stats.diasTrabajados} días trabajados • {stats.libres} días libres
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <Sun className="h-4 w-4 text-amber-600" />
@@ -682,6 +698,14 @@ function ResumenView({ trabajadores, daysInMonth, planning, getTrabajadorStats, 
                         <span className="text-sm font-medium">Tardes</span>
                       </div>
                       <div className="text-xl font-bold text-blue-600">{stats.tardes}</div>
+                      <div className="text-xs text-muted-foreground">turnos</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Star className="h-4 w-4 text-violet-600" />
+                        <span className="text-sm font-medium">Noches</span>
+                      </div>
+                      <div className="text-xl font-bold text-violet-600">{stats.noches}</div>
                       <div className="text-xs text-muted-foreground">turnos</div>
                     </div>
                     <div className="text-center">
@@ -870,26 +894,31 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
 
           {/* Stats del trabajador actual */}
           {stats && (
-            <div className="grid grid-cols-4 gap-3 mb-6 p-4 bg-muted/50 rounded-lg">
+            <div className="grid grid-cols-5 gap-2 mb-6 p-4 bg-muted/50 rounded-lg">
               <div className="text-center">
                 <Sun className="h-5 w-5 mx-auto mb-1 text-amber-600" />
                 <div className="font-bold text-amber-600">{stats.mañanas}</div>
-                <div className="text-xs text-muted-foreground">Mañanas</div>
+                <div className="text-xs text-muted-foreground">M</div>
               </div>
               <div className="text-center">
                 <Moon className="h-5 w-5 mx-auto mb-1 text-blue-600" />
                 <div className="font-bold text-blue-600">{stats.tardes}</div>
-                <div className="text-xs text-muted-foreground">Tardes</div>
+                <div className="text-xs text-muted-foreground">T</div>
+              </div>
+              <div className="text-center">
+                <Star className="h-5 w-5 mx-auto mb-1 text-violet-600" />
+                <div className="font-bold text-violet-600">{stats.noches}</div>
+                <div className="text-xs text-muted-foreground">N</div>
               </div>
               <div className="text-center">
                 <Coffee className="h-5 w-5 mx-auto mb-1 text-gray-600" />
                 <div className="font-bold text-gray-600">{stats.libres}</div>
-                <div className="text-xs text-muted-foreground">Libres</div>
+                <div className="text-xs text-muted-foreground">L</div>
               </div>
               <div className="text-center">
                 <Clock className="h-5 w-5 mx-auto mb-1 text-purple-600" />
                 <div className="font-bold text-purple-600">{stats.totalHoras}h</div>
-                <div className="text-xs text-muted-foreground">Total</div>
+                <div className="text-xs text-muted-foreground">h</div>
               </div>
             </div>
           )}
@@ -922,7 +951,7 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
 
                   // Cycle logic for Grid
                   const handleCycle = () => {
-                    const cycle = [null, 'M', 'T', 'L']
+                    const cycle = [null, 'M', 'T', 'N', 'L']
                     const currentIndex = cycle.indexOf(turno || null)
                     const nextTurno = cycle[(currentIndex + 1) % cycle.length]
                     setTurno(selectedTrabajador, day.iso, nextTurno)
@@ -981,7 +1010,7 @@ function PlanningView({ trabajadores, daysInMonth, planning, setTurno, savePlann
               const dayName = DIAS_SEMANA[day.dayOfWeek === 0 ? 6 : day.dayOfWeek - 1]
 
               const handleCycle = () => {
-                const cycle = [null, 'M', 'T', 'L']
+                const cycle = [null, 'M', 'T', 'N', 'L']
                 const currentIndex = cycle.indexOf(turno || null)
                 const nextTurno = cycle[(currentIndex + 1) % cycle.length]
                 setTurno(selectedTrabajador, day.iso, nextTurno)

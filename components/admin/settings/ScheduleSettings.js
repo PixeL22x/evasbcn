@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Clock, Save, Loader2, Sun, Moon, Copy } from "lucide-react"
+import { Clock, Save, Loader2, Sun, Moon, Copy, Star } from "lucide-react"
 
 const DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
@@ -19,13 +19,23 @@ const DEFAULT_SHIFTS = {
         6: { hours: 5.5, start: '11:30', end: '17:00' }, // Sábado
     },
     T: {
-        0: { hours: 6, start: '17:00', end: '23:00' }, // Domingo
-        1: { hours: 6, start: '17:00', end: '23:00' }, // Lunes
-        2: { hours: 6, start: '17:00', end: '23:00' }, // Martes
-        3: { hours: 6, start: '17:00', end: '23:00' }, // Miércoles
-        4: { hours: 6, start: '17:00', end: '23:00' }, // Jueves
-        5: { hours: 6, start: '17:00', end: '23:00' }, // Viernes
-        6: { hours: 6, start: '17:00', end: '23:00' }, // Sábado
+        0: { hours: 6,   start: '17:00', end: '23:00' },
+        1: { hours: 6,   start: '17:00', end: '23:00' },
+        2: { hours: 6,   start: '17:00', end: '23:00' },
+        3: { hours: 6,   start: '17:00', end: '23:00' },
+        4: { hours: 6,   start: '17:00', end: '23:00' },
+        5: { hours: 6,   start: '17:00', end: '23:00' },
+        6: { hours: 6,   start: '17:00', end: '23:00' },
+    },
+    // Turno noche: activo solo vie(5), sáb(6), dom(0)
+    N: {
+        0: { hours: 5,   start: '18:00', end: '23:00' },
+        1: { hours: 0,   start: '00:00', end: '00:00' },
+        2: { hours: 0,   start: '00:00', end: '00:00' },
+        3: { hours: 0,   start: '00:00', end: '00:00' },
+        4: { hours: 0,   start: '00:00', end: '00:00' },
+        5: { hours: 5,   start: '18:30', end: '23:30' },
+        6: { hours: 5,   start: '18:30', end: '23:30' },
     }
 }
 
@@ -70,6 +80,9 @@ function migrateOldFormat(oldShifts) {
             newShifts[shiftKey] = DEFAULT_SHIFTS[shiftKey]
         }
     }
+
+    // Ensure N (noche) exists — add defaults if not present in stored config
+    if (!newShifts.N) newShifts.N = DEFAULT_SHIFTS.N
 
     return newShifts
 }
@@ -361,6 +374,85 @@ export function ScheduleSettings({ onSave }) {
                                                 step="0.5"
                                                 value={shifts.T[dayIdx]?.hours || 0}
                                                 onChange={(e) => handleShiftChange('T', dayIdx, 'hours', e.target.value)}
+                                                className="text-xs h-8"
+                                            />
+                                        </td>
+                                    ))}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* TURNO NOCHE */}
+                <div className="border rounded-lg p-4 space-y-4 bg-violet-50/50 dark:bg-violet-900/10">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 font-bold text-violet-700 dark:text-violet-400">
+                            <Star className="h-4 w-4" />
+                            Turno Noche (N) — Vie / Sáb / Dom
+                        </div>
+                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => copyToWeekend('N')}
+                                className="text-xs flex-1 sm:flex-none"
+                            >
+                                <Copy className="h-3 w-3 mr-1" />
+                                <span className="sm:hidden">Sáb-Dom</span>
+                                <span className="hidden sm:inline">Copiar Sáb a S-D</span>
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-violet-200">
+                                    <th className="text-left p-2 font-medium">Día</th>
+                                    {DAYS.map((day, idx) => (
+                                        <th key={idx} className="text-center p-2 font-medium min-w-[100px]">
+                                            {day}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr className="border-b border-violet-100">
+                                    <td className="p-2 text-xs text-muted-foreground">Inicio</td>
+                                    {[0, 1, 2, 3, 4, 5, 6].map(dayIdx => (
+                                        <td key={dayIdx} className="p-1">
+                                            <Input
+                                                type="time"
+                                                value={shifts.N?.[dayIdx]?.start || '00:00'}
+                                                onChange={(e) => handleShiftChange('N', dayIdx, 'start', e.target.value)}
+                                                className="text-xs h-8"
+                                            />
+                                        </td>
+                                    ))}
+                                </tr>
+                                <tr className="border-b border-violet-100">
+                                    <td className="p-2 text-xs text-muted-foreground">Fin</td>
+                                    {[0, 1, 2, 3, 4, 5, 6].map(dayIdx => (
+                                        <td key={dayIdx} className="p-1">
+                                            <Input
+                                                type="time"
+                                                value={shifts.N?.[dayIdx]?.end || '00:00'}
+                                                onChange={(e) => handleShiftChange('N', dayIdx, 'end', e.target.value)}
+                                                className="text-xs h-8"
+                                            />
+                                        </td>
+                                    ))}
+                                </tr>
+                                <tr>
+                                    <td className="p-2 text-xs text-muted-foreground">Horas</td>
+                                    {[0, 1, 2, 3, 4, 5, 6].map(dayIdx => (
+                                        <td key={dayIdx} className="p-1">
+                                            <Input
+                                                type="number"
+                                                step="0.5"
+                                                value={shifts.N?.[dayIdx]?.hours || 0}
+                                                onChange={(e) => handleShiftChange('N', dayIdx, 'hours', e.target.value)}
                                                 className="text-xs h-8"
                                             />
                                         </td>

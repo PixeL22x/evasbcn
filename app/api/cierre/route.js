@@ -22,9 +22,9 @@ export async function POST(request) {
       )
     }
 
-    if (!turno || !['mañana', 'tarde'].includes(turno)) {
+    if (!turno || !['mañana', 'tarde', 'noche'].includes(turno)) {
       return NextResponse.json(
-        { error: 'El turno debe ser "mañana" o "tarde"' },
+        { error: 'El turno debe ser "mañana", "tarde" o "noche"' },
         { status: 400 }
       )
     }
@@ -157,6 +157,101 @@ export async function POST(request) {
           ])
         },
         // 🧽 Bloque 7 - Limpieza Final
+        {
+          nombre: '🧽 Bloque 7 - Limpieza Final',
+          duracion: 7,
+          subtareas: JSON.stringify([
+            'Limpiar con esponja lugar de cucharas',
+            'Fregar + Escurrir fregona y tirar agua del cubo'
+          ])
+        },
+      ],
+      // Turno noche (viernes-domingo): mismo checklist de cierre que el turno tarde
+      noche: [
+        {
+          nombre: '🧊 Bloque 1 - Preparación Inicial',
+          duracion: 8,
+          subtareas: JSON.stringify([
+            'Preparar cubeta con agua + Fairy',
+            'Trapos cubo agua + lejía',
+            'Guardar cosas secas'
+          ])
+        },
+        {
+          nombre: '🍦 Bloque 2 - Helados y Limpieza',
+          duracion: 12,
+          subtareas: JSON.stringify([
+            'Separar helados y quitar barras metálicas',
+            'Guardar smoothies + Milkshakes + Hielo Picado',
+            'Cerrar cajas de galletas',
+            'Barrer y aspirar'
+          ])
+        },
+        {
+          nombre: '🪟 Bloque 3 - Cierre al Público',
+          duracion: 6,
+          subtareas: JSON.stringify([
+            'Meter carteles',
+            'Cerrar puerta',
+            'Apagar luces menos blancas'
+          ])
+        },
+        { nombre: '¿El toldo está cerrado correctamente?', duracion: 1 },
+        {
+          nombre: '🍧 Bloque 4 - Organización Helados',
+          duracion: 12,
+          subtareas: JSON.stringify([
+            'Sacar pinchos + cucharas',
+            'Tapar helados',
+            'Guardar helados Isa 1 hacia congelador enfrente blanco',
+            'Guardar helados Isa 2 congelador gris'
+          ])
+        },
+        {
+          nombre: '🧴 Bloque 5 - Limpieza y Documentación',
+          duracion: 5,
+          subtareas: JSON.stringify([
+            'Sacar pinchos y cucharas a secar',
+            'Sacar basura'
+          ])
+        },
+        {
+          nombre: '📋 Bloque 5.1 - Apuntar info cierre',
+          duracion: 3,
+          requiereFotos: true,
+          fotosRequeridas: JSON.stringify([
+            { tipo: 'cuaderno_apuntes', descripcion: 'Cuaderno de apuntes' },
+            { tipo: 'ticket_bbva', descripcion: 'Ticket BBVA' },
+            { tipo: 'ticket_caixa', descripcion: 'Ticket Caixa' }
+          ])
+        },
+        {
+          nombre: '💰 Bloque 5.2 - Escanea el ticket de ventas del día',
+          duracion: 3,
+          requiereInput: true,
+          inputType: 'ventas',
+          requiereEscaneo: true
+        },
+        {
+          nombre: '📸 Bloque 5.3 - Enviar fotos máquinas apagadas',
+          duracion: 2,
+          requiereFotos: true,
+          fotosRequeridas: JSON.stringify([
+            { tipo: 'crepera_apagada', descripcion: 'Crepera apagada' },
+            { tipo: 'waflera_apagada', descripcion: 'Waflera apagada' },
+            { tipo: 'aire_apagado', descripcion: 'Aire acondicionado apagado' },
+            { tipo: 'isa2_apagada', descripcion: 'ISA 2 apagada' }
+          ])
+        },
+        { nombre: '¿Los ventiladores del techo están apagados?', duracion: 1 },
+        {
+          nombre: '⚙️ Bloque 6 - Apagado de Equipos',
+          duracion: 5,
+          subtareas: JSON.stringify([
+            'Apagar Just Eat y TPV',
+            'Apagar datáfonos y móvil, también cargarlos'
+          ])
+        },
         {
           nombre: '🧽 Bloque 7 - Limpieza Final',
           duracion: 7,
