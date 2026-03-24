@@ -91,15 +91,15 @@ export default function WorkerForm({ onStart, onCancel }) {
 
               {/* Turno Noche */}
               <button
-                onClick={() => setSelectedTurno('noche')}
-                className={`p-4 sm:p-5 rounded-lg sm:rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
-                  selectedTurno === 'noche'
-                    ? 'bg-gradient-to-r from-violet-500 to-purple-600 border-violet-400 text-white shadow-lg'
-                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
-                }`}
+                disabled
+                className="relative p-4 sm:p-5 rounded-lg sm:rounded-xl border-2 bg-white/5 border-white/10 text-white/30 cursor-not-allowed overflow-hidden"
+                title="Función no disponible temporalmente"
               >
-                <div className="text-center">
-                  <div className="text-3xl sm:text-4xl mb-2 sm:mb-3 flex justify-center"><span className="drop-shadow-md">⭐</span></div>
+                <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/10 text-white/60 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-white/20 uppercase tracking-wider backdrop-blur-sm">
+                  No disponible
+                </div>
+                <div className="text-center opacity-60 mt-1 sm:mt-0">
+                  <div className="text-3xl sm:text-4xl mb-2 sm:mb-3 flex justify-center grayscale"><span className="drop-shadow-none">⭐</span></div>
                   <div className="text-base sm:text-lg font-bold mb-1">Turno Noche</div>
                 </div>
               </button>
