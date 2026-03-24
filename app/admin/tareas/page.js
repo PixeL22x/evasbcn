@@ -206,7 +206,7 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
             <input
               value={form.titulo} onChange={e => set("titulo", e.target.value)}
               placeholder="Limpiar paredes zona exposición…"
-              className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+              className="w-full h-10 rounded-lg border px-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
             />
           </div>
           {/* Descripción */}
@@ -215,7 +215,7 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
             <textarea
               value={form.descripcion} onChange={e => set("descripcion", e.target.value)}
               rows={2} placeholder="Detalles adicionales…"
-              className="w-full rounded-lg border px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+              className="w-full rounded-lg border px-3 py-2 text-base sm:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-background"
             />
           </div>
           {/* Categoría + Prioridad */}
@@ -223,14 +223,14 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
             <div>
               <label className="text-sm font-medium mb-1.5 block">Categoría</label>
               <select value={form.categoria} onChange={e => set("categoria", e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background">
+                className="w-full h-10 rounded-lg border px-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background">
                 {CATEGORIAS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">Prioridad</label>
               <select value={form.prioridad} onChange={e => set("prioridad", e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background">
+                className="w-full h-10 rounded-lg border px-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background">
                 {PRIORIDADES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
             </div>
@@ -240,7 +240,7 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
             <div>
               <label className="text-sm font-medium mb-1.5 block">Trabajador *</label>
               <select value={form.trabajadorId} onChange={e => set("trabajadorId", e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background">
+                className="w-full h-10 rounded-lg border px-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background">
                 <option value="">— Seleccionar —</option>
                 {workers.map(w => <option key={w.id} value={w.id}>{w.nombre}</option>)}
               </select>
@@ -248,7 +248,7 @@ function CreateDialog({ open, onClose, workers, onCreated }) {
             <div>
               <label className="text-sm font-medium mb-1.5 block">Fecha límite</label>
               <input type="date" value={form.fechaLimite} onChange={e => set("fechaLimite", e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background" />
+                className="w-full h-10 rounded-lg border px-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background" />
             </div>
           </div>
         </div>

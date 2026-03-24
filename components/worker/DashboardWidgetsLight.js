@@ -6,7 +6,8 @@ export default function WorkerDashboardWidgetsLight({ userId }) {
     const [widgets, setWidgets] = useState({
         temperatura: { loaded: false, data: null },
         tartas: { loaded: false, data: null },
-        stock: { loaded: false, data: null }
+        stock: { loaded: false, data: null },
+        masas: { loaded: false, data: null }
     })
     const [isRefreshing, setIsRefreshing] = useState(false)
 
@@ -32,7 +33,8 @@ export default function WorkerDashboardWidgetsLight({ userId }) {
         await Promise.all([
             loadTemperaturaWidget(),
             loadTartasWidget(),
-            loadStockWidget()
+            loadStockWidget(),
+            loadMasasWidget()
         ])
         setIsRefreshing(false)
     }
@@ -50,26 +52,25 @@ export default function WorkerDashboardWidgetsLight({ userId }) {
 
             if (response.ok) {
                 const data = await response.json()
-                const temperaturas = Array.isArray(data) ? data : (data.temperaturas || [])
+                const logsToday = Array.isArray(data) ? data : (data.registros || [])
 
-                const hasToday = temperaturas.some(t => {
-                    const tDate = new Date(t.fecha).toISOString().split('T')[0]
-                    return tDate === today
-                })
+                // Since we query api/temperatura?fecha=YYYY-MM-DD, all returned records should be from today.
+                // Maximum expected per day is 6 (14:00, 18:00, 21:00 for both ISA 1 and ISA 2).
+                const countToday = logsToday.length
+                const completedAll = countToday >= 6
 
-                const todayTemp = temperaturas.find(t => {
-                    const tDate = new Date(t.fecha).toISOString().split('T')[0]
-                    return tDate === today
-                })
+                const latestTemp = logsToday[0] // since ordered by fecha desc
 
                 setWidgets(prev => ({
                     ...prev,
                     temperatura: {
                         loaded: true,
                         data: {
-                            registrada: hasToday,
-                            temperatura: todayTemp?.temperatura,
-                            hora: todayTemp?.fecha
+                            registrada: countToday > 0,
+                            completado: completedAll,
+                            conteo: countToday,
+                            temperatura: latestTemp?.temperatura,
+                            hora: latestTemp?.fecha
                         }
                     }
                 }))
@@ -158,6 +159,38 @@ export default function WorkerDashboardWidgetsLight({ userId }) {
         }
     }
 
+    const loadMasasWidget = async () => {
+        try {
+            const response = await fetch(`${window.location.origin}/api/masas`)
+
+            if (response.ok) {
+                const lotes = await response.json()
+                const caducados = lotes.filter(l => l.estadoVisual === 'caducado').length
+                const proximos = lotes.filter(l => l.estadoVisual === 'proximo').length
+                const total = lotes.length
+
+                setWidgets(prev => ({
+                    ...prev,
+                    masas: {
+                        loaded: true,
+                        data: {
+                            total,
+                            caducados,
+                            proximos,
+                            requiereAtencion: caducados > 0 || proximos > 0
+                        }
+                    }
+                }))
+            }
+        } catch (error) {
+            console.error('Error loading masas widget:', error)
+            setWidgets(prev => ({
+                ...prev,
+                masas: { loaded: true, data: null }
+            }))
+        }
+    }
+
     return (
         <div className="space-y-3 mb-6">
             <div className="flex items-center justify-between px-1">
@@ -188,22 +221,26 @@ export default function WorkerDashboardWidgetsLight({ userId }) {
                 </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
                 {/* Widget Temperatura */}
                 <div className={`rounded-2xl p-4 transition-all shadow-sm ${!widgets.temperatura.loaded
                         ? 'bg-gray-100 animate-pulse'
-                        : widgets.temperatura.data?.registrada
+                        : widgets.temperatura.data?.completado
                             ? 'bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200'
-                            : 'bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200'
+                            : widgets.temperatura.data?.registrada
+                                ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200'
+                                : 'bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200'
                     }`}>
                     <div className="text-center">
                         <div className="text-3xl mb-2">🌡️</div>
                         <div className="text-xs font-semibold text-gray-700 mb-1">Temp.</div>
                         {widgets.temperatura.loaded && widgets.temperatura.data ? (
-                            widgets.temperatura.data.registrada ? (
-                                <div className="text-xs font-bold text-green-600">✓ OK</div>
+                            widgets.temperatura.data.completado ? (
+                                <div className="text-xs font-bold text-green-600">✓ 6/6 OK</div>
+                            ) : widgets.temperatura.data.registrada ? (
+                                <div className="text-xs font-bold text-blue-600">{widgets.temperatura.data.conteo}/6 Hoy</div>
                             ) : (
-                                <div className="text-xs font-bold text-yellow-600">Pendiente</div>
+                                <div className="text-xs font-bold text-yellow-600">0/6 Pendiente</div>
                             )
                         ) : (
                             <div className="text-xs text-gray-400">...</div>
@@ -250,6 +287,32 @@ export default function WorkerDashboardWidgetsLight({ userId }) {
                         {widgets.stock.loaded && widgets.stock.data ? (
                             widgets.stock.data.requiereAtencion ? (
                                 <div className="text-xs font-bold text-orange-600">{widgets.stock.data.bajoStock}!</div>
+                            ) : (
+                                <div className="text-xs font-bold text-green-600">✓ OK</div>
+                            )
+                        ) : (
+                            <div className="text-xs text-gray-400">...</div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Widget Masas */}
+                <div className={`rounded-2xl p-4 transition-all shadow-sm ${!widgets.masas.loaded
+                        ? 'bg-gray-100 animate-pulse'
+                        : widgets.masas.data?.caducados > 0
+                            ? 'bg-gradient-to-br from-red-50 to-rose-50 border border-red-200'
+                            : widgets.masas.data?.proximos > 0
+                                ? 'bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200'
+                                : 'bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200'
+                    }`}>
+                    <div className="text-center">
+                        <div className="text-3xl mb-2">🧇</div>
+                        <div className="text-xs font-semibold text-gray-700 mb-1">Masas</div>
+                        {widgets.masas.loaded && widgets.masas.data ? (
+                            widgets.masas.data.requiereAtencion ? (
+                                <div className="text-xs font-bold text-red-600">
+                                    {widgets.masas.data.caducados + widgets.masas.data.proximos}!
+                                </div>
                             ) : (
                                 <div className="text-xs font-bold text-green-600">✓ OK</div>
                             )

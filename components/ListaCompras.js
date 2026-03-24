@@ -4,12 +4,9 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 
 const UNIDADES = ['und', 'kg', 'g', 'L', 'mL', 'botes', 'cajas', 'bolsas', 'paquetes']
-const HORA_CIERRE = 20 * 60 + 30 // 20:30
 
 function estaBloquado(isAdmin) {
-    if (isAdmin) return false
-    const now = new Date()
-    return now.getHours() * 60 + now.getMinutes() >= HORA_CIERRE
+    return false
 }
 
 function initials(nombre) {
@@ -63,19 +60,21 @@ function AddSheet({ onClose, onAdd, trabajadorId }) {
 
     return (
         <div className="fixed inset-0 z-[70] flex items-end" onClick={onClose}>
+            {/* Backdrop behind the sheet */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <div
-                className="w-full bg-[#1c1c1e] rounded-t-3xl pb-safe"
+                className="w-full bg-white rounded-t-3xl pb-safe relative z-10 shadow-2xl"
                 style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 24px)', animation: 'slideUp 0.28s cubic-bezier(0.32,0.72,0,1)' }}
                 onClick={e => e.stopPropagation()}
             >
                 {/* Drag handle */}
                 <div className="flex justify-center pt-3 pb-4">
-                    <div className="w-10 h-1 bg-white/20 rounded-full" />
+                    <div className="w-10 h-1.5 bg-gray-300 rounded-full" />
                 </div>
 
                 <div className="px-5 pb-2">
                     <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-lg font-semibold text-white">Nuevo ítem</h2>
+                        <h2 className="text-lg font-semibold text-gray-900">Nuevo ítem</h2>
                         <button onClick={onClose} className="text-[#0a84ff] text-base font-medium">Cancelar</button>
                     </div>
 
@@ -85,40 +84,40 @@ function AddSheet({ onClose, onAdd, trabajadorId }) {
 
                     <form onSubmit={handleSubmit} className="space-y-3">
                         {/* Nombre */}
-                        <div className="bg-white/8 rounded-2xl px-4 py-3.5" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                            <div className="text-[11px] font-medium text-white/40 uppercase tracking-wider mb-1.5">Producto</div>
+                        <div className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 shadow-sm">
+                            <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Producto</div>
                             <input
                                 ref={inputRef}
                                 type="text"
                                 value={nombre}
                                 onChange={e => setNombre(e.target.value)}
                                 placeholder="Leche, zumo, agua…"
-                                className="w-full bg-transparent text-white text-base placeholder-white/20 focus:outline-none"
+                                className="w-full bg-transparent text-gray-900 text-base placeholder-gray-400 focus:outline-none"
                             />
                         </div>
 
                         {/* Cantidad + Unidad */}
                         <div className="flex gap-3">
-                            <div className="flex-1 rounded-2xl px-4 py-3.5" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                                <div className="text-[11px] font-medium text-white/40 uppercase tracking-wider mb-1.5">Cantidad</div>
+                            <div className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 shadow-sm">
+                                <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Cantidad</div>
                                 <input
                                     type="number"
                                     min="0"
-                                    step="0.1"
+                                    step="0.01"
                                     value={cantidad}
                                     onChange={e => setCantidad(e.target.value)}
-                                    placeholder="0"
-                                    className="w-full bg-transparent text-white text-base placeholder-white/20 focus:outline-none"
+                                    placeholder="Ej: 2"
+                                    className="w-full bg-transparent text-gray-900 text-base placeholder-gray-400 focus:outline-none"
                                 />
                             </div>
-                            <div className="flex-1 rounded-2xl px-4 py-3.5" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                                <div className="text-[11px] font-medium text-white/40 uppercase tracking-wider mb-1.5">Unidad</div>
+                            <div className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 shadow-sm">
+                                <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Unidad</div>
                                 <select
                                     value={unidad}
                                     onChange={e => setUnidad(e.target.value)}
-                                    className="w-full bg-transparent text-white text-base focus:outline-none appearance-none"
+                                    className="w-full bg-transparent text-gray-900 text-base focus:outline-none appearance-none"
                                 >
-                                    {UNIDADES.map(u => <option key={u} value={u} className="bg-[#2c2c2e]">{u}</option>)}
+                                    {UNIDADES.map(u => <option key={u} value={u} className="bg-white text-gray-900">{u}</option>)}
                                 </select>
                             </div>
                         </div>
@@ -149,7 +148,7 @@ function AddSheet({ onClose, onAdd, trabajadorId }) {
                         <button
                             type="submit"
                             disabled={submitting || !nombre.trim()}
-                            className="w-full py-4 rounded-2xl font-semibold text-base transition-all duration-200 disabled:opacity-40"
+                            className="w-full py-4 rounded-2xl font-semibold text-base text-white transition-all duration-200 disabled:opacity-40"
                             style={{ background: submitting ? '#34c759aa' : '#34c759' }}
                         >
                             {submitting ? 'Añadiendo…' : '＋ Añadir a la lista'}
@@ -184,8 +183,8 @@ function ItemRow({ item, userId, isAdmin, bloqueado, onToggle, onDelete }) {
                 onClick={() => onToggle(item)}
                 className="flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-200 active:scale-90"
                 style={{
-                    borderColor: comprado ? '#34c759' : item.urgente ? '#ff3b30' : 'rgba(255,255,255,0.25)',
-                    background: comprado ? '#34c759' : 'transparent'
+                    borderColor: comprado ? '#34c759' : item.urgente ? '#ff3b30' : '#d1d5db',
+                    background: comprado ? '#34c759' : 'white'
                 }}
             >
                 {comprado && (
@@ -207,7 +206,7 @@ function ItemRow({ item, userId, isAdmin, bloqueado, onToggle, onDelete }) {
             {/* Content */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`font-medium text-[15px] ${comprado ? 'line-through text-white/30' : 'text-white'}`}>
+                    <span className={`font-medium text-[15px] ${comprado ? 'line-through text-gray-400' : 'text-gray-900'}`}>
                         {item.nombre}
                     </span>
                     {item.urgente && !comprado && (
@@ -217,7 +216,7 @@ function ItemRow({ item, userId, isAdmin, bloqueado, onToggle, onDelete }) {
                         </span>
                     )}
                 </div>
-                <div className="flex items-center gap-1.5 mt-0.5 text-xs text-white/30">
+                <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500 font-medium">
                     {cantidadStr && <span>{cantidadStr}</span>}
                     {cantidadStr && <span>·</span>}
                     <span>{item.trabajador?.nombre}</span>
@@ -310,16 +309,17 @@ export default function ListaCompras({ onClose }) {
 
     return (
         <>
-            <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#000' }}>
+            <div className="fixed inset-0 z-[60] flex flex-col bg-slate-50">
                 {/* iOS-style navigation bar */}
                 <div
-                    className="flex-shrink-0 flex items-center justify-between px-5 pt-safe"
+                    className="flex-shrink-0 flex items-center justify-between px-5 pt-safe relative z-10"
                     style={{
                         paddingTop: 'max(env(safe-area-inset-top, 0px), 16px)',
                         paddingBottom: '12px',
-                        background: 'rgba(28,28,30,0.95)',
+                        background: 'rgba(255,255,255,0.95)',
                         backdropFilter: 'blur(20px)',
-                        borderBottom: '0.5px solid rgba(255,255,255,0.08)'
+                        borderBottom: '1px solid #e2e8f0',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                     }}
                 >
                     <button
@@ -328,11 +328,11 @@ export default function ListaCompras({ onClose }) {
                     >
                         ‹ Volver
                     </button>
-                    <h1 className="text-[17px] font-semibold text-white">Lista de Compras</h1>
+                    <h1 className="text-[17px] font-bold text-gray-900">Lista de Compras</h1>
                     {!bloqueado ? (
                         <button
                             onClick={() => setShowSheet(true)}
-                            className="text-[#0a84ff] text-base font-medium active:opacity-60 transition-opacity"
+                            className="text-[#0a84ff] text-2xl font-medium active:opacity-60 transition-opacity leading-none"
                         >
                             ＋
                         </button>
@@ -342,7 +342,7 @@ export default function ListaCompras({ onClose }) {
                 </div>
 
                 {/* Scrollable content */}
-                <div className="flex-1 overflow-y-auto" style={{ background: '#000' }}>
+                <div className="flex-1 overflow-y-auto bg-slate-50">
 
                     {/* Time lock banner */}
                     {bloqueado && (
@@ -364,10 +364,9 @@ export default function ListaCompras({ onClose }) {
                                 { label: 'Urgentes', value: urgentes.length, color: '#ff3b30' },
                                 { label: 'Comprados', value: comprados.length, color: '#34c759' },
                             ].map(k => (
-                                <div key={k.label} className="rounded-2xl px-3 py-3 text-center"
-                                    style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                <div key={k.label} className="rounded-2xl px-3 py-3 text-center bg-white shadow-sm border border-gray-100">
                                     <div className="text-2xl font-bold" style={{ color: k.color }}>{k.value}</div>
-                                    <div className="text-[11px] text-white/40 mt-0.5">{k.label}</div>
+                                    <div className="text-[11px] font-medium text-gray-500 mt-0.5">{k.label}</div>
                                 </div>
                             ))}
                         </div>
@@ -377,8 +376,8 @@ export default function ListaCompras({ onClose }) {
                     {!loading && items.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-24 px-8 text-center">
                             <div className="text-7xl mb-4">🛒</div>
-                            <p className="text-white font-semibold text-lg mb-2">Lista vacía</p>
-                            <p className="text-white/40 text-sm">Pulsa ＋ para añadir el primer producto</p>
+                            <p className="text-gray-800 font-bold text-lg mb-2">Lista vacía</p>
+                            <p className="text-gray-500 text-sm">Pulsa ＋ para añadir el primer producto</p>
                         </div>
                     )}
 
@@ -386,7 +385,7 @@ export default function ListaCompras({ onClose }) {
                     {loading && (
                         <div className="px-4 mt-4 space-y-3">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                                <div key={i} className="h-16 rounded-2xl bg-white shadow-sm border border-gray-100 animate-pulse" />
                             ))}
                         </div>
                     )}
@@ -394,11 +393,10 @@ export default function ListaCompras({ onClose }) {
                     {/* Pendientes */}
                     {!loading && pendientes.length > 0 && (
                         <div className="mt-5 mx-4">
-                            <p className="text-[13px] font-semibold text-white/30 uppercase tracking-widest mb-2 px-1">
+                            <p className="text-[13px] font-bold text-gray-500 uppercase tracking-widest mb-2 px-1">
                                 Por comprar
                             </p>
-                            <div className="rounded-2xl overflow-hidden divide-y divide-white/5"
-                                style={{ background: 'rgba(255,255,255,0.06)' }}>
+                            <div className="rounded-2xl overflow-hidden divide-y divide-gray-100 bg-white shadow-sm border border-gray-100">
                                 {pendientes.map(item => (
                                     <ItemRow
                                         key={item.id}
@@ -418,7 +416,7 @@ export default function ListaCompras({ onClose }) {
                     {!loading && comprados.length > 0 && (
                         <div className="mt-5 mx-4 mb-4">
                             <div className="flex items-center justify-between mb-2 px-1">
-                                <p className="text-[13px] font-semibold text-white/30 uppercase tracking-widest">
+                                <p className="text-[13px] font-bold text-gray-400 uppercase tracking-widest">
                                     Comprado
                                 </p>
                                 {isAdmin && (
@@ -430,8 +428,7 @@ export default function ListaCompras({ onClose }) {
                                     </button>
                                 )}
                             </div>
-                            <div className="rounded-2xl overflow-hidden divide-y divide-white/5"
-                                style={{ background: 'rgba(255,255,255,0.04)' }}>
+                            <div className="rounded-2xl overflow-hidden divide-y divide-gray-100 bg-white shadow-sm border border-gray-100">
                                 {comprados.map(item => (
                                     <ItemRow
                                         key={item.id}

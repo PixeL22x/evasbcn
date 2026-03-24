@@ -67,12 +67,20 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { trabajadorId, temperatura, hora, observaciones, fotoTermometro } = body
+    console.log('Incoming temperature record:', body)
+    const { trabajadorId, temperatura, vitrina, hora, observaciones, fotoTermometro } = body
 
     // Validaciones
-    if (!trabajadorId || !temperatura || !hora) {
+    if (!trabajadorId || temperatura === undefined || !hora || !vitrina) {
       return NextResponse.json(
         { error: 'Faltan campos obligatorios' },
+        { status: 400 }
+      )
+    }
+
+    if (!['isa1', 'isa2'].includes(vitrina)) {
+      return NextResponse.json(
+        { error: 'La vitrina debe ser ISA 1 o ISA 2' },
         { status: 400 }
       )
     }
@@ -97,7 +105,7 @@ export async function POST(request) {
       )
     }
 
-    // Verificar que no exista ya un registro para esta hora hoy
+    // Verificar que no exista ya un registro para esta hora y vitrina hoy
     const hoy = new Date()
     hoy.setHours(0, 0, 0, 0)
     const manana = new Date(hoy)
@@ -105,7 +113,7 @@ export async function POST(request) {
 
     const registroExistente = await prisma.registroTemperatura.findFirst({
       where: {
-        trabajadorId,
+        vitrina,
         hora,
         fecha: {
           gte: hoy,
@@ -115,8 +123,9 @@ export async function POST(request) {
     })
 
     if (registroExistente) {
+      const vName = vitrina === 'isa1' ? 'ISA 1' : 'ISA 2'
       return NextResponse.json(
-        { error: `Ya existe un registro para las ${hora} hoy` },
+        { error: `Ya existe un registro de ${vName} para las ${hora} hoy` },
         { status: 400 }
       )
     }
@@ -125,7 +134,8 @@ export async function POST(request) {
     const registro = await prisma.registroTemperatura.create({
       data: {
         trabajadorId,
-        temperatura,
+        temperatura: parseFloat(temperatura),
+        vitrina,
         hora,
         fecha: new Date(),
         observaciones,

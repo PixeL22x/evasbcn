@@ -277,6 +277,7 @@ export default function TemperaturaAdmin() {
                             <thead>
                               <tr className="border-b">
                                 <th className="text-left py-3 px-4 font-medium">Trabajador</th>
+                                <th className="text-left py-3 px-4 font-medium">Vitrina</th>
                                 <th className="text-left py-3 px-4 font-medium">Fecha</th>
                                 <th className="text-left py-3 px-4 font-medium">Hora</th>
                                 <th className="text-left py-3 px-4 font-medium">Temperatura</th>
@@ -289,6 +290,9 @@ export default function TemperaturaAdmin() {
                                 <tr key={registro.id} className="border-b hover:bg-muted/50">
                                   <td className="py-3 px-4 font-medium">
                                     {registro.trabajador.nombre}
+                                  </td>
+                                  <td className="py-3 px-4 font-semibold text-blue-700">
+                                    {registro.vitrina === 'isa1' ? 'ISA 1' : registro.vitrina === 'isa2' ? 'ISA 2' : 'ISA 1'}
                                   </td>
                                   <td className="py-3 px-4 text-muted-foreground">
                                     {formatFecha(registro.fecha)}
@@ -319,47 +323,7 @@ export default function TemperaturaAdmin() {
                     </CardContent>
                   </Card>
 
-                  {/* Información adicional */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Rangos de Temperatura</CardTitle>
-                      <CardDescription>
-                        Guía de interpretación de las mediciones
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50">
-                          <Wind className="h-6 w-6 text-blue-600" />
-                          <div>
-                            <p className="font-medium text-blue-900">Muy Frío</p>
-                            <p className="text-sm text-blue-700">&lt; -18°C</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50">
-                          <Snowflake className="h-6 w-6 text-green-600" />
-                          <div>
-                            <p className="font-medium text-green-900">Ideal</p>
-                            <p className="text-sm text-green-700">-18°C a -10°C</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50">
-                          <AlertCircle className="h-6 w-6 text-yellow-600" />
-                          <div>
-                            <p className="font-medium text-yellow-900">Aceptable</p>
-                            <p className="text-sm text-yellow-700">-10°C a -2°C</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50">
-                          <Flame className="h-6 w-6 text-red-600" />
-                          <div>
-                            <p className="font-medium text-red-900">Peligroso</p>
-                            <p className="text-sm text-red-700">&gt; -2°C</p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                   {/* Información adicional (eliminada por petición del admin) */}
                 </div>
               </div>
             </main>

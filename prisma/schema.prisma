@@ -178,6 +178,7 @@ model RegistroTemperatura {
   trabajadorId String  @db.ObjectId
   trabajador   Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Cascade)
   temperatura  Float   // Temperatura registrada en grados Celsius
+  vitrina      String  @default("isa1") // "isa1" o "isa2"
   hora         String  // "14:00", "18:00", "21:00"
   fecha        DateTime // Fecha del registro
   observaciones String? // Notas adicionales del trabajador
