@@ -74,6 +74,7 @@ model Trabajador {
   loteMasas  LoteMasa[]
   itemsCompra ItemCompra[]
   tareasAsignadas TareaAsignada[]
+  disparosAlarma  DisparoAlarma[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -415,3 +416,37 @@ model TareaAsignada {
   updatedAt    DateTime   @updatedAt
 }
 
+// ============================================
+// TIMERS / ALARMAS PROGRAMADAS
+// ============================================
+
+model AlarmaTimer {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  titulo       String                           // "Registrar temperatura vitrina"
+  descripcion  String?                          // Descripción adicional opcional
+  hora         String                           // "21:30" (formato HH:mm)
+  recurrencia  String   @default("diaria")      // "diaria" | "unica"
+  fechaUnica   DateTime?                        // Solo si recurrencia = "unica"
+  activa       Boolean  @default(true)
+  sonido       String   @default("beep")        // "beep" | "campana" | "alerta"
+  color        String   @default("naranja")     // "rojo" | "naranja" | "azul" | "verde"
+  creadaPor    String                           // Nombre del admin
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  disparos     DisparoAlarma[]
+}
+
+// Registro de disparos: evita re-notificar al mismo trabajador el mismo día
+model DisparoAlarma {
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  alarmaId        String      @db.ObjectId
+  alarma          AlarmaTimer @relation(fields: [alarmaId], references: [id], onDelete: Cascade)
+  trabajadorId    String?     @db.ObjectId
+  trabajador      Trabajador? @relation(fields: [trabajadorId], references: [id], onDelete: SetNull)
+  trabajadorNombre String
+  fecha           DateTime    @default(now())   // Cuándo fue disparada
+  descartada      Boolean     @default(false)
+  descartadaAt    DateTime?
+  createdAt       DateTime    @default(now())
+}

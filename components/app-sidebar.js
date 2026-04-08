@@ -3,6 +3,7 @@
 import * as React from "react"
 import {
   BarChart3,
+  Bell,
   Calendar,
   Home,
   Settings,
@@ -24,6 +25,7 @@ import {
   Layers,
   ClipboardCheck,
 } from "lucide-react"
+
 
 import {
   Sidebar,
@@ -110,6 +112,11 @@ const data = {
       title: "Tareas Asignadas",
       url: "/admin/tareas",
       icon: ClipboardCheck,
+    },
+    {
+      title: "Alarmas",
+      url: "/admin/alarmas",
+      icon: Bell,
     },
     {
       title: "Control Stocks",

@@ -18,6 +18,7 @@ import BottomNav from '../components/worker/BottomNav'
 import MoreMenuSheet from '../components/worker/MoreMenuSheet'
 import MisTareas from '../components/worker/MisTareas'
 import WorkerDashboardWidgetsLight from '../components/worker/DashboardWidgetsLight'
+import AlarmaNotification from '../components/AlarmaNotification'
 
 
 export default function Home() {
@@ -736,6 +737,14 @@ export default function Home() {
                 .then(data => setTareasCount(Array.isArray(data) ? data.length : 0))
                 .catch(() => {})
             }}
+          />
+        )}
+
+        {/* 🔔 Alarmas programadas — siempre activo para workers */}
+        {user?.role === 'worker' && (
+          <AlarmaNotification
+            trabajadorNombre={user?.name}
+            trabajadorId={user?.id}
           />
         )}
       </div>
