@@ -14,6 +14,7 @@ import {
   IceCream,
   RefreshCw,
   Package,
+  PackageOpen,
   ClipboardList,
   Thermometer,
   Database,
@@ -122,6 +123,11 @@ const data = {
       title: "Control Stocks",
       url: "/admin/stock",
       icon: Package,
+    },
+    {
+      title: "Envases Inteligentes",
+      url: "/admin/envases",
+      icon: PackageOpen,
     },
     {
       title: "Inventario",

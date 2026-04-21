@@ -417,6 +417,36 @@ model TareaAsignada {
 }
 
 // ============================================
+// STOCK INTELIGENTE DE ENVASES / PACKAGING
+// ============================================
+
+model Envase {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  nombre      String         @unique  // "Vaso 400ml", "Tapa plana", "Pajita", "Tarrina pequeña"
+  categoria   String         // "vasos", "tapas", "pajitas", "cubiertos", "bolsas", "otros"
+  stockActual Int            @default(0)    // unidades actuales en almacén
+  stockMinimo Int            @default(50)   // umbral de alerta
+  unidad      String         @default("ud") // "ud", "pack", "caja"
+  activo      Boolean        @default(true)
+  recetas     RecetaEnvase[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+// Receta: qué envases consume 1 unidad vendida de un producto del ticket
+model RecetaEnvase {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  // Texto que debe aparecer en el nombre del producto del ticket
+  productoNombre String   // "smoothie", "milkshake", "bola", "xurro"
+  matchType      String   @default("contains") // "contains" | "exact" | "startsWith"
+  envaseId       String   @db.ObjectId
+  envase         Envase   @relation(fields: [envaseId], references: [id], onDelete: Cascade)
+  cantidad       Float    // unidades de envase por 1 unidad vendida del producto
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ============================================
 // TIMERS / ALARMAS PROGRAMADAS
 // ============================================
 
