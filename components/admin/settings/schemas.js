@@ -21,7 +21,7 @@ export const trabajadoresSchema = z.object({
     maxTrabajadores: z.coerce.number().min(1, "Mínimo 1 trabajador"),
     requiereValidacion: z.boolean(),
     permisosFotos: z.boolean(),
-    sessionTimeout: z.coerce.number().min(1, "Mínimo 1 minuto")
+    sessionTimeout: z.coerce.number().min(1, "Mínimo 1 minuto").optional().default(120)
 })
 
 export const sistemaSchema = z.object({

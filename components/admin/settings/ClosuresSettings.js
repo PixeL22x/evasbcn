@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useImperativeHandle, forwardRef } from "react"
 import { useFormContext, Controller } from "react-hook-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,10 +13,10 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { Clock, Save, ChevronDown } from "lucide-react"
+import { Clock, Save, ChevronDown, CheckCircle2, XCircle } from "lucide-react"
 import { TaskToggleEditor } from "./TaskToggleEditor"
 
-export function ClosuresSettings() {
+export const ClosuresSettings = forwardRef(function ClosuresSettings(props, ref) {
     const { register, control, formState: { errors } } = useFormContext()
 
     // Estados locales para los editores JSON
@@ -28,6 +27,7 @@ export function ClosuresSettings() {
     const [loadingTasks, setLoadingTasks] = useState(false)
     const [savingTasks, setSavingTasks] = useState(false)
     const [showJsonEditor, setShowJsonEditor] = useState(false)
+    const [saveStatus, setSaveStatus] = useState(null) // { ok: bool, msg: string } | null
 
     useEffect(() => {
         loadTasksConfig()
@@ -53,35 +53,36 @@ export function ClosuresSettings() {
         }
     }
 
+    const showFeedback = (ok, msg) => {
+        setSaveStatus({ ok, msg })
+        setTimeout(() => setSaveStatus(null), 4000)
+    }
+
     const saveTasksConfig = async (turno, jsonString) => {
         try {
-            // Validate JSON
             const parsed = JSON.parse(jsonString)
-
             setSavingTasks(true)
             const res = await fetch('/api/admin/settings/tasks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    turno,
-                    tasks: parsed
-                })
+                body: JSON.stringify({ turno, tasks: parsed })
             })
-
             if (res.ok) {
-                alert(`Tareas de ${turno} guardadas correctamente`)
-                loadTasksConfig() // Reload
+                showFeedback(true, `Tareas de ${turno} guardadas ✅`)
+                loadTasksConfig()
             } else {
-                alert('Error al guardar')
+                showFeedback(false, 'Error al guardar en el servidor')
             }
         } catch (e) {
-            alert('JSON Inválido: ' + e.message)
+            showFeedback(false, 'JSON inválido: ' + e.message)
         } finally {
             setSavingTasks(false)
         }
     }
 
-    const saveTasksFromToggles = async (turno, tasks) => {
+    const saveTasksFromToggles = async (e, turno, tasks) => {
+        e.preventDefault()
+        console.log('[ClosuresSettings] Guardando tareas de', turno, tasks)
         try {
             setSavingTasks(true)
             const res = await fetch('/api/admin/settings/tasks', {
@@ -89,19 +90,46 @@ export function ClosuresSettings() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ turno, tasks })
             })
-
             if (res.ok) {
-                alert(`Tareas de ${turno} guardadas correctamente`)
-                loadTasksConfig() // Reload
+                showFeedback(true, `Tareas de ${turno} guardadas correctamente ✅`)
+                loadTasksConfig()
             } else {
-                alert('Error al guardar')
+                const err = await res.json().catch(() => ({}))
+                showFeedback(false, `Error al guardar: ${err.error || res.status}`)
             }
         } catch (e) {
-            alert('Error: ' + e.message)
+            showFeedback(false, 'Error de red: ' + e.message)
         } finally {
             setSavingTasks(false)
         }
     }
+
+    // Exponer al padre la función para guardar ambos turnos desde el botón principal
+    useImperativeHandle(ref, () => ({
+        saveBothTurnos: async () => {
+            try {
+                setSavingTasks(true)
+                const [resManana, resTarde] = await Promise.all([
+                    fetch('/api/admin/settings/tasks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ turno: 'mañana', tasks: parsedTasksManana })
+                    }),
+                    fetch('/api/admin/settings/tasks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ turno: 'tarde', tasks: parsedTasksTarde })
+                    })
+                ])
+                if (!resManana.ok || !resTarde.ok) {
+                    throw new Error('Error al guardar tareas')
+                }
+                loadTasksConfig()
+            } finally {
+                setSavingTasks(false)
+            }
+        }
+    }), [parsedTasksManana, parsedTasksTarde])
 
     return (
         <Card>
@@ -221,6 +249,20 @@ export function ClosuresSettings() {
                             <TabsTrigger value="tarde">Tarde</TabsTrigger>
                         </TabsList>
 
+                        {/* Feedback visual de guardado */}
+                        {saveStatus && (
+                            <div className={`flex items-center gap-2 mt-3 p-3 rounded-lg text-sm font-medium ${
+                                saveStatus.ok
+                                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+                                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
+                            }`}>
+                                {saveStatus.ok
+                                    ? <span>✅ {saveStatus.msg}</span>
+                                    : <span>❌ {saveStatus.msg}</span>
+                                }
+                            </div>
+                        )}
+
                         <TabsContent value="manana">
                             <div className="space-y-4 mt-4">
                                 {loadingTasks ? (
@@ -234,7 +276,8 @@ export function ClosuresSettings() {
                                             onTasksChange={setParsedTasksManana}
                                         />
                                         <Button
-                                            onClick={() => saveTasksFromToggles('mañana', parsedTasksManana)}
+                                            type="button"
+                                            onClick={(e) => saveTasksFromToggles(e, 'mañana', parsedTasksManana)}
                                             disabled={savingTasks || loadingTasks}
                                         >
                                             <Save className="w-4 h-4 mr-2" />
@@ -258,7 +301,8 @@ export function ClosuresSettings() {
                                             onTasksChange={setParsedTasksTarde}
                                         />
                                         <Button
-                                            onClick={() => saveTasksFromToggles('tarde', parsedTasksTarde)}
+                                            type="button"
+                                            onClick={(e) => saveTasksFromToggles(e, 'tarde', parsedTasksTarde)}
                                             disabled={savingTasks || loadingTasks}
                                         >
                                             <Save className="w-4 h-4 mr-2" />
@@ -273,7 +317,7 @@ export function ClosuresSettings() {
                     {/* Editor JSON Avanzado (Colapsable) */}
                     <Collapsible open={showJsonEditor} onOpenChange={setShowJsonEditor}>
                         <CollapsibleTrigger asChild>
-                            <Button variant="ghost" className="w-full justify-between">
+                            <Button type="button" variant="ghost" className="w-full justify-between">
                                 <span className="text-sm font-medium">⚙️ Modo Avanzado (Editor JSON)</span>
                                 <ChevronDown className={`w-4 h-4 transition-transform ${showJsonEditor ? 'rotate-180' : ''}`} />
                             </Button>
@@ -297,6 +341,7 @@ export function ClosuresSettings() {
                                                 placeholder="Cargando configuración..."
                                             />
                                             <Button
+                                                type="button"
                                                 size="sm"
                                                 onClick={() => saveTasksConfig('mañana', tasksManana)}
                                                 disabled={savingTasks || loadingTasks}
@@ -314,6 +359,7 @@ export function ClosuresSettings() {
                                                 placeholder="Cargando configuración..."
                                             />
                                             <Button
+                                                type="button"
                                                 size="sm"
                                                 onClick={() => saveTasksConfig('tarde', tasksTarde)}
                                                 disabled={savingTasks || loadingTasks}
@@ -330,4 +376,4 @@ export function ClosuresSettings() {
             </CardContent>
         </Card>
     )
-}
+})
