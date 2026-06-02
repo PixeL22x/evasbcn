@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import AdminLayout from '../../../components/AdminLayout'
@@ -25,6 +25,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const closuresRef = useRef(null)
 
   // Security state
   const [isUnlocked, setIsUnlocked] = useState(false)
@@ -116,11 +117,15 @@ export default function SettingsPage() {
   const onSubmit = async (data) => {
     setSaving(true)
     try {
-      const response = await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: data })
-      })
+      const [response] = await Promise.all([
+        fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ settings: data })
+        }),
+        // Guardar también los toggles de tareas (fotos aire, etc.)
+        closuresRef.current?.saveBothTurnos?.() ?? Promise.resolve()
+      ])
 
       if (response.ok) {
         setSaved(true)
@@ -274,7 +279,7 @@ export default function SettingsPage() {
                       <div className="space-y-6">
                         <GeneralSettings />
                         <ScheduleSettings />
-                        <ClosuresSettings />
+                        <ClosuresSettings ref={closuresRef} />
                         <WorkersSettings />
                         <SystemSettings />
                       </div>
