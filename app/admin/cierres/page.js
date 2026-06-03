@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useMemo } from "react"
 import { useToast } from "@/contexts/ToastContext"
@@ -73,6 +73,8 @@ export default function CierresPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [turnoFilter, setTurnoFilter] = useState("todos")
   const [dateRangeFilter, setDateRangeFilter] = useState("todos")
+  const [trabajadorFilter, setTrabajadorFilter] = useState("todos")
+  const [trabajadores, setTrabajadores] = useState([])
 
   // Debounce search
   useEffect(() => {
@@ -80,7 +82,23 @@ export default function CierresPage() {
       fetchCierres()
     }, 500)
     return () => clearTimeout(timer)
-  }, [searchTerm, turnoFilter, dateRangeFilter, currentPage])
+  }, [searchTerm, turnoFilter, dateRangeFilter, trabajadorFilter, currentPage])
+
+  // Cargar lista de trabajadores únicos al montar
+  useEffect(() => {
+    const fetchTrabajadores = async () => {
+      try {
+        const res = await fetch('/api/cierre/trabajadores')
+        if (res.ok) {
+          const data = await res.json()
+          setTrabajadores(data.trabajadores || [])
+        }
+      } catch (e) {
+        console.error('Error cargando trabajadores:', e)
+      }
+    }
+    fetchTrabajadores()
+  }, [])
 
   const fetchCierres = async () => {
     try {
@@ -90,7 +108,8 @@ export default function CierresPage() {
         limit: itemsPerPage.toString(),
         search: searchTerm,
         turno: turnoFilter,
-        dateRange: dateRangeFilter
+        dateRange: dateRangeFilter,
+        trabajador: trabajadorFilter
       })
 
       const response = await fetch(`/api/cierre?${params}`)
@@ -269,6 +288,7 @@ export default function CierresPage() {
     setSearchTerm("")
     setTurnoFilter("todos")
     setDateRangeFilter("todos")
+    setTrabajadorFilter("todos")
     setCurrentPage(1)
   }
 
@@ -310,7 +330,7 @@ export default function CierresPage() {
     }
   }
 
-  const hasActiveFilters = searchTerm.trim() || turnoFilter !== "todos" || dateRangeFilter !== "todos"
+  const hasActiveFilters = searchTerm.trim() || turnoFilter !== "todos" || dateRangeFilter !== "todos" || trabajadorFilter !== "todos"
 
 
   const getProgressPercentage = (tareas) => {
@@ -436,8 +456,8 @@ export default function CierresPage() {
                   {/* Filtros y búsqueda */}
                   <Card className="mb-6 shadow-sm border-none bg-muted/40">
                     <CardContent className="pt-6">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {/* Búsqueda por trabajador - Full width on mobile */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        {/* Búsqueda texto libre */}
                         <div className="relative col-span-1 sm:col-span-2 lg:col-span-1">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -448,13 +468,27 @@ export default function CierresPage() {
                           />
                           {searchTerm && (
                             <button
-                              onClick={() => setSearchTerm("")}
+                              onClick={() => setSearchTerm("")} 
                               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             >
                               <X className="h-4 w-4" />
                             </button>
                           )}
                         </div>
+
+                        {/* Filtro por trabajador */}
+                        <Select value={trabajadorFilter} onValueChange={(v) => { setTrabajadorFilter(v); setCurrentPage(1) }}>
+                          <SelectTrigger className="h-10 bg-background dark:border-white/10">
+                            <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <SelectValue placeholder="Trabajador" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="todos">Todos los trabajadores</SelectItem>
+                            {trabajadores.map((t) => (
+                              <SelectItem key={t} value={t}>{t}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
 
                         {/* Filtro por turno */}
                         <Select value={turnoFilter} onValueChange={setTurnoFilter}>
@@ -485,7 +519,7 @@ export default function CierresPage() {
                           <Button
                             variant="destructive"
                             onClick={clearFilters}
-                            className="w-full h-10 sm:col-span-2 lg:col-span-1"
+                            className="w-full h-10"
                             size="sm"
                           >
                             <X className="h-4 w-4 mr-2" />

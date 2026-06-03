@@ -25,6 +25,7 @@ import {
   ShoppingCart,
   Layers,
   ClipboardCheck,
+  CalendarCheck,
 } from "lucide-react"
 
 
@@ -63,31 +64,11 @@ const data = {
       title: "Cierres",
       url: "/admin/cierres",
       icon: Clock,
-      items: [
-        {
-          title: "Historial",
-          url: "/admin/cierres/historial",
-        },
-        {
-          title: "Estadísticas",
-          url: "/admin/cierres/estadisticas",
-        },
-      ],
     },
     {
       title: "Tickets del Día",
       url: "/admin/tickets",
       icon: FileText,
-      items: [
-        {
-          title: "Ver Tickets",
-          url: "/admin/tickets",
-        },
-        {
-          title: "Analytics",
-          url: "/admin/tickets/analytics",
-        },
-      ],
     },
     {
       title: "Facturas",
@@ -162,15 +143,15 @@ const data = {
     {
       title: "Reportes",
       url: "/admin/reportes",
-      icon: FileText,
+      icon: BarChart3,
       items: [
         {
-          title: "Ventas",
-          url: "/admin/reportes/ventas",
+          title: "Fin de Mes",
+          url: "/admin/reportes",
         },
         {
-          title: "Tareas",
-          url: "/admin/reportes/tareas",
+          title: "Asistencia",
+          url: "/admin/reportes/asistencia",
         },
       ],
     },
@@ -211,18 +192,43 @@ export function AppSidebar({ variant = "sidebar", ...props }) {
           <SidebarGroupLabel>Navegación</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.navMain.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={item.isActive}>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>
-                        {item.title}
-                      </span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {data.navMain.map((item) =>
+                item.items?.length ? (
+                  <Collapsible key={item.title} asChild defaultOpen={false} className="group/collapsible">
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton tooltip={item.title}>
+                          {item.icon && <item.icon />}
+                          <span>{item.title}</span>
+                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.items.map((sub) => (
+                            <SidebarMenuSubItem key={sub.title}>
+                              <SidebarMenuSubButton asChild>
+                                <a href={sub.url}>
+                                  <span>{sub.title}</span>
+                                </a>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
+                ) : (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={item.isActive}>
+                      <a href={item.url}>
+                        {item.icon && <item.icon />}
+                        <span>{item.title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -351,11 +351,14 @@ export async function GET(request) {
     const search = searchParams.get('search') || ''
     const turno = searchParams.get('turno') || 'todos'
     const dateRange = searchParams.get('dateRange') || 'todos'
+    const trabajadorFilter = searchParams.get('trabajador') || 'todos'
 
     // Construir where clause
     const where = {}
 
-    if (search) {
+    if (trabajadorFilter !== 'todos') {
+      where.trabajador = trabajadorFilter
+    } else if (search) {
       where.trabajador = {
         contains: search,
         mode: 'insensitive',
