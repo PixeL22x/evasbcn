@@ -339,6 +339,14 @@ export default function CierresPage() {
     return Math.round((completadas / tareas.length) * 100)
   }
 
+  // Devuelve null si no hay bloque granizadora, o { completada: bool } si existe
+  const getGranizadoraStatus = (tareas) => {
+    if (!tareas) return null
+    const tarea = tareas.find(t => t.nombre && t.nombre.includes('Bloque 5.4'))
+    if (!tarea) return null
+    return { completada: tarea.completada }
+  }
+
   const getTopSellingProduct = (ticketData) => {
     if (!ticketData?.items || !Array.isArray(ticketData.items) || ticketData.items.length === 0) {
       return null
@@ -772,7 +780,11 @@ export default function CierresPage() {
 
                         <CardContent className="space-y-6 pt-6">
                           {/* Stats Grid */}
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                          <div className={`grid grid-cols-1 gap-3 sm:gap-4 ${
+                            (selectedCierre.turno === 'tarde' || selectedCierre.turno === 'noche') && getGranizadoraStatus(selectedCierre.tareas)
+                              ? 'sm:grid-cols-4'
+                              : 'sm:grid-cols-3'
+                          }`}>
                             <div className="bg-muted/40 p-4 rounded-xl border flex flex-col items-center text-center hover:bg-muted/60 transition-colors">
                               <div className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-2 flex items-center gap-1">
                                 <Clock className="h-3 w-3" /> Estado
@@ -803,6 +815,29 @@ export default function CierresPage() {
                                 )}
                               </div>
                             </div>
+
+                            {/* Stat: Granizadora (solo turno tarde/noche) */}
+                            {(selectedCierre.turno === 'tarde' || selectedCierre.turno === 'noche') && (() => {
+                              const g = getGranizadoraStatus(selectedCierre.tareas)
+                              if (!g) return null
+                              return (
+                                <div className={`p-4 rounded-xl border flex flex-col items-center text-center transition-colors ${
+                                  g.completada
+                                    ? 'bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/15'
+                                    : 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/15'
+                                }`}>
+                                  <div className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-2 flex items-center gap-1">
+                                    <span>🧊</span> Granizadora
+                                  </div>
+                                  <div className={`text-sm font-bold flex items-center gap-1.5 ${
+                                    g.completada ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
+                                  }`}>
+                                    <span>{g.completada ? '✅' : '⚠️'}</span>
+                                    <span>{g.completada ? 'Apagada' : 'Sin confirmar'}</span>
+                                  </div>
+                                </div>
+                              )
+                            })()}
                           </div>
 
                           {/* Progress Section / Top Product (Tarde only) */}

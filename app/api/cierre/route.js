@@ -143,6 +143,16 @@ export async function POST(request) {
             { tipo: 'isa2_apagada', descripcion: 'ISA 2 apagada' }
           ])
         },
+        // 🧊 Bloque 5.4 - Apagado de Granizadora
+        {
+          nombre: '🧊 Bloque 5.4 - Apagado de granizadora',
+          duracion: 1,
+          requiereInput: true,
+          inputType: 'pulsacion',
+          subtareas: JSON.stringify([
+            { id: 'granizadora', nombre: 'Granizadora' }
+          ])
+        },
         // 🌬️ Confirmación Ventiladores
         {
           nombre: '¿Los ventiladores del techo están apagados?',
@@ -243,6 +253,15 @@ export async function POST(request) {
             { tipo: 'aire_apagado', descripcion: 'Aire acondicionado apagado' },
             { tipo: 'isa1_apagada', descripcion: 'ISA 1 apagada' },
             { tipo: 'isa2_apagada', descripcion: 'ISA 2 apagada' }
+          ])
+        },
+        {
+          nombre: '🧊 Bloque 5.4 - Apagado de granizadora',
+          duracion: 1,
+          requiereInput: true,
+          inputType: 'pulsacion',
+          subtareas: JSON.stringify([
+            { id: 'granizadora', nombre: 'Granizadora' }
           ])
         },
         { nombre: '¿Los ventiladores del techo están apagados?', duracion: 1 },

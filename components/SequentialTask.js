@@ -5,6 +5,7 @@ import CircularTimer from './CircularTimer'
 import PhotoTask from './PhotoTask'
 import VentasTask from './VentasTask'
 import TicketScannerTask from './TicketScannerTask'
+import PressAndHoldTask from './PressAndHoldTask'
 
 export default function SequentialTask({
   task,
@@ -144,6 +145,21 @@ export default function SequentialTask({
   if (requiresPhotos) {
     return (
       <PhotoTask
+        task={task}
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        onComplete={onComplete}
+        onNext={onNext}
+        cierreId={cierreId}
+        trabajador={trabajador}
+      />
+    )
+  }
+
+  // Si la tarea es de tipo pulsación (press & hold)
+  if (requiresInput && task.inputType === 'pulsacion') {
+    return (
+      <PressAndHoldTask
         task={task}
         currentStep={currentStep}
         totalSteps={totalSteps}

@@ -13,19 +13,25 @@ async function sendTelegramNotification(cierre) {
         if (config?.valor?.enabled === false) return { sent: false, reason: 'disabled' }
     } catch (_) { }
 
-    const fecha = cierre.fechaFin ? new Date(cierre.fechaFin) : new Date()
-    const mensaje = `
-⚡ *CIERRE FORZADO POR ADMIN*
+    const fechaFin = cierre.fechaFin ? new Date(cierre.fechaFin) : new Date()
+    const hora = fechaFin.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' })
+    const fecha = fechaFin.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit', month: '2-digit', year: 'numeric' })
 
-👤 *Trabajador:* ${cierre.trabajador}
-🕐 *Turno:* ${cierre.turno}
-💰 *Ventas Totales:* €${cierre.totalVentas ?? '—'}
+    const turnoLabel = cierre.turno.charAt(0).toUpperCase() + cierre.turno.slice(1)
+    const ventasStr = cierre.totalVentas != null
+        ? `€${Number(cierre.totalVentas).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : '—'
 
-📅 *Fecha:* ${fecha.toLocaleDateString('es-ES')}
-🕒 *Hora cierre forzado:* ${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-
-⚠️ *Este cierre fue completado manualmente por el administrador.*
-    `.trim()
+    const mensaje = [
+        `<b>EVAS BCN</b> — Cierre forzado por admin`,
+        ``,
+        `Trabajador   <b>${cierre.trabajador}</b>`,
+        `Turno        ${turnoLabel}`,
+        `Ventas       <b>${ventasStr}</b>`,
+        `Hora         ${hora} · ${fecha}`,
+        ``,
+        `<i>Completado manualmente desde el panel de administración.</i>`,
+    ].join('\n')
 
     const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
@@ -33,8 +39,13 @@ async function sendTelegramNotification(cierre) {
         body: JSON.stringify({
             chat_id: TELEGRAM_CHAT_ID,
             text: mensaje,
-            parse_mode: 'Markdown',
-            disable_web_page_preview: true
+            parse_mode: 'HTML',
+            disable_web_page_preview: true,
+            reply_markup: {
+                inline_keyboard: [[
+                    { text: 'Ver panel de cierres →', url: `${process.env.NEXTAUTH_URL}/admin/cierres` }
+                ]]
+            }
         })
     })
 
