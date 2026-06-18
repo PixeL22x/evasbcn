@@ -115,7 +115,7 @@ export async function PUT(request) {
               } catch (_) { /* no bloquear el envío si falla la consulta del planning */ }
             }
 
-            const turnoEmoji = cierreActualizado.turno === 'mañana' ? '🌅' : cierreActualizado.turno === 'tarde' ? '🌆' : '🌙'
+            const turnoEmoji = cierreActualizado.turno === 'mañana' ? '🟡' : cierreActualizado.turno === 'tarde' ? '🟠' : '🔵'
             const divider = `${turnoEmoji} ${turnoEmoji} ${turnoEmoji} ${turnoEmoji} ${turnoEmoji}`
 
             const mensaje = [

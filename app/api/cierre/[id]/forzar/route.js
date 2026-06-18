@@ -22,7 +22,7 @@ async function sendTelegramNotification(cierre) {
         ? `€${Number(cierre.totalVentas).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         : '—'
 
-    const turnoEmoji = cierre.turno === 'mañana' ? '🌅' : cierre.turno === 'tarde' ? '🌆' : '🌙'
+    const turnoEmoji = cierre.turno === 'mañana' ? '🟡' : cierre.turno === 'tarde' ? '🟠' : '🔵'
     const divider = `${turnoEmoji} ${turnoEmoji} ${turnoEmoji} ${turnoEmoji} ${turnoEmoji}`
 
     const mensaje = [
