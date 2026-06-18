@@ -92,7 +92,7 @@ export async function PUT(request) {
                 })
 
                 if (excepcion?.trabajador?.activo) {
-                  siguienteTurnoLine = `\nSiguiente     <b>${excepcion.trabajador.nombre}</b> (tarde)`
+                  siguienteTurnoLine = `\n➡️ Siguiente: <b>${excepcion.trabajador.nombre}</b> (tarde)`
                 } else {
                   // Sin excepción → buscar por regla semanal
                   const regla = await prisma.reglaHorario.findFirst({
@@ -108,20 +108,24 @@ export async function PUT(request) {
                       }
                     })
                     if (!anulada) {
-                      siguienteTurnoLine = `\nSiguiente     <b>${regla.trabajador.nombre}</b> (tarde)`
+                      siguienteTurnoLine = `\n➡️ Siguiente: <b>${regla.trabajador.nombre}</b> (tarde)`
                     }
                   }
                 }
               } catch (_) { /* no bloquear el envío si falla la consulta del planning */ }
             }
 
+            const turnoEmoji = cierreActualizado.turno === 'mañana' ? '🌅' : cierreActualizado.turno === 'tarde' ? '🌆' : '🌙'
+            const divider = `${turnoEmoji} ${turnoEmoji} ${turnoEmoji} ${turnoEmoji} ${turnoEmoji}`
+
             const mensaje = [
-              `<b>EVAS BCN</b> — Cierre completado`,
+              divider,
+              `✅ <b>Cierre completado</b>`,
               ``,
-              `Trabajador   <b>${cierreActualizado.trabajador}</b>`,
-              `Turno        ${turnoLabel}`,
-              `Ventas       <b>${ventasStr}</b>`,
-              `Hora         ${hora} · ${fecha}${siguienteTurnoLine}`,
+              `👤 <b>${cierreActualizado.trabajador}</b> · ${turnoEmoji} ${turnoLabel}`,
+              `💰 ${ventasStr}`,
+              `🕐 ${hora} · ${fecha}${siguienteTurnoLine}`,
+              divider,
             ].join('\n')
 
             const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN

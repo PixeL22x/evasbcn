@@ -22,15 +22,19 @@ async function sendTelegramNotification(cierre) {
         ? `€${Number(cierre.totalVentas).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         : '—'
 
+    const turnoEmoji = cierre.turno === 'mañana' ? '🌅' : cierre.turno === 'tarde' ? '🌆' : '🌙'
+    const divider = `${turnoEmoji} ${turnoEmoji} ${turnoEmoji} ${turnoEmoji} ${turnoEmoji}`
+
     const mensaje = [
-        `<b>EVAS BCN</b> — Cierre forzado por admin`,
+        divider,
+        `⚡ <b>Cierre forzado por admin</b>`,
         ``,
-        `Trabajador   <b>${cierre.trabajador}</b>`,
-        `Turno        ${turnoLabel}`,
-        `Ventas       <b>${ventasStr}</b>`,
-        `Hora         ${hora} · ${fecha}`,
+        `👤 <b>${cierre.trabajador}</b> · ${turnoEmoji} ${turnoLabel}`,
+        `💰 ${ventasStr}`,
+        `🕐 ${hora} · ${fecha}`,
         ``,
-        `<i>Completado manualmente desde el panel de administración.</i>`,
+        `<i>⚠️ Completado manualmente desde el panel de administración.</i>`,
+        divider,
     ].join('\n')
 
     const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
