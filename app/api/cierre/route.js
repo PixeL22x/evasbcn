@@ -99,7 +99,8 @@ export async function POST(request) {
             'Sacar pinchos + cucharas',
             'Tapar helados',
             'Guardar helados Isa 1 hacia congelador enfrente blanco',
-            'Guardar helados Isa 2 congelador gris'
+            'Guardar helados Isa 2 congelador gris',
+            'Cerrar arcón de polos con llave'
           ])
         },
         // 🧴 Bloque 5 - Limpieza y Documentación
@@ -215,7 +216,8 @@ export async function POST(request) {
             'Sacar pinchos + cucharas',
             'Tapar helados',
             'Guardar helados Isa 1 hacia congelador enfrente blanco',
-            'Guardar helados Isa 2 congelador gris'
+            'Guardar helados Isa 2 congelador gris',
+            'Cerrar arcón de polos con llave'
           ])
         },
         {
