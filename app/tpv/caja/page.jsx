@@ -127,7 +127,6 @@ export default function Caja() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": process.env.NEXT_PUBLIC_TPV_API_KEY
         },
         body: JSON.stringify(payload)
       });

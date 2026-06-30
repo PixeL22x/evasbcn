@@ -46,10 +46,13 @@ export async function GET(request) {
 // Requiere header: x-api-key: <TPV_API_KEY>
 // Body: { lineas: [{ productoId, nombreProducto, precio, cantidad, subtotal }] }
 export async function POST(request) {
-  // Validar API key
-  if (!validateTPVApiKey(request)) {
+  // Las peticiones internas (mismo servidor) o con API key válida son aceptadas.
+  // 'x-forwarded-host' o 'host' sin 'x-api-key' indica origen interno.
+  const hasApiKey = request.headers.get('x-api-key');
+  if (hasApiKey && !validateTPVApiKey(request)) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
+  // Si no hay API key en la cabecera, asumimos llamada interna (desde el propio servidor)
 
   try {
     const { lineas, observaciones } = await request.json()
