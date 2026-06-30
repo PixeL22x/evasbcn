@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const { id } = await params
-    const { totalVentas, fechaFin, ticketData, completado } = await request.json()
+    const { totalVentas, totalTpv, fechaFin, ticketData, completado } = await request.json()
 
     if (!id) {
       return NextResponse.json(
@@ -56,6 +56,10 @@ export async function PUT(request, { params }) {
 
     if (totalVentas !== undefined && totalVentas !== null) {
       updateData.totalVentas = parseFloat(totalVentas)
+    }
+
+    if (totalTpv !== undefined && totalTpv !== null) {
+      updateData.totalTpv = parseFloat(totalTpv)
     }
 
     if (fechaFin !== undefined && fechaFin !== null) {

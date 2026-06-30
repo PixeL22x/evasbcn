@@ -18,6 +18,7 @@ model Cierre {
   fechaFin    DateTime?
   completado  Boolean  @default(false)
   totalVentas Float?   // Total de ventas del día
+  totalTpv    Float?   // Total de ventas del TPV Auxiliar
   ticketData  Json?    // Datos del ticket escaneado con IA (items, imageUrl, etc.)
   tareas      Tarea[]
   createdAt   DateTime @default(now())
@@ -479,4 +480,49 @@ model DisparoAlarma {
   descartada      Boolean     @default(false)
   descartadaAt    DateTime?
   createdAt       DateTime    @default(now())
+}
+
+// ============================================
+// TPV AUXILIAR – HELADERÍA
+// ============================================
+
+// Catálogo de productos de la carta del TPV (independiente del stock)
+model ProductoTPV {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  nombre      String
+  categoria   String          // "helados", "bebidas", "postres", "churros", "otros"
+  precio      Float
+  descripcion String?
+  emoji       String?         // 🍦🥤🧁 — icono visual para la pantalla táctil
+  imageUrl    String?         // URL absoluta de imagen (Cloudinary, Supabase, CDN…)
+  orden       Int             @default(0)  // Orden de aparición dentro de su categoría
+  activo      Boolean         @default(true)
+  lineas      LineaVentaTPV[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+// Cada venta registrada desde el TPV (siempre tarjeta, anónima)
+model VentaTPV {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  total         Float
+  anulada       Boolean         @default(false)
+  observaciones String?
+  lineas        LineaVentaTPV[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+// Detalle de cada línea de venta del TPV
+model LineaVentaTPV {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  ventaId        String       @db.ObjectId
+  venta          VentaTPV     @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+  productoId     String?      @db.ObjectId
+  producto       ProductoTPV? @relation(fields: [productoId], references: [id])
+  nombreProducto String       // Snapshot del nombre por si el producto se edita/elimina
+  precio         Float        // Snapshot del precio en el momento de la venta
+  cantidad       Int
+  subtotal       Float
+  createdAt      DateTime     @default(now())
 }

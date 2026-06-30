@@ -7,43 +7,38 @@ import { prisma } from '@/lib/prisma'
  * Devuelve el inicio y fin (UTC) de la semana anterior (lun–dom)
  * respecto a una fecha dada expresada en hora Madrid.
  */
+import { startOfWeek, subWeeks, endOfWeek } from 'date-fns'
+import { toZonedTime, fromZonedTime } from 'date-fns-tz'
+
 function getSemanasUTC() {
-  // "Ahora" en hora Madrid
-  const nowMadrid = new Date(
-    new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' })
-  )
-
-  // Lunes de la semana actual (hora Madrid, 00:00:00)
-  const lunesEstaSemanaMadrid = new Date(nowMadrid)
-  const diaSemana = nowMadrid.getDay() === 0 ? 7 : nowMadrid.getDay() // lun=1 … dom=7
-  lunesEstaSemanaMadrid.setDate(nowMadrid.getDate() - (diaSemana - 1))
-  lunesEstaSemanaMadrid.setHours(0, 0, 0, 0)
-
-  // Lunes de la semana anterior
-  const lunesSemanaAnteriorMadrid = new Date(lunesEstaSemanaMadrid)
-  lunesSemanaAnteriorMadrid.setDate(lunesEstaSemanaMadrid.getDate() - 7)
-
-  // Domingo de la semana anterior (fin = lunes esta semana)
-  const domingoSemanaAnteriorMadrid = new Date(lunesEstaSemanaMadrid)
-  domingoSemanaAnteriorMadrid.setMilliseconds(-1) // 23:59:59.999 del domingo anterior
-
-  // Lunes de hace dos semanas (para la comparativa)
-  const lunesHaceDosSemanaMadrid = new Date(lunesSemanaAnteriorMadrid)
-  lunesHaceDosSemanaMadrid.setDate(lunesSemanaAnteriorMadrid.getDate() - 7)
-
-  // Convertir a UTC para las queries de Prisma
-  const toUTC = (d) => new Date(d.toLocaleString('en-US', { timeZone: 'UTC' }))
+  const timeZone = 'Europe/Madrid'
+  const now = new Date()
+  
+  // Convert current time to Madrid time conceptually
+  const nowMadrid = toZonedTime(now, timeZone)
+  
+  // Last week's Monday 00:00:00 in Madrid
+  const lunesSemanaAnteriorMadrid = startOfWeek(subWeeks(nowMadrid, 1), { weekStartsOn: 1 })
+  const inicioSemanaAnteriorUTC = fromZonedTime(lunesSemanaAnteriorMadrid, timeZone)
+  
+  // Last week's Sunday 23:59:59.999 in Madrid
+  const domingoSemanaAnteriorMadrid = endOfWeek(subWeeks(nowMadrid, 1), { weekStartsOn: 1 })
+  const finSemanaAnteriorUTC = fromZonedTime(domingoSemanaAnteriorMadrid, timeZone)
+  
+  // 2 weeks ago Monday
+  const lunesHaceDosSemanaMadrid = startOfWeek(subWeeks(nowMadrid, 2), { weekStartsOn: 1 })
+  const inicioHaceDosSemanasUTC = fromZonedTime(lunesHaceDosSemanaMadrid, timeZone)
 
   return {
     semanaActual: {
-      inicio: toUTC(lunesSemanaAnteriorMadrid),
-      fin: toUTC(domingoSemanaAnteriorMadrid),
+      inicio: inicioSemanaAnteriorUTC,
+      fin: finSemanaAnteriorUTC,
       label: formatRangoSemana(lunesSemanaAnteriorMadrid, domingoSemanaAnteriorMadrid),
       numeroSemana: getNumeroSemana(lunesSemanaAnteriorMadrid),
     },
     semanaAnterior: {
-      inicio: toUTC(lunesHaceDosSemanaMadrid),
-      fin: toUTC(lunesSemanaAnteriorMadrid),
+      inicio: inicioHaceDosSemanasUTC,
+      fin: inicioSemanaAnteriorUTC,
     },
   }
 }
@@ -101,6 +96,7 @@ export async function GET(request) {
       prisma.cierre.findMany({
         where: {
           completado: true,
+          turno: 'tarde',
           fechaFin: { gte: semanaActual.inicio, lte: semanaActual.fin },
         },
         select: { trabajador: true, turno: true, totalVentas: true },
@@ -108,6 +104,7 @@ export async function GET(request) {
       prisma.cierre.findMany({
         where: {
           completado: true,
+          turno: 'tarde',
           fechaFin: { gte: semanaAnterior.inicio, lt: semanaAnterior.fin },
         },
         select: { totalVentas: true },

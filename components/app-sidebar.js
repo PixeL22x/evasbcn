@@ -26,6 +26,7 @@ import {
   Layers,
   ClipboardCheck,
   CalendarCheck,
+  Tablet,
 } from "lucide-react"
 
 
@@ -169,6 +170,11 @@ const data = {
       title: "Bots",
       url: "/admin/bots",
       icon: Bot,
+    },
+    {
+      title: "TPV Auxiliar",
+      url: "/admin/tpv",
+      icon: Tablet,
     },
   ],
 }

@@ -665,9 +665,16 @@ export default function CierresPage() {
                                     <div className="flex items-center justify-between text-sm bg-muted/30 p-2 rounded-lg">
                                       <div className="flex items-center gap-1.5 text-muted-foreground">
                                         <Euro className="h-4 w-4" />
-                                        <span className="font-medium text-foreground">
-                                          {cierre.totalVentas ? formatCurrency(cierre.totalVentas) : '-'}
-                                        </span>
+                                        <div className="flex flex-col">
+                                          <span className="font-medium text-foreground leading-tight">
+                                            {cierre.totalVentas ? formatCurrency(cierre.totalVentas) : '-'} <span className="text-[10px] text-muted-foreground">Caja</span>
+                                          </span>
+                                          {cierre.totalTpv > 0 && (
+                                            <span className="font-medium text-violet-500 leading-tight text-xs">
+                                              +{formatCurrency(cierre.totalTpv)} <span className="text-[10px]">Tablet</span>
+                                            </span>
+                                          )}
+                                        </div>
                                       </div>
                                       <div className="h-4 w-px bg-border" />
                                       <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -796,9 +803,17 @@ export default function CierresPage() {
                               <div className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-2 flex items-center gap-1">
                                 <Euro className="h-3 w-3" /> Ventas
                               </div>
-                              <div className="text-2xl font-bold tracking-tight">
-                                {selectedCierre.totalVentas ? formatCurrency(selectedCierre.totalVentas) : (
-                                  <span className="text-muted-foreground text-lg">-</span>
+                              <div className="flex flex-col items-center">
+                                <div className="text-2xl font-bold tracking-tight">
+                                  {selectedCierre.totalVentas ? formatCurrency(selectedCierre.totalVentas) : (
+                                    <span className="text-muted-foreground text-lg">-</span>
+                                  )}
+                                  <span className="text-[10px] text-muted-foreground font-normal ml-1">Caja</span>
+                                </div>
+                                {selectedCierre.totalTpv > 0 && (
+                                  <div className="text-sm font-bold text-violet-500 mt-1">
+                                    +{formatCurrency(selectedCierre.totalTpv)} <span className="text-[10px] font-normal">Tablet</span>
+                                  </div>
                                 )}
                               </div>
                             </div>

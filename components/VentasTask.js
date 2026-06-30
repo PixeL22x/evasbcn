@@ -15,15 +15,63 @@ export default function VentasTask({
   const [isUploading, setIsUploading] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
 
+  // Estado del botón de importación TPV
+  const [tpvLoading, setTpvLoading] = useState(false)
+  const [tpvStats, setTpvStats] = useState(null) // { totalHoy, numVentas }
+  const [tpvError, setTpvError] = useState(null)
+  const [tpvImportado, setTpvImportado] = useState(false)
+
   // Resetear estado cuando cambia la tarea
   useEffect(() => {
     setIsCompleted(false)
     setIsUploading(false)
     setTotalVentas('')
+    setTpvStats(null)
+    setTpvError(null)
+    setTpvImportado(false)
   }, [task.id])
 
   const canComplete = () => {
     return totalVentas.trim() !== '' && !isNaN(parseFloat(totalVentas)) && parseFloat(totalVentas) >= 0
+  }
+
+  // Consulta las ventas del TPV auxiliar del día actual
+  const handleImportarTPV = async () => {
+    setTpvLoading(true)
+    setTpvError(null)
+    try {
+      const res = await fetch(`${window.location.origin}/api/tpv/stats`)
+      if (!res.ok) throw new Error('Error al conectar con el TPV')
+      const data = await res.json()
+      setTpvStats(data)
+    } catch (err) {
+      setTpvError('No se pudo conectar con el TPV auxiliar. Inténtalo de nuevo.')
+      console.error('[VentasTask] Error importando TPV:', err)
+    } finally {
+      setTpvLoading(false)
+    }
+  }
+
+  // Estado para guardar el total del TPV de forma separada
+  const [tpvTotalValue, setTpvTotalValue] = useState(null)
+
+  // Aplica el total del TPV al estado separado
+  const handleAplicarTPV = async () => {
+    if (tpvStats?.totalHoy !== undefined) {
+      setTpvTotalValue(tpvStats.totalHoy)
+      setTpvImportado(true)
+
+      // Avisar al backend que el TPV está cerrado para hoy
+      try {
+        await fetch(`${window.location.origin}/api/tpv/estado`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cerrado: true })
+        })
+      } catch (err) {
+        console.error('Error cerrando TPV remotamente:', err)
+      }
+    }
   }
 
   const handleComplete = async () => {
@@ -42,7 +90,8 @@ export default function VentasTask({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          totalVentas: parseFloat(totalVentas)
+          totalVentas: parseFloat(totalVentas),
+          ...(tpvTotalValue !== null ? { totalTpv: parseFloat(tpvTotalValue) } : {})
         }),
       })
 
@@ -69,7 +118,7 @@ export default function VentasTask({
         // Auto-avanzar después de guardar las ventas
         setTimeout(() => {
           onNext()
-        }, 1500) // Esperar 1.5 segundos para que el usuario vea el mensaje de éxito
+        }, 1500)
       } else {
         throw new Error('Error al marcar la tarea como completada')
       }
@@ -141,7 +190,9 @@ export default function VentasTask({
                   step="0.01"
                   min="0"
                   value={totalVentas}
-                  onChange={(e) => setTotalVentas(e.target.value)}
+                  onChange={(e) => {
+                    setTotalVentas(e.target.value)
+                  }}
                   placeholder="0.00"
                   className="w-full pl-8 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 text-lg"
                   disabled={isUploading || isCompleted}
@@ -160,6 +211,94 @@ export default function VentasTask({
                 </p>
               )}
             </div>
+
+            {/* ── BOTÓN IMPORTAR DESDE TPV AUXILIAR ── */}
+            {!isCompleted && (
+              <div className="bg-violet-900/30 border border-violet-500/30 rounded-lg p-4">
+                <p className="text-violet-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <span>📲</span> TPV Auxiliar (tablet)
+                </p>
+
+                {/* Estado: sin datos aún */}
+                {!tpvStats && !tpvLoading && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <p className="text-white/60 text-sm flex-1">
+                      ¿Hubo ventas desde la tablet del TPV? Impórtalas automáticamente.
+                    </p>
+                    <button
+                      onClick={handleImportarTPV}
+                      disabled={isUploading}
+                      className="shrink-0 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-all duration-200 disabled:opacity-50"
+                    >
+                      Consultar TPV
+                    </button>
+                  </div>
+                )}
+
+                {/* Estado: cargando */}
+                {tpvLoading && (
+                  <div className="flex items-center gap-3 text-white/70 text-sm">
+                    <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                    Consultando ventas del TPV...
+                  </div>
+                )}
+
+                {/* Estado: error */}
+                {tpvError && (
+                  <div className="space-y-2">
+                    <p className="text-red-400 text-sm">{tpvError}</p>
+                    <button
+                      onClick={handleImportarTPV}
+                      className="text-violet-300 underline text-xs"
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                )}
+
+                {/* Estado: datos recibidos */}
+                {tpvStats && !tpvLoading && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between bg-white/5 rounded-lg px-4 py-3">
+                      <div>
+                        <p className="text-white font-bold text-xl">
+                          €{formatCurrency(tpvStats.totalHoy)}
+                        </p>
+                        <p className="text-white/60 text-xs mt-0.5">
+                          {tpvStats.numVentas} {tpvStats.numVentas === 1 ? 'venta' : 'ventas'} registradas hoy en el TPV
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        {tpvStats.totalHoy > 0 && !tpvImportado && (
+                          <button
+                            onClick={handleAplicarTPV}
+                            className="bg-green-600 hover:bg-green-500 text-white font-semibold px-3 py-2 rounded-lg text-sm transition-all"
+                          >
+                            ✓ Adjuntar al cierre
+                          </button>
+                        )}
+                        {tpvImportado && (
+                          <span className="flex items-center text-green-400 font-semibold px-3 py-2 text-sm bg-green-400/10 rounded-lg">
+                            ✓ Adjuntado
+                          </span>
+                        )}
+                        <button
+                          onClick={handleImportarTPV}
+                          className="bg-white/10 hover:bg-white/20 text-white/70 px-3 py-2 rounded-lg text-xs transition-all"
+                        >
+                          ↻ Actualizar
+                        </button>
+                      </div>
+                    </div>
+                    {tpvStats.totalHoy === 0 && (
+                      <p className="text-white/50 text-xs text-center">
+                        No hay ventas registradas desde el TPV hoy.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Completion Status */}
@@ -208,7 +347,7 @@ export default function VentasTask({
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation dots */}
         <div className="flex items-center justify-center gap-2 sm:gap-4">
           <div className="flex space-x-1 sm:space-x-2">
             {Array.from({ length: totalSteps }, (_, index) => (
