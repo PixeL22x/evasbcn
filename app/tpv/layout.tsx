@@ -4,7 +4,6 @@ import { Outfit } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/tpv-navbar";
 import { cn } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 
 import { CierreProvider } from "@/contexts/CierreContext";
 
