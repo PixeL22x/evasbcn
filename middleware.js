@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 
 export function middleware(request) {
-  // Manejar CORS (preflight OPTIONS) para las rutas del TPV auxiliar
-  if (request.nextUrl.pathname.startsWith('/api/tpv')) {
+  // Manejar CORS (preflight OPTIONS) para todas las rutas de la API
+  if (request.nextUrl.pathname.startsWith('/api')) {
     if (request.method === 'OPTIONS') {
       return new NextResponse(null, {
         status: 200,
@@ -32,6 +32,6 @@ export function middleware(request) {
 export const config = {
   matcher: [
     '/admin/:path*',
-    '/api/tpv/:path*',
+    '/api/:path*',
   ],
 }

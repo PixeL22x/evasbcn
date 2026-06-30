@@ -19,8 +19,8 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // Permitir CORS para las rutas del TPV auxiliar (desde localhost u otros dominios)
-        source: "/api/tpv/:path*",
+        // Permitir CORS para todas las rutas de la API (desde localhost u otros dominios)
+        source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
           { key: "Access-Control-Allow-Origin", value: "*" },
