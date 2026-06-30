@@ -1,7 +1,21 @@
 import { NextResponse } from 'next/server'
 
 export function middleware(request) {
-  // Solo aplicar middleware a rutas de admin
+  // Manejar CORS (preflight OPTIONS) para las rutas del TPV auxiliar
+  if (request.nextUrl.pathname.startsWith('/api/tpv')) {
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+          'Access-Control-Allow-Headers': 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-api-key',
+        },
+      })
+    }
+  }
+
+  // Solo aplicar middleware de auth a rutas de admin
   if (request.nextUrl.pathname.startsWith('/admin')) {
     // Verificar si hay token de autenticación en las cookies
     const token = request.cookies.get('auth-token')
@@ -18,5 +32,6 @@ export function middleware(request) {
 export const config = {
   matcher: [
     '/admin/:path*',
+    '/api/tpv/:path*',
   ],
 }
