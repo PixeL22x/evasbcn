@@ -48,6 +48,21 @@ export function AuthProvider({ children }) {
       
       if (response.ok) {
         setUser(data.user)
+        
+        // --- Fichaje Automático: Entrada ---
+        if (data.user.role === 'worker') {
+          fetch('/api/fichaje', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              trabajadorId: data.user.id,
+              tipo: 'turno',
+              observaciones: 'Entrada automática al iniciar sesión'
+            })
+          }).catch(err => console.error('Error en fichaje automático de entrada:', err))
+        }
+        // -----------------------------------
+
         return { success: true, user: data.user }
       } else {
         return { success: false, error: data.error }
@@ -60,6 +75,21 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
+      // --- Fichaje Automático: Salida ---
+      if (user && user.role === 'worker') {
+        // Se hace un await para garantizar que la llamada sale antes de limpiar el estado
+        await fetch('/api/fichaje', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'clock-out',
+            trabajadorId: user.id,
+            observaciones: 'Salida automática al cerrar sesión'
+          })
+        }).catch(err => console.error('Error en fichaje automático de salida:', err))
+      }
+      // ----------------------------------
+
       await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include'
