@@ -28,6 +28,7 @@ export async function GET(request) {
     // Obtener datos de cierres por día (solo turno de tarde para ventas)
     const cierres = await prisma.cierre.findMany({
       where: {
+        tipo: 'cierre',
         fechaInicio: {
           gte: startDate,
           lte: endDate

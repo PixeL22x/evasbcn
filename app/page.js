@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import SequentialTask from '../components/SequentialTask'
 import WorkerForm from '../components/WorkerForm'
+import WorkerFormApertura from '../components/WorkerFormApertura'
 import PedidoHelados from '../components/PedidoHelados'
 import CambioTurno from '../components/CambioTurno'
 import StockWorker from '../components/StockWorker'
@@ -13,7 +14,8 @@ import ResenaWorker from '../components/ResenaWorker'
 import ControlTartas from '../components/ControlTartas'
 import ControlMasas from '../components/ControlMasas'
 import ListaCompras from '../components/ListaCompras'
-import PendingClosureModal from '../components/PendingClosureModal'  // ⭐ NUEVO
+import PendingClosureModal from '../components/PendingClosureModal'
+import PendingOpeningModal from '../components/PendingOpeningModal'
 import BottomNav from '../components/worker/BottomNav'
 import MoreMenuSheet from '../components/worker/MoreMenuSheet'
 import MisTareas from '../components/worker/MisTareas'
@@ -28,7 +30,9 @@ export default function Home() {
   const [showTimer, setShowTimer] = useState(false)
   const [gameStarted, setGameStarted] = useState(false)
   const [showCelebration, setShowCelebration] = useState(false)
+  const [modoActivo, setModoActivo] = useState('cierre') // 'cierre' | 'apertura'
   const [showWorkerForm, setShowWorkerForm] = useState(false)
+  const [showAperturaForm, setShowAperturaForm] = useState(false)
   const [showPedidoHelados, setShowPedidoHelados] = useState(false)
   const [showCambioTurno, setShowCambioTurno] = useState(false)
   const [showStockWorker, setShowStockWorker] = useState(false)
@@ -44,11 +48,15 @@ export default function Home() {
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [startTime, setStartTime] = useState(null)
   const [elapsedTime, setElapsedTime] = useState(0)
-  const [hasCheckedPending, setHasCheckedPending] = useState(false)  // ⭐ NUEVO: Flag para evitar múltiples checks
-  const [showPendingModal, setShowPendingModal] = useState(false)  // ⭐ NUEVO: Controlar modal
-  const [pendingCierreData, setPendingCierreData] = useState(null)  // ⭐ NUEVO: Datos del cierre pendiente
-  const [showMisTareas, setShowMisTareas] = useState(false)  // Mis tareas asignadas
-  const [tareasCount, setTareasCount] = useState(0)  // Contador de tareas pendientes
+  const [hasCheckedPending, setHasCheckedPending] = useState(false)
+  const [showPendingModal, setShowPendingModal] = useState(false)
+  const [pendingCierreData, setPendingCierreData] = useState(null)
+  // 🌅 Apertura state
+  const [hasCheckedPendingApertura, setHasCheckedPendingApertura] = useState(false)
+  const [showPendingAperturaModal, setShowPendingAperturaModal] = useState(false)
+  const [pendingAperturaData, setPendingAperturaData] = useState(null)
+  const [showMisTareas, setShowMisTareas] = useState(false)
+  const [tareasCount, setTareasCount] = useState(0)
 
   const totalTasks = tasks.length
   const currentTask = tasks[currentStep - 1]
@@ -78,13 +86,21 @@ export default function Home() {
     }
   }, [loading, isAuthenticated, user?.role])
 
-  // ⭐ NUEVO: Verificar cierres pendientes al cargar (solo para workers)
+  // Verificar cierres pendientes al cargar (solo para workers)
   useEffect(() => {
     if (!loading && isAuthenticated() && user?.role === 'worker' && !hasCheckedPending) {
       setHasCheckedPending(true)
       checkForPendingCierre()
     }
   }, [loading, isAuthenticated, user?.role, hasCheckedPending])
+
+  // 🌅 Verificar aperturas pendientes al cargar (solo para workers)
+  useEffect(() => {
+    if (!loading && isAuthenticated() && user?.role === 'worker' && !hasCheckedPendingApertura) {
+      setHasCheckedPendingApertura(true)
+      checkForPendingApertura()
+    }
+  }, [loading, isAuthenticated, user?.role, hasCheckedPendingApertura])
 
   // Fetch tareas asignadas pendientes (badge count)
   useEffect(() => {
@@ -143,9 +159,9 @@ export default function Home() {
     setShowPendingModal(false)
     setPendingCierreData(null)
     setLoadingTasks(true)
+    setModoActivo('cierre')
 
     try {
-      // Fresh fetch: datos actualizados al momento de continuar
       const res = await fetch(`/api/cierre/${cierreIdToResume}`)
       if (!res.ok) throw new Error('No se pudo cargar el cierre')
       const { cierre } = await res.json()
@@ -169,31 +185,95 @@ export default function Home() {
 
   function handleNewCierre() {
     if (pendingCierreData?.cierre?.id) {
-      // Eliminar el cierre abandonado para no generar zombies en BD
-      fetch(`/api/cierre/${pendingCierreData.cierre.id}`, {
-        method: 'DELETE'
-      }).catch(err => console.error('Error al eliminar cierre abandonado:', err))
+      fetch(`/api/cierre/${pendingCierreData.cierre.id}`, { method: 'DELETE' })
+        .catch(err => console.error('Error al eliminar cierre abandonado:', err))
     }
     setShowPendingModal(false)
     setPendingCierreData(null)
-    setShowWorkerForm(true)  // Abrir directamente el formulario de nuevo cierre
+    setModoActivo('cierre')
+    setShowWorkerForm(true)
   }
 
   function handleCloseModal() {
-    console.log('❌ Usuario cerró el modal')
     setShowPendingModal(false)
     setPendingCierreData(null)
+  }
+
+  // 🌅 Apertura: verificar pendiente
+  async function checkForPendingApertura() {
+    try {
+      console.log('🌅 Verificando aperturas pendientes...')
+      const response = await fetch(`/api/apertura/pendiente?trabajador=${encodeURIComponent(user.name)}`)
+      if (response.ok) {
+        const { cierre } = await response.json()
+        if (cierre) {
+          const tareasCompletadas = cierre.tareas.filter(t => t.completada).length
+          const totalTareas = cierre.tareas.length
+          const progreso = Math.round((tareasCompletadas / totalTareas) * 100)
+          setPendingAperturaData({
+            cierre,
+            turno: cierre.turno,
+            fechaInicio: cierre.fechaInicio,
+            tareasCompletadas,
+            totalTareas,
+            progreso
+          })
+          setShowPendingAperturaModal(true)
+          console.log(`✅ Apertura pendiente: ${cierre.id} (${tareasCompletadas}/${totalTareas})`)
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error al verificar aperturas pendientes:', error)
+    }
+  }
+
+  // 🌅 Continuar apertura pendiente
+  async function handleContinuePendingApertura() {
+    if (!pendingAperturaData) return
+    const aperturaIdToResume = pendingAperturaData.cierre.id
+    setShowPendingAperturaModal(false)
+    setPendingAperturaData(null)
+    setLoadingTasks(true)
+    setModoActivo('apertura')
+
+    try {
+      const res = await fetch(`/api/apertura/${aperturaIdToResume}`)
+      if (!res.ok) throw new Error('No se pudo cargar la apertura')
+      const { cierre } = await res.json()
+      const firstPendingIndex = cierre.tareas.findIndex(t => !t.completada)
+      setCierreId(cierre.id)
+      setWorkerName(cierre.trabajador)
+      setTasks(cierre.tareas)
+      setCurrentStep(firstPendingIndex !== -1 ? firstPendingIndex + 1 : 1)
+      setStartTime(new Date(cierre.fechaInicio).getTime())
+      setLoadingTasks(false)
+      setGameStarted(true)
+    } catch (err) {
+      console.error('❌ Error al reanudar apertura:', err)
+      setLoadingTasks(false)
+    }
+  }
+
+  function handleNewApertura() {
+    if (pendingAperturaData?.cierre?.id) {
+      fetch(`/api/apertura/${pendingAperturaData.cierre.id}`, { method: 'DELETE' })
+        .catch(err => console.error('Error al eliminar apertura abandonada:', err))
+    }
+    setShowPendingAperturaModal(false)
+    setPendingAperturaData(null)
+    setModoActivo('apertura')
+    setShowAperturaForm(true)
   }
 
   useEffect(() => {
     if (isAllCompleted && gameStarted && cierreId) {
-      // Marcar el cierre como completado en BD (cubre el caso de resume donde
-      // handleNext nunca llegó al else-branch porque la conexión falló)
-      fetch(`/api/cierre/${cierreId}`, {
+      // Marcar como completado en BD usando la API correcta
+      const apiUrl = modoActivo === 'apertura' ? `/api/apertura/${cierreId}` : `/api/cierre/${cierreId}`
+      fetch(apiUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completado: true, fechaFin: new Date() })
-      }).catch(err => console.error('Error auto-completando cierre:', err))
+      }).catch(err => console.error('Error auto-completando:', err))
       setShowCelebration(true)
     }
   }, [isAllCompleted, gameStarted])
@@ -253,15 +333,16 @@ export default function Home() {
 
   const handleNext = async () => {
     if (currentStep < totalTasks) {
-      // Pequeño delay para suavizar la transición
       setTimeout(() => {
         setCurrentStep(currentStep + 1)
       }, 100)
     } else {
-      // ⭐ MARCAR COMO COMPLETADO EN BD
+      // Marcar como completado usando la API correcta
       try {
-        console.log('📝 Marcando cierre como completado...')
-        await fetch(`/api/cierre/${cierreId}`, {
+        const apiUrl = modoActivo === 'apertura' ? `/api/apertura/${cierreId}` : `/api/cierre/${cierreId}`
+        const label = modoActivo === 'apertura' ? 'apertura' : 'cierre'
+        console.log(`📝 Marcando ${label} como completado...`)
+        await fetch(apiUrl, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -269,9 +350,9 @@ export default function Home() {
             fechaFin: new Date()
           })
         })
-        console.log('✅ Cierre marcado como completado')
+        console.log(`✅ ${label} marcado como completado`)
       } catch (error) {
-        console.error('❌ Error al marcar cierre como completado:', error)
+        console.error('❌ Error al marcar como completado:', error)
       }
 
       setShowCelebration(true)
@@ -280,12 +361,20 @@ export default function Home() {
 
 
   const handleStartGame = () => {
-    // Si hay cierre pendiente, mostrar el modal de recuperación
-    // en lugar de crear uno nuevo (evita cierres zombie)
     if (pendingCierreData) {
       setShowPendingModal(true)
     } else {
+      setModoActivo('cierre')
       setShowWorkerForm(true)
+    }
+  }
+
+  const handleStartApertura = () => {
+    if (pendingAperturaData) {
+      setShowPendingAperturaModal(true)
+    } else {
+      setModoActivo('apertura')
+      setShowAperturaForm(true)
     }
   }
 
@@ -293,17 +382,42 @@ export default function Home() {
     setCierreId(newCierreId)
     setWorkerName(newWorkerName)
     setShowWorkerForm(false)
+    setModoActivo('cierre')
     setCurrentStep(1)
     setShowCelebration(false)
     setLoadingTasks(true)
     setElapsedTime(0)
 
-    // Cargar las tareas desde la base de datos antes de iniciar el juego
     await loadTasksFromDatabase(newCierreId)
+    setLoadingTasks(false)
+    setGameStarted(true)
+    setStartTime(Date.now())
+  }
+
+  const handleAperturaSubmit = async (newAperturaId, newWorkerName, turno) => {
+    setCierreId(newAperturaId)
+    setWorkerName(newWorkerName)
+    setShowAperturaForm(false)
+    setModoActivo('apertura')
+    setCurrentStep(1)
+    setShowCelebration(false)
+    setLoadingTasks(true)
+    setElapsedTime(0)
+
+    // Cargar las tareas de apertura desde la BD
+    try {
+      const response = await fetch(`${window.location.origin}/api/apertura/${newAperturaId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setTasks(data.cierre.tareas)
+      }
+    } catch (error) {
+      console.error('Error al cargar tareas de apertura:', error)
+    }
 
     setLoadingTasks(false)
     setGameStarted(true)
-    setStartTime(Date.now()) // Iniciar el cronómetro
+    setStartTime(Date.now())
   }
 
   const loadTasksFromDatabase = async (cierreId) => {
@@ -331,10 +445,12 @@ export default function Home() {
     setCurrentStep(1)
     setShowCelebration(false)
     setShowWorkerForm(false)
+    setShowAperturaForm(false)
     setCierreId(null)
     setWorkerName('')
     setStartTime(null)
     setElapsedTime(0)
+    setModoActivo('cierre')
     setCurrentView('home')
   }
 
@@ -421,7 +537,7 @@ export default function Home() {
     return elapsedTime
   }
 
-  // Pantalla de formulario de trabajador
+  // Pantalla de formulario de trabajador (cierre)
   if (showWorkerForm) {
     return (
       <WorkerForm
@@ -431,19 +547,34 @@ export default function Home() {
     )
   }
 
+  // 🌅 Pantalla de formulario de apertura
+  if (showAperturaForm) {
+    return (
+      <WorkerFormApertura
+        onStart={handleAperturaSubmit}
+        onCancel={() => setShowAperturaForm(false)}
+      />
+    )
+  }
+
   // Pantalla de carga de tareas
   if (loadingTasks) {
+    const isAperturaLoading = modoActivo === 'apertura'
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className={`min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 ${isAperturaLoading ? 'bg-gradient-to-br from-amber-900 via-orange-800 to-yellow-900' : 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'}`}>
         <div className="text-center w-full max-w-md mx-auto">
           <div className="bg-white/10 backdrop-blur-lg rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-white/20">
             <div className="text-center">
+              <div className="text-5xl mb-4 animate-pulse">{isAperturaLoading ? '🌅' : '🚀'}</div>
               <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4 sm:mb-6"></div>
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">
-                Cargando Tareas
+                {isAperturaLoading ? 'Cargando Apertura' : 'Cargando Tareas'}
               </h2>
               <p className="text-white/70 text-base sm:text-lg">
-                Preparando el proceso de cierre para {workerName}
+                {isAperturaLoading
+                  ? `Preparando el proceso de apertura para ${workerName}`
+                  : `Preparando el proceso de cierre para ${workerName}`
+                }
               </p>
             </div>
           </div>
@@ -452,7 +583,7 @@ export default function Home() {
     )
   }
 
-  // Modal de cierre pendiente — early return propio (sin Fragment, evita error React)
+  // Modal de cierre pendiente
   if (showPendingModal && pendingCierreData) {
     return (
       <PendingClosureModal
@@ -461,6 +592,19 @@ export default function Home() {
         onContinue={handleContinuePendingCierre}
         onNewClosure={handleNewCierre}
         cierreData={pendingCierreData}
+      />
+    )
+  }
+
+  // 🌅 Modal de apertura pendiente
+  if (showPendingAperturaModal && pendingAperturaData) {
+    return (
+      <PendingOpeningModal
+        isOpen={true}
+        onClose={() => { setShowPendingAperturaModal(false); setPendingAperturaData(null) }}
+        onContinue={handleContinuePendingApertura}
+        onNewOpening={handleNewApertura}
+        aperturaData={pendingAperturaData}
       />
     )
   }
@@ -553,6 +697,29 @@ export default function Home() {
                   </div>
                 )}
 
+                {/* 🌅 Badge apertura pendiente */}
+                {pendingAperturaData && (
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 text-2xl">🌅</div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-amber-900 text-sm mb-1">
+                          Tienes una apertura pendiente
+                        </h4>
+                        <p className="text-amber-800 text-xs mb-2">
+                          Apertura de <span className="font-semibold">{pendingAperturaData.turno?.toUpperCase()}</span> • {pendingAperturaData.tareasCompletadas}/{pendingAperturaData.totalTareas} pasos ({pendingAperturaData.progreso}%)
+                        </p>
+                        <button
+                          onClick={() => setShowPendingAperturaModal(true)}
+                          className="text-xs font-semibold text-amber-700 underline underline-offset-2"
+                        >
+                          → Reanudar apertura pendiente
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* 📋 Badge tareas asignadas */}
                 {tareasCount > 0 && (
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4 shadow-sm">
@@ -574,26 +741,46 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Acción Principal */}
+                {/* Acciones Principales */}
                 <div>
                   <h3 className="text-gray-600 text-xs font-semibold uppercase tracking-wide mb-3 px-1">
-                    🚀 Acción del Día
+                    🚀 Acciones del Turno
                   </h3>
-                  <button
-                    onClick={handleStartGame}
-                    className="w-full bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 text-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[0.98]"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="text-4xl animate-pulse">🚀</div>
-                        <div className="text-left">
-                          <div className="text-xl font-bold">Iniciar Cierre</div>
-                          <div className="text-sm text-white/80">Proceso completo de turno</div>
+                  <div className="flex flex-col gap-3">
+                    {/* 🌅 Apertura */}
+                    <button
+                      onClick={handleStartApertura}
+                      className="w-full bg-gradient-to-br from-amber-400 via-orange-400 to-yellow-500 hover:from-amber-500 hover:via-orange-500 hover:to-yellow-600 text-white rounded-3xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[0.98]"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="text-4xl">🌅</div>
+                          <div className="text-left">
+                            <div className="text-lg font-bold">Iniciar Apertura</div>
+                            <div className="text-xs text-white/80">Checklist de apertura de tienda</div>
+                          </div>
                         </div>
+                        <div className="text-white/60 text-3xl">→</div>
                       </div>
-                      <div className="text-white/60 text-3xl">→</div>
-                    </div>
-                  </button>
+                    </button>
+
+                    {/* 🚀 Cierre */}
+                    <button
+                      onClick={handleStartGame}
+                      className="w-full bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 text-white rounded-3xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[0.98]"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="text-4xl animate-pulse">🚀</div>
+                          <div className="text-left">
+                            <div className="text-lg font-bold">Iniciar Cierre</div>
+                            <div className="text-xs text-white/80">Proceso completo de turno</div>
+                          </div>
+                        </div>
+                        <div className="text-white/60 text-3xl">→</div>
+                      </div>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Accesos Rápidos */}
@@ -753,29 +940,35 @@ export default function Home() {
 
   // Pantalla de celebración
   if (showCelebration) {
+    const isApertura = modoActivo === 'apertura'
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-3 sm:p-6 lg:p-8">
+      <div className={`min-h-screen flex items-center justify-center p-3 sm:p-6 lg:p-8 ${isApertura ? 'bg-gradient-to-br from-amber-900 via-orange-800 to-yellow-900' : 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'}`}>
         <div className="text-center w-full max-w-4xl mx-auto">
           <div className="bg-white/10 backdrop-blur-lg rounded-xl sm:rounded-2xl lg:rounded-3xl p-4 sm:p-6 lg:p-8 xl:p-12 border border-white/20">
-            <div className="text-5xl sm:text-6xl lg:text-8xl mb-3 sm:mb-4 lg:mb-6 animate-bounce">🎉</div>
+            <div className="text-5xl sm:text-6xl lg:text-8xl mb-3 sm:mb-4 lg:mb-6 animate-bounce">
+              {isApertura ? '🌅' : '🎉'}
+            </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-2 sm:mb-3 lg:mb-4">
-              ¡Cierre Finalizado!
+              {isApertura ? '¡Apertura Completada!' : '¡Cierre Finalizado!'}
             </h1>
             <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-white/80 mb-2 sm:mb-3 lg:mb-4 px-2 sm:px-4">
-              Has completado exitosamente todas las tareas de cierre de Evas Barcelona
+              {isApertura
+                ? 'Has completado todos los pasos de apertura de Evas Barcelona ☀️'
+                : 'Has completado exitosamente todas las tareas de cierre de Evas Barcelona'
+              }
             </p>
             <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-white/70 mb-4 sm:mb-6 lg:mb-8">
               Trabajador: <span className="font-bold text-white">{workerName}</span>
             </p>
 
-            <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-400/30 rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 xl:p-8 mb-4 sm:mb-6 lg:mb-8">
+            <div className={`border rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 xl:p-8 mb-4 sm:mb-6 lg:mb-8 ${isApertura ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-400/30' : 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-400/30'}`}>
               <h2 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-white mb-2 sm:mb-3 lg:mb-4">
-                ¡Excelente trabajo! 🏆
+                {isApertura ? '¡La tienda está lista! ☀️' : '¡Excelente trabajo! 🏆'}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 text-white/90">
                 <div className="text-center">
                   <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{totalTasks}</div>
-                  <div className="text-xs sm:text-sm">Tareas completadas</div>
+                  <div className="text-xs sm:text-sm">{isApertura ? 'Pasos completados' : 'Tareas completadas'}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{formatRealTime(getRealTime())}</div>

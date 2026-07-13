@@ -115,15 +115,26 @@ export async function PUT(request) {
               } catch (_) { /* no bloquear el envío si falla la consulta del planning */ }
             }
 
+            const esApertura = cierreActualizado.tipo === 'apertura'
             const turnoEmoji = cierreActualizado.turno === 'mañana' ? '🟡' : cierreActualizado.turno === 'tarde' ? '🔵' : '🌙'
 
-            const mensaje = [
-              `✅ <b>Cierre completado</b>`,
-              ``,
-              `👤 <b>${cierreActualizado.trabajador}</b> · ${turnoEmoji} ${turnoLabel}`,
-              `💰 ${ventasStr}`,
-              `🕐 ${hora} · ${fecha}${siguienteTurnoLine}`,
-            ].join('\n')
+            let mensaje
+            if (esApertura) {
+              mensaje = [
+                `🌅 <b>Apertura completada</b>`,
+                ``,
+                `👤 <b>${cierreActualizado.trabajador}</b>`,
+                `🕐 ${hora} · ${fecha}`,
+              ].join('\n')
+            } else {
+              mensaje = [
+                `✅ <b>Cierre completado</b>`,
+                ``,
+                `👤 <b>${cierreActualizado.trabajador}</b> · ${turnoEmoji} ${turnoLabel}`,
+                `💰 ${ventasStr}`,
+                `🕐 ${hora} · ${fecha}${siguienteTurnoLine}`,
+              ].join('\n')
+            }
 
             const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
             const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID
@@ -139,14 +150,16 @@ export async function PUT(request) {
                   disable_web_page_preview: true,
                   reply_markup: {
                     inline_keyboard: [[
-                      { text: 'Ver panel de cierres →', url: `${process.env.NEXTAUTH_URL}/admin/cierres` }
+                      esApertura
+                        ? { text: 'Ver aperturas →', url: `${process.env.NEXTAUTH_URL}/admin/aperturas` }
+                        : { text: 'Ver panel de cierres →', url: `${process.env.NEXTAUTH_URL}/admin/cierres` }
                     ]]
                   }
                 }),
               })
 
               if (response.ok) {
-                console.log('Notificación de cierre enviada a Telegram')
+                console.log(`Notificación de ${esApertura ? 'apertura' : 'cierre'} enviada a Telegram`)
               } else {
                 console.error('Error enviando notificación a Telegram:', await response.text())
               }

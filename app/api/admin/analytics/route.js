@@ -33,6 +33,7 @@ export async function GET(request) {
     // Obtener cierres en el rango de fechas
     const cierres = await prisma.cierre.findMany({
       where: {
+        tipo: 'cierre',
         createdAt: {
           gte: startDate,
           lte: now

@@ -374,8 +374,8 @@ export async function GET(request) {
     const dateRange = searchParams.get('dateRange') || 'todos'
     const trabajadorFilter = searchParams.get('trabajador') || 'todos'
 
-    // Construir where clause
-    const where = {}
+    // Filtrar solo cierres (excluye aperturas). Todos los registros tienen tipo tras la migración.
+    const where = { tipo: 'cierre' }
 
     if (trabajadorFilter !== 'todos') {
       where.trabajador = trabajadorFilter

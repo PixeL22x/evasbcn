@@ -27,6 +27,7 @@ import {
   ClipboardCheck,
   CalendarCheck,
   Tablet,
+  Sun,
 } from "lucide-react"
 
 
@@ -65,6 +66,11 @@ const data = {
       title: "Cierres",
       url: "/admin/cierres",
       icon: Clock,
+    },
+    {
+      title: "Aperturas",
+      url: "/admin/aperturas",
+      icon: Sun,
     },
     {
       title: "Tickets del Día",

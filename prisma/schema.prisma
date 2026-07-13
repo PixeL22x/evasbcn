@@ -14,6 +14,7 @@ model Cierre {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   trabajador  String
   turno       String   // "mañana" o "tarde"
+  tipo        String   @default("cierre") // "cierre" | "apertura"
   fechaInicio DateTime @default(now())
   fechaFin    DateTime?
   completado  Boolean  @default(false)

@@ -16,6 +16,7 @@ export async function GET(request) {
         const cierre = await prisma.cierre.findFirst({
             where: {
                 trabajador: trabajador,
+                tipo: 'cierre',
                 completado: false,
                 fechaInicio: {
                     gte: new Date(Date.now() - 24 * 60 * 60 * 1000)

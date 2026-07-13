@@ -25,9 +25,8 @@ export async function GET() {
     // Debug: verificar cierres del día 17
     const cierresHoy = await prisma.cierre.findMany({
       where: {
-        fechaFin: {
-          gte: startOfDay
-        }
+        tipo: 'cierre',
+        fechaFin: { gte: startOfDay }
       },
       select: { fechaFin: true, turno: true, totalVentas: true, completado: true },
       orderBy: { fechaFin: 'desc' }
@@ -36,18 +35,13 @@ export async function GET() {
 
     // Ventas del turno mañana (solo turno mañana para evitar duplicación)
     const ventasTurnoMananaResult = await prisma.cierre.aggregate({
-      _sum: {
-        totalVentas: true
-      },
+      _sum: { totalVentas: true },
       where: {
+        tipo: 'cierre',
         completado: true,
-        fechaFin: {
-          gte: startOfDay
-        },
-        totalVentas: {
-          not: null
-        },
-        turno: "mañana"  // Solo contar ventas del turno de mañana
+        fechaFin: { gte: startOfDay },
+        totalVentas: { not: null },
+        turno: "mañana"
       }
     })
 
@@ -62,18 +56,13 @@ export async function GET() {
     // El ticket total del día lo escanea SIEMPRE el último turno.
     // Nunca sumamos "mañana" para evitar doble conteo.
     const ventasHoyResult = await prisma.cierre.aggregate({
-      _sum: {
-        totalVentas: true
-      },
+      _sum: { totalVentas: true },
       where: {
+        tipo: 'cierre',
         completado: true,
-        fechaFin: {
-          gte: startOfDay
-        },
-        totalVentas: {
-          not: null
-        },
-        turno: { in: ['tarde', 'noche'] }  // El cierre de día lo hace tarde (L-J) o noche (V-D)
+        fechaFin: { gte: startOfDay },
+        totalVentas: { not: null },
+        turno: { in: ['tarde', 'noche'] }
       }
     })
 
@@ -83,6 +72,7 @@ export async function GET() {
     // Obtener últimas 5 ventas (cierres completados)
     const recentSales = await prisma.cierre.findMany({
       where: {
+        tipo: 'cierre',
         completado: true,
         totalVentas: { gt: 0 }
       },
@@ -93,7 +83,7 @@ export async function GET() {
         fechaFin: true,
         totalVentas: true,
         turno: true,
-        trabajador: true  // trabajador is a String field, not a relation
+        trabajador: true
       }
     })
 
