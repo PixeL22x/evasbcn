@@ -163,6 +163,11 @@ const data = {
       ],
     },
     {
+      title: "Fichajes",
+      url: "/admin/fichajes",
+      icon: Clock,
+    },
+    {
       title: "Analíticas",
       url: "/admin/analytics",
       icon: TrendingUp,

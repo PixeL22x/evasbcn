@@ -11,6 +11,10 @@ export async function GET(request) {
         const mes = searchParams.get('mes') // MM
         const anio = searchParams.get('anio') // YYYY
 
+        const page = parseInt(searchParams.get('page')) || 1
+        const limit = parseInt(searchParams.get('limit')) || 20
+        const skip = (page - 1) * limit
+
         let whereClause = {}
 
         if (trabajadorId) whereClause.trabajadorId = trabajadorId
@@ -26,13 +30,26 @@ export async function GET(request) {
             whereClause.fecha = { gte: start, lt: end }
         }
 
-        const registros = await prisma.registroHorario.findMany({
-            where: whereClause,
-            orderBy: { entrada: 'desc' },
-            include: { trabajador: { select: { nombre: true } } }
-        })
+        const [registros, total] = await Promise.all([
+            prisma.registroHorario.findMany({
+                where: whereClause,
+                orderBy: { entrada: 'desc' },
+                include: { trabajador: { select: { nombre: true } } },
+                skip,
+                take: limit
+            }),
+            prisma.registroHorario.count({ where: whereClause })
+        ])
 
-        return NextResponse.json({ registros })
+        return NextResponse.json({ 
+            registros, 
+            pagination: { 
+                total, 
+                page, 
+                limit, 
+                totalPages: Math.ceil(total / limit) 
+            } 
+        })
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
@@ -52,7 +69,10 @@ export async function POST(request) {
         const openRecord = await prisma.registroHorario.findFirst({
             where: {
                 trabajadorId,
-                salida: null
+                OR: [
+                    { salida: null },
+                    { salida: { isSet: false } }
+                ]
             }
         })
 
@@ -92,7 +112,13 @@ export async function PUT(request) {
             if (!trabajadorId) return NextResponse.json({ error: 'Falta trabajadorId' }, { status: 400 })
 
             const openRecord = await prisma.registroHorario.findFirst({
-                where: { trabajadorId, salida: null },
+                where: { 
+                    trabajadorId, 
+                    OR: [
+                        { salida: null },
+                        { salida: { isSet: false } }
+                    ]
+                },
                 orderBy: { entrada: 'desc' }
             })
 
